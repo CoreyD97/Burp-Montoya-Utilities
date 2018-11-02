@@ -1,4 +1,4 @@
-apply plugin: 'java'
+apply plugin: 'java-library'
 apply plugin: 'maven'
 
 group = 'com.github.CoreyD97'
@@ -8,8 +8,7 @@ repositories {
 }
 
 dependencies {
-    compile 'net.portswigger.burp.extender:burp-extender-api:+'
-    compile 'com.google.code.gson:gson:+'
+    api 'com.google.code.gson:gson:+'
     testCompile 'junit:junit:+'
     testCompile 'org.mockito:mockito-core:+'
     testCompile files('/opt/BurpSuitePro/burpsuite_pro.jar')
