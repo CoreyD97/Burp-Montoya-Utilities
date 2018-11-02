@@ -1,4 +1,7 @@
 apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'com.github.CoreyD97'
 
 repositories {
     mavenCentral()
