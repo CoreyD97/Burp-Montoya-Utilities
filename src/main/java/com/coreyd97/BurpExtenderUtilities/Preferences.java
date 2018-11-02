@@ -1,4 +1,4 @@
-package com.coreyd97.BurpExtenderBase;
+package com.coreyd97.BurpExtenderUtilities;
 
 import burp.IBurpExtenderCallbacks;
 

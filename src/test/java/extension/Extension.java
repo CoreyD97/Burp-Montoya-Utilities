@@ -1,9 +1,9 @@
 package extension;
 
 import burp.*;
-import com.coreyd97.BurpExtenderBase.IGsonProvider;
-import com.coreyd97.BurpExtenderBase.PanelBuilder;
-import com.coreyd97.BurpExtenderBase.Preferences;
+import com.coreyd97.BurpExtenderUtilities.IGsonProvider;
+import com.coreyd97.BurpExtenderUtilities.PanelBuilder;
+import com.coreyd97.BurpExtenderUtilities.Preferences;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;

@@ -1,7 +1,7 @@
 package extension;
 
 import burp.IBurpExtenderCallbacks;
-import com.coreyd97.BurpExtenderBase.Preferences;
+import com.coreyd97.BurpExtenderUtilities.Preferences;
 import com.google.gson.Gson;
 import org.junit.Before;
 import org.junit.BeforeClass;
