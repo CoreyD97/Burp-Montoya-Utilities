@@ -12,6 +12,7 @@ dependencies {
     compile 'com.google.code.gson:gson:+'
     testCompile 'junit:junit:+'
     testCompile 'org.mockito:mockito-core:+'
+    testCompile files('/opt/BurpSuitePro/burpsuite_pro.jar')
 }
 
 task fatJar(type: Jar) {
