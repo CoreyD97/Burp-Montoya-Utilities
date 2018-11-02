@@ -8,6 +8,7 @@ repositories {
 }
 
 dependencies {
+    api 'net.portswigger.burp.extender:burp-extender-api:1.7.22'
     api 'com.google.code.gson:gson:+'
     testCompile 'junit:junit:+'
     testCompile 'org.mockito:mockito-core:+'
