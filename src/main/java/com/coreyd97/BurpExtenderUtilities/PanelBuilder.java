@@ -181,9 +181,22 @@ public class PanelBuilder {
             this.preferences = new LinkedHashMap<>();
         }
 
-        public JComponent addButton(String title, final Runnable callback){
+        public JButton addButton(String title, final Runnable callback){
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.fill = GridBagConstraints.BOTH;
+            gbc.gridx = 1;
+            gbc.gridy = currY;
+            gbc.weightx = 1;
+            JButton button = addButton(title, gbc, callback);
+            currY++;
+
+            return button;
+        }
+
+        public JButton addButton(String title, GridBagConstraints constraints, final Runnable callback){
             JButton button = new JButton(title);
             button.addActionListener(actionEvent -> callback.run());
+            this.add(button, constraints);
             return button;
         }
 
