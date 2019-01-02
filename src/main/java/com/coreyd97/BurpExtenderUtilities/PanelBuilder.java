@@ -9,6 +9,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class PanelBuilder {
 
@@ -177,6 +179,12 @@ public class PanelBuilder {
         private ComponentGroup(){
             super(new GridBagLayout());
             this.preferences = new LinkedHashMap<>();
+        }
+
+        public JComponent addButton(String title, final Runnable callback){
+            JButton button = new JButton(title);
+            button.addActionListener(actionEvent -> callback.run());
+            return button;
         }
 
         public JComponent addSetting(final String settingName){
