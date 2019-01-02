@@ -15,5 +15,5 @@ public interface IGsonProvider {
      * @param type
      * @param typeAdapter
      */
-    void registerTypeAdapter(Type type, TypeAdapter typeAdapter);
+    void registerTypeAdapter(Type type, Object typeAdapter);
 }

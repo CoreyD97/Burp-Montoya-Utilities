@@ -22,7 +22,7 @@ public class DefaultGsonProvider implements IGsonProvider {
     }
 
     @Override
-    public void registerTypeAdapter(Type type, TypeAdapter typeAdapter) {
+    public void registerTypeAdapter(Type type, Object typeAdapter) {
         this.gsonBuilder.registerTypeAdapter(type, typeAdapter);
         this.gson = this.gsonBuilder.create();
     }
