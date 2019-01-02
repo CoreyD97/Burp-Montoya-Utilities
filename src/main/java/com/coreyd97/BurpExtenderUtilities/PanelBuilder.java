@@ -187,6 +187,7 @@ public class PanelBuilder {
             gbc.gridx = 1;
             gbc.gridy = currY;
             gbc.weightx = 1;
+            gbc.gridwidth = 2;
             JButton button = addButton(title, gbc, callback);
             currY++;
 
