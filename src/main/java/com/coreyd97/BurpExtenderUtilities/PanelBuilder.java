@@ -181,50 +181,45 @@ public class PanelBuilder {
             this.preferences = new LinkedHashMap<>();
         }
 
-        public JButton addButton(String title, final Runnable callback){
+        public JButton addButton(String title, final ActionListener actionListener){
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.fill = GridBagConstraints.BOTH;
             gbc.gridx = 1;
             gbc.gridy = currY;
             gbc.weightx = 1;
             gbc.gridwidth = 2;
-            JButton button = addButton(title, gbc, callback);
+            JButton button = addButton(title, gbc, actionListener);
             currY++;
 
             return button;
         }
 
-        public JButton addButton(String title, GridBagConstraints constraints, final Runnable callback){
+        public JButton addButton(String title, GridBagConstraints constraints, final ActionListener actionListener){
             JButton button = new JButton(title);
-            button.addActionListener(actionEvent -> callback.run());
+            if(actionListener != null)
+                button.addActionListener(actionListener);
             this.add(button, constraints);
             return button;
         }
 
-        public JToggleButton addToggleButton(String title,
-                                             final Runnable selectedCallback, final Runnable deselectedCallback){
+        public JToggleButton addToggleButton(String title, final ActionListener actionListener){
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.fill = GridBagConstraints.BOTH;
             gbc.gridx = 1;
             gbc.gridy = currY;
             gbc.weightx = 1;
             gbc.gridwidth = 2;
-            JToggleButton button = addToggleButton(title, gbc, selectedCallback, deselectedCallback);
+            JToggleButton button = addToggleButton(title, gbc, actionListener);
             currY++;
 
             return button;
         }
 
         public JToggleButton addToggleButton(String title, GridBagConstraints constraints,
-                                             final Runnable selectedCallback, final Runnable deselectedCallback){
+                                             final ActionListener actionListener){
             JToggleButton button = new JToggleButton(title);
-            button.addActionListener(actionEvent -> {
-                if(button.isSelected()) {
-                    if (selectedCallback != null) selectedCallback.run();
-                }else {
-                    if(deselectedCallback != null) deselectedCallback.run();
-                }
-            });
+            if(actionListener != null)
+                button.addActionListener(actionListener);
 
             this.add(button, constraints);
             return button;
