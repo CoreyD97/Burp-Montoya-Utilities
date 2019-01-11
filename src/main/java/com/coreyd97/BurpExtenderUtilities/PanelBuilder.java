@@ -201,6 +201,35 @@ public class PanelBuilder {
             return button;
         }
 
+        public JToggleButton addToggleButton(String title,
+                                             final Runnable selectedCallback, final Runnable deselectedCallback){
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.fill = GridBagConstraints.BOTH;
+            gbc.gridx = 1;
+            gbc.gridy = currY;
+            gbc.weightx = 1;
+            gbc.gridwidth = 2;
+            JToggleButton button = addToggleButton(title, gbc, selectedCallback, deselectedCallback);
+            currY++;
+
+            return button;
+        }
+
+        public JToggleButton addToggleButton(String title, GridBagConstraints constraints,
+                                             final Runnable selectedCallback, final Runnable deselectedCallback){
+            JToggleButton button = new JToggleButton(title);
+            button.addActionListener(actionEvent -> {
+                if(button.isSelected()) {
+                    if (selectedCallback != null) selectedCallback.run();
+                }else {
+                    if(deselectedCallback != null) deselectedCallback.run();
+                }
+            });
+
+            this.add(button, constraints);
+            return button;
+        }
+
         public JComponent addSetting(final String settingName){
             Class clazz = PanelBuilder.this.preferences.getSettingClass(settingName);
             Object value = PanelBuilder.this.preferences.getSetting(settingName);
