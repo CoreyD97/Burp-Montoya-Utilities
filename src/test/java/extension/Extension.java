@@ -134,7 +134,7 @@ public class Extension implements ITab, IBurpExtender, IGsonProvider{
     }
 
 
-    public void registerTypeAdapter(Type type, TypeAdapter typeAdapter){
+    public void registerTypeAdapter(Type type, Object typeAdapter){
         Extension.gsonBuilder.registerTypeAdapter(type, typeAdapter);
         Extension.gson = Extension.gsonBuilder.create();
     }
