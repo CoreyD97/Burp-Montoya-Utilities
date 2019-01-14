@@ -320,6 +320,28 @@ public class PanelBuilder {
             return component;
         }
 
+        public JTextArea addTextAreaSetting(String settingName){
+            String value = String.valueOf(PanelBuilder.this.preferences.getSetting(settingName));
+
+            JTextArea textArea = new JTextArea();
+            textArea.setText(value);
+
+            textArea.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent documentEvent) { saveChanges(); }
+                @Override
+                public void removeUpdate(DocumentEvent documentEvent) { saveChanges(); }
+                @Override
+                public void changedUpdate(DocumentEvent documentEvent) { saveChanges(); }
+
+                private void saveChanges(){
+                    PanelBuilder.this.preferences.setSetting(settingName, textArea.getText());
+                }
+            });
+
+            return textArea;
+        }
+
         public JComponent addComponent(JComponent jComponent){
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.fill = GridBagConstraints.BOTH;
