@@ -229,6 +229,10 @@ public class PanelBuilder {
         }
 
         public JComponent addSetting(final String settingName){
+            return addSetting(settingName, settingName);
+        }
+
+        public JComponent addSetting(final String settingName, final String label){
             Class clazz = PanelBuilder.this.preferences.getSettingClass(settingName);
             Object value = PanelBuilder.this.preferences.getSetting(settingName);
             final JComponent component;
@@ -307,7 +311,7 @@ public class PanelBuilder {
 //            gbc.ipadx = gbc.ipady = 5;
             gbc.weightx = 0.15;
             gbc.gridy = currY;
-            this.add(new JLabel(settingName), gbc);
+            this.add(new JLabel(label), gbc);
             gbc.gridx++;
             gbc.weightx = 0.85;
             this.add(this.preferences.get(settingName), gbc);
