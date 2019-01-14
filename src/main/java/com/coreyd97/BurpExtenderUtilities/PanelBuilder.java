@@ -142,10 +142,10 @@ public class PanelBuilder {
         for (JComponent component : constraintsMap.keySet()) {
             GridBagConstraints constraints = constraintsMap.get(component);
             String props = String.format("x: %d, y: %d, w: %d, h: %d", constraints.gridx, constraints.gridy, constraints.gridwidth, constraints.gridheight);
-            if(component instanceof ComponentGroup)
-                System.out.println("Adding Panel \"" + ((ComponentGroup) component).title + "\" with props: " + props);
-            else
-                System.out.println("Adding Panel \"" + component.toString() + "\" with props: " + props);
+//            if(component instanceof ComponentGroup)
+//                System.out.println("Adding Panel \"" + ((ComponentGroup) component).title + "\" with props: " + props);
+//            else
+//                System.out.println("Adding Panel \"" + component.toString() + "\" with props: " + props);
             containerPanel.add(component, constraintsMap.get(component));
         }
 
