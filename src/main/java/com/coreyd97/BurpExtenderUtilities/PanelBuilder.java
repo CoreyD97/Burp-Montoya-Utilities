@@ -345,10 +345,11 @@ public class PanelBuilder {
         public JComponent addComponent(JComponent jComponent){
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.fill = GridBagConstraints.BOTH;
+            gbc.weighty = gbc.weightx = 1;
             gbc.gridwidth = 2;
             gbc.gridx = 1;
             gbc.gridy = currY;
-            this.add(jComponent);
+            this.add(jComponent, gbc);
             currY++;
             return jComponent;
         }

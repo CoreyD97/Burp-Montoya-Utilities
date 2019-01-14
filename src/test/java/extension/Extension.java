@@ -48,6 +48,8 @@ public class Extension implements ITab, IBurpExtender, IGsonProvider{
         //END Extension Required
 
         //Define Settings Here
+        Extension.preferences.addSetting("TextArea", String.class, "Hello World!");
+
         Extension.preferences.addSetting("G1String", String.class, "Example String 1");
         Extension.preferences.addSetting("G1Integer", Integer.class, 1024);
         Extension.preferences.addSetting("G1Boolean", Boolean.class, true);
@@ -85,10 +87,16 @@ public class Extension implements ITab, IBurpExtender, IGsonProvider{
                 PanelBuilder panelBuilder = new PanelBuilder(preferences);
                 PanelBuilder.ComponentGroup group1 = panelBuilder.createComponentGroup("Group 1");
                 PanelBuilder.ComponentGroup group2 = panelBuilder.createComponentGroup("Group 2");
+                group2.addTextAreaSetting("TextArea");
                 PanelBuilder.ComponentGroup group3 = panelBuilder.createComponentGroup("Group 3");
                 PanelBuilder.ComponentGroup group4 = panelBuilder.createComponentGroup("Group 4");
                 PanelBuilder.ComponentGroup group5 = panelBuilder.createComponentGroup("Group 5");
                 PanelBuilder.ComponentGroup group6 = panelBuilder.createComponentGroup("Group 6");
+
+                JLabel statusLabel = new JLabel("Status: Not Running");
+                statusLabel.setBorder(BorderFactory.createLineBorder(Color.CYAN));
+                group1.addComponent(statusLabel);
+                JToggleButton startStopButton = group1.addToggleButton("Start", null);
 
                 JPanel[][] layout = new JPanel[][]{
                         new JPanel[]{group1,group1,group1, null , null },
