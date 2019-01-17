@@ -9,8 +9,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 public class PanelBuilder {
 
@@ -233,11 +231,11 @@ public class PanelBuilder {
         }
 
         public JComponent addSetting(final String settingName, final String label){
-            Class clazz = PanelBuilder.this.preferences.getSettingClass(settingName);
+//            Class clazz = PanelBuilder.this.preferences.getSettingType(settingName);
             Object value = PanelBuilder.this.preferences.getSetting(settingName);
             final JComponent component;
 
-            if(clazz.isAssignableFrom(String.class)){
+            if(String.class.isInstance(value)){
                 final JTextField textComponent = new JTextField();
                 textComponent.setText((String) value);
                 textComponent.getDocument().addDocumentListener(new DocumentListener() {
@@ -258,7 +256,7 @@ public class PanelBuilder {
                 });
 
                 component = textComponent;
-            }else if(clazz.isAssignableFrom(Integer.class)){
+            }else if(Integer.class.isInstance(value)){
                 final JSpinner spinnerComponent = new JSpinner();
                 spinnerComponent.setValue(value);
                 spinnerComponent.addChangeListener(new ChangeListener() {
@@ -268,7 +266,7 @@ public class PanelBuilder {
                     }
                 });
                 component = spinnerComponent;
-            }else if(clazz.isAssignableFrom(Boolean.class)){
+            }else if(Boolean.class.isInstance(value)){
                 final JCheckBox checkComponent = new JCheckBox();
                 checkComponent.setSelected((Boolean) value);
                 checkComponent.addActionListener(new ActionListener() {

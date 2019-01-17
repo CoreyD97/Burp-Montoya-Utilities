@@ -57,7 +57,7 @@ public class PreferencesTest {
     public void addNewSetting() throws Exception {
         //New setting with no value yet.
         preferences.addSetting("test", String.class);
-        assertEquals(String.class, preferences.getSettingClass("test"));
+        assertEquals(String.class, preferences.getSettingType("test"));
         assertNull(preferences.getSetting("test"));
         assertNull(callbacks.loadExtensionSetting("test"));
     }
@@ -65,7 +65,7 @@ public class PreferencesTest {
     @Test
     public void addNewSettingWithDefault() throws Exception {
         preferences.addSetting("test", String.class, "Hello World!");
-        assertEquals(String.class, preferences.getSettingClass("test"));
+        assertEquals(String.class, preferences.getSettingType("test"));
         assertEquals("Hello World!", preferences.getSetting("test"));
         assertEquals(new Gson().toJson("Hello World!"), callbacks.loadExtensionSetting("test"));
     }
@@ -74,10 +74,10 @@ public class PreferencesTest {
     public void setSetting() throws Exception {
         preferences.addSetting("test", String.class);
         assertNull(preferences.getSetting("test"));
-        assertEquals(String.class, preferences.getSettingClass("test"));
+        assertEquals(String.class, preferences.getSettingType("test"));
         preferences.setSetting("test", "New Value");
         assertEquals("New Value", preferences.getSetting("test"));
-        assertEquals(String.class, preferences.getSettingClass("test"));
+        assertEquals(String.class, preferences.getSettingType("test"));
     }
 
     @Test(expected = IllegalArgumentException.class)

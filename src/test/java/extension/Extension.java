@@ -7,10 +7,12 @@ import com.coreyd97.BurpExtenderUtilities.Preferences;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
+import com.google.gson.reflect.TypeToken;
 
 import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.Type;
+import java.util.HashMap;
 
 public class Extension implements ITab, IBurpExtender, IGsonProvider{
     private static String extensionName = "My Extension";
@@ -57,6 +59,10 @@ public class Extension implements ITab, IBurpExtender, IGsonProvider{
         Extension.preferences.addSetting("G2String", String.class, "Example String 2");
         Extension.preferences.addSetting("G2Integer", Integer.class, 2048);
         Extension.preferences.addSetting("G2Boolean", Boolean.class, false);
+
+        Extension.preferences.addSetting("TypeTest", new TypeToken<HashMap<String, String>>(){}.getType(), new HashMap<String, String>());
+
+        Object test = Extension.preferences.getSetting("TypeTest");
         //END Setting Definition
 
         buildUI();
