@@ -8,14 +8,16 @@ import java.util.HashMap;
 public class Preferences {
 
     private final IGsonProvider gsonProvider;
-    private IBurpExtenderCallbacks callbacks;
-    private HashMap<String, Object> settings;
-    private HashMap<String, Type> settingTypes;
+    private final IBurpExtenderCallbacks callbacks;
+    private final HashMap<String, Object> settings;
+    private final HashMap<String, Object> defaults;
+    private final HashMap<String, Type> settingTypes;
 
     public Preferences(final IGsonProvider gsonProvider, final IBurpExtenderCallbacks callbacks){
         this.gsonProvider = gsonProvider;
         this.callbacks = callbacks;
         this.settings = new HashMap<>();
+        this.defaults = new HashMap<>();
         this.settingTypes = new HashMap<>();
     }
 
@@ -41,11 +43,14 @@ public class Preferences {
                 this.settings.put(settingName, null);
             }
         }
+
+        this.defaults.put(settingName, defaultValue);
     }
 
     public <T> void addSetting(String settingName, Class<T> clazz, T defaultValue){
         //Get setting from burp settings.
         T storedValue = (T) getBurpSetting(settingName, clazz);
+        this.settingTypes.put(settingName, clazz);
 
         if(storedValue != null){
             this.settings.put(settingName, storedValue);
@@ -57,8 +62,9 @@ public class Preferences {
             }
         }
 
-        this.settingTypes.put(settingName, clazz);
+        this.defaults.put(settingName, defaultValue);
     }
+
 
     private void storePreference(String settingName, String jsonValue){
         this.callbacks.saveExtensionSetting(settingName, jsonValue);
@@ -70,6 +76,10 @@ public class Preferences {
         storePreference(settingName, jsonValue);
 
         this.settings.put(settingName, value);
+    }
+
+    public void resetSetting(String settingName){
+        setSetting(settingName, this.defaults.getOrDefault(settingName, null));
     }
 
     public Object getSetting(String settingName){
