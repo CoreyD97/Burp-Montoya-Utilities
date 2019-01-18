@@ -3,6 +3,7 @@ package com.coreyd97.BurpExtenderUtilities;
 import burp.IBurpExtenderCallbacks;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Preferences {
@@ -12,6 +13,7 @@ public class Preferences {
     private final HashMap<String, Object> settings;
     private final HashMap<String, Object> defaults;
     private final HashMap<String, Type> settingTypes;
+    private final ArrayList<String> volatileKeys;
 
     public Preferences(final IGsonProvider gsonProvider, final IBurpExtenderCallbacks callbacks){
         this.gsonProvider = gsonProvider;
@@ -19,6 +21,7 @@ public class Preferences {
         this.settings = new HashMap<>();
         this.defaults = new HashMap<>();
         this.settingTypes = new HashMap<>();
+        this.volatileKeys = new ArrayList<>();
     }
 
     public void addSetting(String settingName, Type type){
@@ -65,6 +68,26 @@ public class Preferences {
         this.defaults.put(settingName, defaultValue);
     }
 
+    public void addVolatileSetting(String settingName, Type type){
+        this.volatileKeys.add(settingName);
+        this.addSetting(settingName, type);
+    }
+
+    public void addVolatileSetting(String settingName, Class clazz){
+        this.volatileKeys.add(settingName);
+        this.addSetting(settingName, clazz);
+    }
+
+    public void addVolatileSetting(String settingName, Type type, Object defaultValue){
+        this.volatileKeys.add(settingName);
+        this.addSetting(settingName, type, defaultValue);
+    }
+
+    public <T> void addVolatileSetting(String settingName, Class<T> clazz, T defaultValue){
+        this.volatileKeys.add(settingName);
+        this.addSetting(settingName, clazz, defaultValue);
+    }
+
 
     private void storePreference(String settingName, String jsonValue){
         this.callbacks.saveExtensionSetting(settingName, jsonValue);
@@ -73,7 +96,8 @@ public class Preferences {
     public void setSetting(String settingName, Object value) {
         Type type = this.settingTypes.get(settingName);
         String jsonValue = gsonProvider.getGson().toJson(value, type);
-        storePreference(settingName, jsonValue);
+        if(!volatileKeys.contains(settingName))
+            storePreference(settingName, jsonValue);
 
         this.settings.put(settingName, value);
     }
