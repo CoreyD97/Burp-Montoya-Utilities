@@ -83,70 +83,48 @@ public class PanelBuilder {
             }
         }
 
-        GridBagConstraints alignmentGbc = new GridBagConstraints();
-        alignmentGbc.fill = GridBagConstraints.BOTH;
-        switch (alignment){
-            case TOPLEFT: {
-                alignmentGbc.gridx = maxx+1;
-                alignmentGbc.gridy = maxy+1;
-                alignmentGbc.weightx = Integer.MAX_VALUE;
-                alignmentGbc.weighty = Integer.MAX_VALUE;
-                break;
-            }
-            case TOPMIDDLE: {
-                alignmentGbc.gridy = maxy+1;
-                alignmentGbc.weighty = Integer.MAX_VALUE;
-                break;
-            }
-            case TOPRIGHT: {
-                alignmentGbc.gridx = minx-1;
-                alignmentGbc.gridy = maxy+1;
-                alignmentGbc.weightx = Integer.MAX_VALUE;
-                alignmentGbc.weighty = Integer.MAX_VALUE;
-                break;
-            }
-            case MIDDLELEFT: {
-                alignmentGbc.gridx = maxx+1;
-                alignmentGbc.weightx = Integer.MAX_VALUE;
-                break;
-            }
-            case MIDDLERIGHT: {
-                alignmentGbc.gridx = minx-1;
-                alignmentGbc.weightx = Integer.MAX_VALUE;
-                break;
-            }
-            case BOTTOMLEFT: {
-                alignmentGbc.gridx = maxx+1;
-                alignmentGbc.gridy = miny-1;
-                alignmentGbc.weightx = Integer.MAX_VALUE;
-                alignmentGbc.weighty = Integer.MAX_VALUE;
-                break;
-            }
-            case BOTTOMMIDDLE: {
-                alignmentGbc.gridy = miny-1;
-                alignmentGbc.weighty = Integer.MAX_VALUE;
-                break;
-            }
-            case BOTTOMRIGHT: {
-                alignmentGbc.gridy = miny-1;
-                alignmentGbc.gridx = minx-1;
-                alignmentGbc.weightx = Integer.MAX_VALUE;
-                alignmentGbc.weighty = Integer.MAX_VALUE;
-                break;
-            }
-        }
-        containerPanel.add(new JPanel(), alignmentGbc);
+        GridBagConstraints innerPanelGbc = new GridBagConstraints();
+        innerPanelGbc.fill = GridBagConstraints.BOTH;
+        innerPanelGbc.gridx = innerPanelGbc.gridy = 2;
+//        innerPanelGbc.weightx = innerPanelGbc.weighty = 1;
+        GridBagConstraints paddingLeftGbc = new GridBagConstraints();
+        GridBagConstraints paddingRightGbc = new GridBagConstraints();
+        GridBagConstraints paddingTopGbc = new GridBagConstraints();
+        GridBagConstraints paddingBottomGbc = new GridBagConstraints();
+        paddingLeftGbc.fill = paddingRightGbc.fill = paddingTopGbc.fill = paddingBottomGbc.fill = GridBagConstraints.BOTH;
+        paddingLeftGbc.weightx = paddingRightGbc.weightx = Integer.MAX_VALUE;
+        paddingTopGbc.weighty = paddingBottomGbc.weighty = Integer.MAX_VALUE;
+        paddingLeftGbc.gridy = paddingRightGbc.gridy = 2;
+        paddingTopGbc.gridx = paddingBottomGbc.gridx = 2;
+        paddingLeftGbc.gridx = 1;
+        paddingRightGbc.gridx = 3;
+        paddingTopGbc.gridy = 1;
+        paddingBottomGbc.gridy = 3;
 
+        JPanel topPanel, leftPanel, bottomPanel, rightPanel;
+
+        if(alignment != Alignment.TOPLEFT && alignment != Alignment.TOPMIDDLE && alignment != Alignment.TOPRIGHT){
+            containerPanel.add(topPanel = new JPanel(), paddingTopGbc);
+        }
+
+        if(alignment != Alignment.TOPLEFT && alignment != Alignment.MIDDLELEFT && alignment != Alignment.BOTTOMLEFT){
+            containerPanel.add(leftPanel = new JPanel(), paddingLeftGbc);
+        }
+
+        if(alignment != Alignment.TOPRIGHT && alignment != Alignment.MIDDLERIGHT && alignment != Alignment.BOTTOMRIGHT){
+            containerPanel.add(rightPanel = new JPanel(), paddingRightGbc);
+        }
+
+        if(alignment != Alignment.BOTTOMLEFT && alignment != Alignment.BOTTOMMIDDLE && alignment != Alignment.BOTTOMRIGHT){
+            containerPanel.add(bottomPanel = new JPanel(), paddingBottomGbc);
+        }
+
+
+        JPanel innerContainer = new JPanel(new GridBagLayout());
         for (JComponent component : constraintsMap.keySet()) {
-            GridBagConstraints constraints = constraintsMap.get(component);
-            String props = String.format("x: %d, y: %d, w: %d, h: %d", constraints.gridx, constraints.gridy, constraints.gridwidth, constraints.gridheight);
-//            if(component instanceof ComponentGroup)
-//                System.out.println("Adding Panel \"" + ((ComponentGroup) component).title + "\" with props: " + props);
-//            else
-//                System.out.println("Adding Panel \"" + component.toString() + "\" with props: " + props);
-            containerPanel.add(component, constraintsMap.get(component));
+            innerContainer.add(component, constraintsMap.get(component));
         }
-
+        containerPanel.add(innerContainer, innerPanelGbc);
         return containerPanel;
     }
 
@@ -169,7 +147,7 @@ public class PanelBuilder {
     public class ComponentGroup extends JPanel {
         String title;
         Map<String, JComponent> preferences;
-        int currY = 1;
+        int currentGridY = 1;
 
         private ComponentGroup(String title){
             this();
@@ -186,11 +164,11 @@ public class PanelBuilder {
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.fill = GridBagConstraints.BOTH;
             gbc.gridx = 1;
-            gbc.gridy = currY;
+            gbc.gridy = currentGridY;
             gbc.weightx = 1;
             gbc.gridwidth = 2;
             JButton button = addButton(title, gbc, actionListener);
-            currY++;
+            currentGridY++;
 
             return button;
         }
@@ -207,11 +185,11 @@ public class PanelBuilder {
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.fill = GridBagConstraints.BOTH;
             gbc.gridx = 1;
-            gbc.gridy = currY;
+            gbc.gridy = currentGridY;
             gbc.weightx = 1;
             gbc.gridwidth = 2;
             JToggleButton button = addToggleButton(title, gbc, actionListener);
-            currY++;
+            currentGridY++;
 
             return button;
         }
@@ -267,7 +245,7 @@ public class PanelBuilder {
                 });
                 component = spinnerComponent;
             }else if(Boolean.class.isInstance(value)){
-                final JCheckBox checkComponent = new JCheckBox();
+                final JCheckBox checkComponent = new JCheckBox(label);
                 checkComponent.setSelected((Boolean) value);
                 checkComponent.addActionListener(new ActionListener() {
                     @Override
@@ -277,6 +255,20 @@ public class PanelBuilder {
                 });
 
                 component = checkComponent;
+
+                this.preferences.put(settingName, component);
+                GridBagConstraints gbc = new GridBagConstraints();
+                gbc.fill = GridBagConstraints.BOTH;
+                gbc.gridx = 1;
+                gbc.weightx = 1;
+                gbc.gridwidth = 2;
+                gbc.weighty = 1;
+                gbc.gridy = currentGridY;
+                this.add(this.preferences.get(settingName), gbc);
+                currentGridY++;
+
+                return component;
+
             }else{
                 final JTextField textComponent = new JTextField();
                 textComponent.setText(String.valueOf(value));
@@ -308,12 +300,13 @@ public class PanelBuilder {
             gbc.gridx = 1;
 //            gbc.ipadx = gbc.ipady = 5;
             gbc.weightx = 0.15;
-            gbc.gridy = currY;
+            gbc.weighty = 1;
+            gbc.gridy = currentGridY;
             this.add(new JLabel(label), gbc);
             gbc.gridx++;
             gbc.weightx = 0.85;
             this.add(this.preferences.get(settingName), gbc);
-            currY++;
+            currentGridY++;
 
             return component;
         }
@@ -340,15 +333,41 @@ public class PanelBuilder {
             return textArea;
         }
 
-        public JComponent addComponent(JComponent jComponent){
+
+        /**
+         * Generate the constraints for the next element in the group.
+         * Useful for customising before addition.
+         * @return GridBagConstraints The default constraints for the next item in the group.
+         */
+        public GridBagConstraints generateNextConstraints(){
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.fill = GridBagConstraints.BOTH;
             gbc.weighty = gbc.weightx = 1;
             gbc.gridwidth = 2;
             gbc.gridx = 1;
-            gbc.gridy = currY;
-            this.add(jComponent, gbc);
-            currY++;
+            gbc.gridy = currentGridY;
+            currentGridY++;
+            return gbc;
+        }
+
+        /**
+         * Gets the current Y coord used for generation of the panel.
+         * @return int The Y coordinate.
+         */
+        public int getGridY(){
+            return this.currentGridY;
+        }
+
+
+        /**
+         * Sets the Y coord used for generation of the panel.
+         */
+        public void setGridY(int y){
+            this.currentGridY = y;
+        }
+
+        public JComponent addComponent(JComponent jComponent){
+            this.add(jComponent, generateNextConstraints());
             return jComponent;
         }
 

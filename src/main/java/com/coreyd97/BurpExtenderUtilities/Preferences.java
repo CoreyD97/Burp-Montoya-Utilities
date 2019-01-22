@@ -1,6 +1,7 @@
 package com.coreyd97.BurpExtenderUtilities;
 
 import burp.IBurpExtenderCallbacks;
+import com.google.gson.JsonSyntaxException;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -118,6 +119,11 @@ public class Preferences {
         String storedValue = this.callbacks.loadExtensionSetting(settingName);
         if(storedValue == null) return null;
 
-        return gsonProvider.getGson().fromJson(storedValue, settingType);
+        try {
+            return gsonProvider.getGson().fromJson(storedValue, settingType);
+        }catch (JsonSyntaxException e){
+            callbacks.printError("Could not load stored setting \"" + storedValue + "\". This may be due to a change in stored types. Falling back to default.");
+            return null;
+        }
     }
 }

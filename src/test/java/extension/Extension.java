@@ -29,6 +29,17 @@ public class Extension implements ITab, IBurpExtender, IGsonProvider{
     private JPanel extensionMainPanel;
     private JPanel extensionPreferencesPanel;
 
+    public static final String PREF_RESTRICT_TO_SCOPE = "restricttoscope";
+    public static final String PREF_LOG_GLOBAL = "logglobal";
+    public static final String PREF_LOG_PROXY = "logproxy";
+    public static final String PREF_LOG_SPIDER = "logspider";
+    public static final String PREF_LOG_INTRUDER = "logintruder";
+    public static final String PREF_LOG_SCANNER = "logscanner";
+    public static final String PREF_LOG_REPEATER = "logrepeater";
+    public static final String PREF_LOG_SEQUENCER = "logsequencer";
+    public static final String PREF_LOG_EXTENDER = "logextender";
+    public static final String PREF_LOG_TARGET_TAB = "logtargettab";
+
     public Extension(){
         //Serialization Setup - Required for storing preferences.
         Extension.gsonBuilder = new GsonBuilder();
@@ -51,6 +62,17 @@ public class Extension implements ITab, IBurpExtender, IGsonProvider{
 
         //Define Settings Here
         Extension.preferences.addSetting("TextArea", String.class, "Hello World!");
+
+        Extension.preferences.addSetting(PREF_RESTRICT_TO_SCOPE, Boolean.class, false);
+        Extension.preferences.addSetting(PREF_LOG_GLOBAL, Boolean.class, true);
+        Extension.preferences.addSetting(PREF_LOG_PROXY, Boolean.class, true);
+        Extension.preferences.addSetting(PREF_LOG_SPIDER, Boolean.class, true);
+        Extension.preferences.addSetting(PREF_LOG_INTRUDER, Boolean.class, true);
+        Extension.preferences.addSetting(PREF_LOG_SCANNER, Boolean.class, true);
+        Extension.preferences.addSetting(PREF_LOG_REPEATER, Boolean.class, true);
+        Extension.preferences.addSetting(PREF_LOG_SEQUENCER, Boolean.class, true);
+        Extension.preferences.addSetting(PREF_LOG_EXTENDER, Boolean.class, true);
+        Extension.preferences.addSetting(PREF_LOG_TARGET_TAB, Boolean.class, true);
 
         Extension.preferences.addSetting("G1String", String.class, "Example String 1");
         Extension.preferences.addSetting("G1Integer", Integer.class, 1024);
@@ -78,18 +100,6 @@ public class Extension implements ITab, IBurpExtender, IGsonProvider{
 		        Extension.this.extensionTabbedPanel = new JTabbedPane();
                 Extension.this.extensionMainPanel = new JPanel();
 
-//                PanelBuilder panelBuilder = new PanelBuilder(preferences);
-//                PanelBuilder.ComponentGroup group1 = panelBuilder.createComponentGroup("Group 1");
-//                group1.addSetting("G1String");
-//                group1.addSetting("G1Integer");
-//                group1.addSetting("G1Boolean");
-//                PanelBuilder.ComponentGroup group2 = panelBuilder.createComponentGroup("Group 2");
-//                group2.addSetting("G2String");
-//                group2.addSetting("G2Integer");
-//                group2.addSetting("G2Boolean");
-
-
-
                 PanelBuilder panelBuilder = new PanelBuilder(preferences);
                 PanelBuilder.ComponentGroup group1 = panelBuilder.createComponentGroup("Group 1");
                 PanelBuilder.ComponentGroup group2 = panelBuilder.createComponentGroup("Group 2");
@@ -98,6 +108,45 @@ public class Extension implements ITab, IBurpExtender, IGsonProvider{
                 PanelBuilder.ComponentGroup group4 = panelBuilder.createComponentGroup("Group 4");
                 PanelBuilder.ComponentGroup group5 = panelBuilder.createComponentGroup("Group 5");
                 PanelBuilder.ComponentGroup group6 = panelBuilder.createComponentGroup("Group 6");
+
+                PanelBuilder.ComponentGroup logFromPanel = panelBuilder.createComponentGroup("Log From");
+                JCheckBox restrict = (JCheckBox) logFromPanel.addSetting(PREF_RESTRICT_TO_SCOPE, "In scope items only");
+                restrict.setBorder(BorderFactory.createLineBorder(Color.BLUE));
+                logFromPanel.addComponent((JComponent) Box.createVerticalStrut(5));
+                JCheckBox logAllTools = (JCheckBox) logFromPanel.addSetting(PREF_LOG_GLOBAL, "All Tools");
+                JCheckBox logSpider = (JCheckBox) logFromPanel.addSetting(PREF_LOG_SPIDER, "Spider");
+                JCheckBox logIntruder = (JCheckBox) logFromPanel.addSetting(PREF_LOG_INTRUDER, "Intruder");
+                JCheckBox logScanner = (JCheckBox) logFromPanel.addSetting(PREF_LOG_SCANNER, "Scanner");
+                JCheckBox logRepeater = (JCheckBox) logFromPanel.addSetting(PREF_LOG_REPEATER, "Repeater");
+                JCheckBox logSequencer = (JCheckBox) logFromPanel.addSetting(PREF_LOG_SEQUENCER, "Sequencer");
+                JCheckBox logProxy = (JCheckBox) logFromPanel.addSetting(PREF_LOG_PROXY, "Proxy");
+                JCheckBox logTarget = (JCheckBox) logFromPanel.addSetting(PREF_LOG_TARGET_TAB, "Target");
+                JCheckBox logExtender = (JCheckBox) logFromPanel.addSetting(PREF_LOG_EXTENDER, "Extender");
+
+                {   //Disable check boxes if global logging is enabled.
+                    boolean globalDisabled = !logAllTools.isSelected();
+                    logSpider.setEnabled(globalDisabled);
+                    logIntruder.setEnabled(globalDisabled);
+                    logScanner.setEnabled(globalDisabled);
+                    logRepeater.setEnabled(globalDisabled);
+                    logSequencer.setEnabled(globalDisabled);
+                    logProxy.setEnabled(globalDisabled);
+                    logTarget.setEnabled(globalDisabled);
+                    logExtender.setEnabled(globalDisabled);
+                }
+
+                logAllTools.addActionListener(actionEvent -> {
+                    boolean globalDisabled = !logAllTools.isSelected();
+                    logSpider.setEnabled(globalDisabled);
+                    logIntruder.setEnabled(globalDisabled);
+                    logScanner.setEnabled(globalDisabled);
+                    logRepeater.setEnabled(globalDisabled);
+                    logSequencer.setEnabled(globalDisabled);
+                    logProxy.setEnabled(globalDisabled);
+                    logTarget.setEnabled(globalDisabled);
+                    logExtender.setEnabled(globalDisabled);
+                });
+
 
                 JLabel statusLabel = new JLabel("Status: Not Running");
                 statusLabel.setBorder(BorderFactory.createLineBorder(Color.CYAN));
@@ -108,8 +157,8 @@ public class Extension implements ITab, IBurpExtender, IGsonProvider{
                         new JPanel[]{group1,group1,group1, null , null },
                         new JPanel[]{group1,group1,group1, null , null },
                         new JPanel[]{ null , null ,group2,group2, null },
-                        new JPanel[]{group5, null ,group3,group4, null },
-                        new JPanel[]{group5, null , null , null ,group6},
+                        new JPanel[]{logFromPanel, null ,group3,group4, null },
+                        new JPanel[]{logFromPanel, null , null , null ,group6},
                 };
 
 
