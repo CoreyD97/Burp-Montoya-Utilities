@@ -121,7 +121,7 @@ public class Preferences {
 
         try {
             return gsonProvider.getGson().fromJson(storedValue, settingType);
-        }catch (JsonSyntaxException e){
+        }catch (Exception e){
             callbacks.printError("Could not load stored setting \"" + storedValue + "\". This may be due to a change in stored types. Falling back to default.");
             return null;
         }
