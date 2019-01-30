@@ -219,17 +219,23 @@ public class PanelBuilder {
                 textComponent.getDocument().addDocumentListener(new DocumentListener() {
                     @Override
                     public void insertUpdate(DocumentEvent documentEvent) {
-                        PanelBuilder.this.preferences.setSetting(settingName, textComponent.getText());
+                        PanelBuilder.this.preferences.setSetting(settingName, textComponent.getText(), false);
                     }
 
                     @Override
                     public void removeUpdate(DocumentEvent documentEvent) {
-                        PanelBuilder.this.preferences.setSetting(settingName, textComponent.getText());
+                        PanelBuilder.this.preferences.setSetting(settingName, textComponent.getText(), false);
                     }
 
                     @Override
                     public void changedUpdate(DocumentEvent documentEvent) {
-                        PanelBuilder.this.preferences.setSetting(settingName, textComponent.getText());
+                        PanelBuilder.this.preferences.setSetting(settingName, textComponent.getText(), false);
+                    }
+                });
+
+                PanelBuilder.this.preferences.addSettingListener((changedSettingName, newValue) -> {
+                    if(changedSettingName.equals(settingName)){
+                        textComponent.setText((String) newValue);
                     }
                 });
 
@@ -240,21 +246,34 @@ public class PanelBuilder {
                 spinnerComponent.addChangeListener(new ChangeListener() {
                     @Override
                     public void stateChanged(ChangeEvent changeEvent) {
-                        PanelBuilder.this.preferences.setSetting(settingName, spinnerComponent.getValue());
+                        PanelBuilder.this.preferences.setSetting(settingName, spinnerComponent.getValue(), false);
                     }
                 });
                 component = spinnerComponent;
+
+                PanelBuilder.this.preferences.addSettingListener((changedSettingName, newValue) -> {
+                    if(changedSettingName.equals(settingName)){
+                        spinnerComponent.setValue(newValue);
+                    }
+                });
+
             }else if(Boolean.class.isInstance(value)){
                 final JCheckBox checkComponent = new JCheckBox(label);
                 checkComponent.setSelected((Boolean) value);
                 checkComponent.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent actionEvent) {
-                        PanelBuilder.this.preferences.setSetting(settingName, checkComponent.isSelected());
+                        PanelBuilder.this.preferences.setSetting(settingName, checkComponent.isSelected(), false);
                     }
                 });
 
                 component = checkComponent;
+
+                PanelBuilder.this.preferences.addSettingListener((changedSettingName, newValue) -> {
+                    if(changedSettingName.equals(settingName)){
+                        checkComponent.setSelected((boolean) newValue);
+                    }
+                });
 
                 this.preferences.put(settingName, component);
                 GridBagConstraints gbc = new GridBagConstraints();
@@ -275,17 +294,23 @@ public class PanelBuilder {
                 textComponent.getDocument().addDocumentListener(new DocumentListener() {
                     @Override
                     public void insertUpdate(DocumentEvent documentEvent) {
-                        PanelBuilder.this.preferences.setSetting(settingName, textComponent.getText());
+                        PanelBuilder.this.preferences.setSetting(settingName, textComponent.getText(), false);
                     }
 
                     @Override
                     public void removeUpdate(DocumentEvent documentEvent) {
-                        PanelBuilder.this.preferences.setSetting(settingName, textComponent.getText());
+                        PanelBuilder.this.preferences.setSetting(settingName, textComponent.getText(), false);
                     }
 
                     @Override
                     public void changedUpdate(DocumentEvent documentEvent) {
-                        PanelBuilder.this.preferences.setSetting(settingName, textComponent.getText());
+                        PanelBuilder.this.preferences.setSetting(settingName, textComponent.getText(), false);
+                    }
+                });
+
+                PanelBuilder.this.preferences.addSettingListener((changedSettingName, newValue) -> {
+                    if(changedSettingName.equals(settingName)){
+                        textComponent.setText((String) newValue);
                     }
                 });
 
@@ -326,7 +351,7 @@ public class PanelBuilder {
                 public void changedUpdate(DocumentEvent documentEvent) { saveChanges(); }
 
                 private void saveChanges(){
-                    PanelBuilder.this.preferences.setSetting(settingName, textArea.getText());
+                    PanelBuilder.this.preferences.setSetting(settingName, textArea.getText(), false);
                 }
             });
 
