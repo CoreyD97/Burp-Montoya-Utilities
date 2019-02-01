@@ -9,6 +9,7 @@ import java.util.Set;
 
 public class Preferences {
 
+    private ILogProvider logProvider;
     private final IGsonProvider gsonProvider;
     private final IBurpExtenderCallbacks callbacks;
     private final HashMap<String, Object> settings;
@@ -16,6 +17,11 @@ public class Preferences {
     private final HashMap<String, Type> settingTypes;
     private final ArrayList<String> volatileKeys;
     private final ArrayList<SettingListener> settingListeners;
+
+    public Preferences(final IGsonProvider gsonProvider, final ILogProvider logProvider, final IBurpExtenderCallbacks callbacks){
+        this(gsonProvider, callbacks);
+        this.logProvider = logProvider;
+    }
 
     public Preferences(final IGsonProvider gsonProvider, final IBurpExtenderCallbacks callbacks){
         this.gsonProvider = gsonProvider;
@@ -51,6 +57,8 @@ public class Preferences {
         }
 
         this.defaults.put(settingName, defaultValue);
+        logOutput("Setting \"" + settingName + "\" registered with type " + type.getTypeName()
+                + " and default value: " + (defaultValue != null ? defaultValue : "null"));
     }
 
     public <T> void addSetting(String settingName, Class<T> clazz, T defaultValue){
@@ -69,6 +77,8 @@ public class Preferences {
         }
 
         this.defaults.put(settingName, defaultValue);
+        logOutput("Setting \"" + settingName + "\" registered with type " + clazz.getTypeName()
+                + " and default value: " + (defaultValue != null ? defaultValue : "null"));
     }
 
     public void addVolatileSetting(String settingName, Type type){
@@ -103,11 +113,13 @@ public class Preferences {
     public void setSetting(String settingName, Object value, boolean notifyListeners) {
         Type type = this.settingTypes.get(settingName);
         Object oldValue = this.getSetting(settingName);
-        if(value.equals(oldValue)) return;
+        if(value != null && value.equals(oldValue)) return;
 
         String jsonValue = gsonProvider.getGson().toJson(value, type);
-        if(!volatileKeys.contains(settingName))
+        if(!volatileKeys.contains(settingName)) {
+            logOutput("Saving setting \"" + settingName + "\" with value: " + String.valueOf(value));
             storePreference(settingName, jsonValue);
+        }
 
         this.settings.put(settingName, value);
 
@@ -146,7 +158,7 @@ public class Preferences {
         try {
             return gsonProvider.getGson().fromJson(storedValue, settingType);
         }catch (Exception e){
-            callbacks.printError("Could not load stored setting \"" + storedValue + "\". This may be due to a change in stored types. Falling back to default.");
+            logError("Could not load stored setting \"" + storedValue + "\". This may be due to a change in stored types. Falling back to default.");
             return null;
         }
     }
@@ -157,5 +169,15 @@ public class Preferences {
 
     public void removeSettingListener(SettingListener settingListener){
         this.settingListeners.remove(settingListener);
+    }
+
+    private void logOutput(String message){
+        if(this.logProvider != null)
+            logProvider.logOutput(message);
+    }
+
+    private void logError(String errorMessage){
+        if(this.logProvider != null)
+            logProvider.logError(errorMessage);
     }
 }
