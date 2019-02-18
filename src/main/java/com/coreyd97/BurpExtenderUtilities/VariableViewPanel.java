@@ -12,16 +12,39 @@ public class VariableViewPanel extends JPanel {
     private final String aTitle;
     private final Component b;
     private final String bTitle;
+    private Preferences preferences;
+    private String preferenceKey;
     private Component wrapper;
     private View view;
 
-    public VariableViewPanel(Component a, String aTitle, Component b, String bTitle, View defaultView){
+    public VariableViewPanel(Preferences prefs, String preferenceKey,
+                             Component a, String aTitle, Component b, String bTitle,
+                             View defaultView){
+        this.preferences = prefs;
+        this.preferenceKey = preferenceKey;
+
+        if(this.preferences != null && this.preferenceKey != null){
+            this.preferences.addSetting(this.preferenceKey, View.class, defaultView);
+            view = (View) this.preferences.getSetting(this.preferenceKey);
+        }else{
+            view = defaultView;
+        }
+
         this.a = a;
         this.aTitle = aTitle;
         this.b = b;
         this.bTitle = bTitle;
         this.setLayout(new BorderLayout());
-        this.setView(defaultView);
+        this.setView(view);
+    }
+
+    public VariableViewPanel(Preferences preferences, String preferenceKey,
+                             Component a, String aTitle, Component b, String bTitle) {
+        this(preferences, preferenceKey, a, aTitle, b, bTitle, null);
+    }
+
+    public VariableViewPanel(Component a, String aTitle, Component b, String bTitle, View defaultView){
+        this(null, null, a, aTitle, b, bTitle, defaultView);
     }
 
     public View getView(){
@@ -56,6 +79,10 @@ public class VariableViewPanel extends JPanel {
         this.revalidate();
         this.repaint();
         this.view = view;
+
+        if(this.preferences != null && this.preferenceKey != null) {
+            this.preferences.setSetting(this.preferenceKey, view);
+        }
     }
 
 
