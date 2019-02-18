@@ -130,7 +130,10 @@ public class Preferences {
     }
 
     public void resetSetting(String settingName){
-        setSetting(settingName, this.defaults.getOrDefault(settingName, null), true);
+        Object defaultValue = this.defaults.getOrDefault(settingName, null);
+        String jsonDefaultValue = gsonProvider.getGson().toJson(defaultValue);
+        Object newInstance = gsonProvider.getGson().fromJson(jsonDefaultValue, this.settingTypes.get(settingName));
+        setSetting(settingName, newInstance, true);
     }
 
     public void resetSettings(Set<String> keys){
