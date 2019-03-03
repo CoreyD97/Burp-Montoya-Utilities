@@ -112,10 +112,10 @@ public class Preferences {
 
     public void setSetting(String settingName, Object value, boolean notifyListeners) {
         Type type = this.settingTypes.get(settingName);
-        Object oldValue = this.getSetting(settingName);
-        if(value != null && value.equals(oldValue)) return;
-
+        String oldValue = getBurpSettingJson(settingName, type);
         String jsonValue = gsonProvider.getGson().toJson(value, type);
+        if(jsonValue != null && jsonValue.equals(oldValue)) return;
+
         if(!volatileKeys.contains(settingName)) {
             logOutput("Saving setting \"" + settingName + "\" with value: " + String.valueOf(value));
             storePreference(settingName, jsonValue);
@@ -164,6 +164,13 @@ public class Preferences {
             logError("Could not load stored setting \"" + storedValue + "\". This may be due to a change in stored types. Falling back to default.");
             return null;
         }
+    }
+
+    private String getBurpSettingJson(String settingName, Type settingType) {
+        String storedValue = this.callbacks.loadExtensionSetting(settingName);
+        if(storedValue == null) return null;
+
+        return storedValue;
     }
 
     public void addSettingListener(SettingListener settingListener){
