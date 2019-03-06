@@ -1,6 +1,7 @@
 package com.coreyd97.BurpExtenderUtilities;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.function.Consumer;
@@ -9,9 +10,8 @@ public class CustomTabComponent extends JPanel {
 
     private final JTabbedPane parentPane;
     private JLabel indexLabel;
-    private final JPanel labelWrapper;
-    private final JLabel label;
     private JTextField editableField;
+    private Border editableFieldBorder;
     private JButton removeTabButton;
 
     private int index;
@@ -21,6 +21,9 @@ public class CustomTabComponent extends JPanel {
     private boolean isRemovable;
     private Consumer<Void> onRemovePressed;
 
+    private EditClickListener editClickListener;
+
+    private String originalTitle;
     private boolean wasEdited;
 
     public CustomTabComponent(JTabbedPane parentPane, int index, String title,
@@ -43,30 +46,32 @@ public class CustomTabComponent extends JPanel {
             this.add(indexLabel);
         }
 
-        this.labelWrapper = new JPanel();
-        this.labelWrapper.setOpaque(false);
-        add(labelWrapper);
-
-        label = new JLabel(title);
-        label.setOpaque(false);
-        labelWrapper.add(label);
+        editableField = new JTextField(title);
+        editableFieldBorder = editableField.getBorder();
+        editableField.setBorder(null);
+        editableField.setOpaque(false);
+        editableField.setBackground(new Color(0,0,0,0));
+        add(editableField);
 
         if(this.isEditable) {
-            label.addMouseListener(new editClickListener());
-            this.addMouseListener(new editClickListener());
+            this.editClickListener = new EditClickListener();
 
-            editableField = new JTextField();
-            editableField.setBorder(null);
-            editableField.setOpaque(false);
+            if(this.showIndex){
+                indexLabel.addMouseListener(editClickListener);
+            }
+            editableField.addMouseListener(editClickListener);
+            this.addMouseListener(editClickListener);
+
             editableField.addFocusListener(new FocusAdapter() {
                 @Override
                 public void focusLost(FocusEvent focusEvent) {
                     endEditLabel();
                 }
             });
+
             editableField.addKeyListener(new KeyAdapter() {
                 @Override
-                public void keyReleased(KeyEvent keyEvent) {
+                public void keyPressed(KeyEvent keyEvent) {
                     if(keyEvent.getExtendedKeyCode() == KeyEvent.VK_ENTER){
                         endEditLabel();
                     }
@@ -82,6 +87,7 @@ public class CustomTabComponent extends JPanel {
             });
             removeTabButton.setPreferredSize(new Dimension(25,25));
             removeTabButton.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+            removeTabButton.setBackground(new Color(0,0,0,0));
             add(Box.createHorizontalStrut(5));
             add(removeTabButton);
         }
@@ -92,31 +98,27 @@ public class CustomTabComponent extends JPanel {
     }
 
     private void editLabel(){
-        editableField.setText(label.getText());
-        editableField.setOpaque(false);
-        labelWrapper.remove(label);
-        labelWrapper.add(editableField);
-        editableField.setCaretPosition(0);
-        editableField.requestFocus();
+        originalTitle = editableField.getText();
+        editableField.setEditable(true);
+        editableField.setBorder(editableFieldBorder);
+//        editableField.setCaretPosition(0);
     }
 
     private void endEditLabel(){
-        if(!editableField.getText().equalsIgnoreCase(this.label.getText())){
+        editableField.setBorder(null);
+        if(!editableField.getText().equals(originalTitle)){
             wasEdited = true;
         }
-        String newTitle = editableField.getText();
-        this.label.setText(newTitle);
         if(this.onTitleChanged != null)
-            this.onTitleChanged.accept(newTitle);
-
-        labelWrapper.remove(editableField);
-        labelWrapper.add(label);
-        this.invalidate();
-        this.repaint();
+            this.onTitleChanged.accept(editableField.getText());
+        editableField.setEditable(false);
+        editableField.setSelectionStart(0);
+        editableField.setSelectionEnd(0);
+        this.requestFocusInWindow();
     }
 
 
-    private class editClickListener extends MouseAdapter {
+    private class EditClickListener extends MouseAdapter {
         @Override
         public void mousePressed(MouseEvent mouseEvent) {
             super.mouseClicked(mouseEvent);
@@ -146,11 +148,11 @@ public class CustomTabComponent extends JPanel {
     }
 
     public String getTitle(){
-        return this.label.getText();
+        return this.editableField.getText();
     }
 
     public void setTitle(String title){
-        this.label.setText(title);
+        this.editableField.setText(title);
     }
 
     public boolean wasEditedByUser() {
