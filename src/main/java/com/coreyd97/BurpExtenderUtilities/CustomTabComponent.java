@@ -81,11 +81,12 @@ public class CustomTabComponent extends JPanel {
 
         if(this.isRemovable) {
             removeTabButton = new JButton("x");
+            removeTabButton.setFont(removeTabButton.getFont().deriveFont(10F));
             removeTabButton.addActionListener(actionEvent -> {
                 if(this.onRemovePressed != null)
                     this.onRemovePressed.accept(null);
             });
-            removeTabButton.setPreferredSize(new Dimension(15,15));
+            removeTabButton.setPreferredSize(new Dimension(20,20));
             removeTabButton.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
             removeTabButton.setBackground(new Color(0,0,0,0));
             add(Box.createHorizontalStrut(5));

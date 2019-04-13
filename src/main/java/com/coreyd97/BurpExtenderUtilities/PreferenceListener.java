@@ -1,5 +1,5 @@
 package com.coreyd97.BurpExtenderUtilities;
 
-public interface SettingListener {
+public interface PreferenceListener {
     void onPreferenceSet(String settingName, Object newValue);
 }

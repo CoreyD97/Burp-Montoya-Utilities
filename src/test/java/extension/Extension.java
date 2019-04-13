@@ -1,6 +1,7 @@
 package extension;
 
 import burp.*;
+import com.coreyd97.BurpExtenderUtilities.ComponentGroup;
 import com.coreyd97.BurpExtenderUtilities.IGsonProvider;
 import com.coreyd97.BurpExtenderUtilities.PanelBuilder;
 import com.coreyd97.BurpExtenderUtilities.Preferences;
@@ -101,27 +102,27 @@ public class Extension implements ITab, IBurpExtender, IGsonProvider{
                 Extension.this.extensionMainPanel = new JPanel();
 
                 PanelBuilder panelBuilder = new PanelBuilder(preferences);
-                PanelBuilder.ComponentGroup group1 = panelBuilder.createComponentGroup("Group 1");
-                PanelBuilder.ComponentGroup group2 = panelBuilder.createComponentGroup("Group 2");
-                group2.addTextAreaSetting("TextArea");
-                PanelBuilder.ComponentGroup group3 = panelBuilder.createComponentGroup("Group 3");
-                PanelBuilder.ComponentGroup group4 = panelBuilder.createComponentGroup("Group 4");
-                PanelBuilder.ComponentGroup group5 = panelBuilder.createComponentGroup("Group 5");
-                PanelBuilder.ComponentGroup group6 = panelBuilder.createComponentGroup("Group 6");
+                ComponentGroup group1 = panelBuilder.createComponentGroup("Group 1");
+                ComponentGroup group2 = panelBuilder.createComponentGroup("Group 2");
+                group2.addComponent(panelBuilder.createPreferenceTextArea("TextArea"));
+                ComponentGroup group3 = panelBuilder.createComponentGroup("Group 3");
+                ComponentGroup group4 = panelBuilder.createComponentGroup("Group 4");
+                ComponentGroup group5 = panelBuilder.createComponentGroup("Group 5");
+                ComponentGroup group6 = panelBuilder.createComponentGroup("Group 6");
 
-                PanelBuilder.ComponentGroup logFromPanel = panelBuilder.createComponentGroup("Log From");
-                JCheckBox restrict = (JCheckBox) logFromPanel.addSetting(PREF_RESTRICT_TO_SCOPE, "In scope items only");
+                ComponentGroup logFromPanel = panelBuilder.createComponentGroup("Log From");
+                JCheckBox restrict = (JCheckBox) logFromPanel.addPreferenceComponent(PREF_RESTRICT_TO_SCOPE, "In scope items only");
                 restrict.setBorder(BorderFactory.createLineBorder(Color.BLUE));
                 logFromPanel.addComponent((JComponent) Box.createVerticalStrut(5));
-                JCheckBox logAllTools = (JCheckBox) logFromPanel.addSetting(PREF_LOG_GLOBAL, "All Tools");
-                JCheckBox logSpider = (JCheckBox) logFromPanel.addSetting(PREF_LOG_SPIDER, "Spider");
-                JCheckBox logIntruder = (JCheckBox) logFromPanel.addSetting(PREF_LOG_INTRUDER, "Intruder");
-                JCheckBox logScanner = (JCheckBox) logFromPanel.addSetting(PREF_LOG_SCANNER, "Scanner");
-                JCheckBox logRepeater = (JCheckBox) logFromPanel.addSetting(PREF_LOG_REPEATER, "Repeater");
-                JCheckBox logSequencer = (JCheckBox) logFromPanel.addSetting(PREF_LOG_SEQUENCER, "Sequencer");
-                JCheckBox logProxy = (JCheckBox) logFromPanel.addSetting(PREF_LOG_PROXY, "Proxy");
-                JCheckBox logTarget = (JCheckBox) logFromPanel.addSetting(PREF_LOG_TARGET_TAB, "Target");
-                JCheckBox logExtender = (JCheckBox) logFromPanel.addSetting(PREF_LOG_EXTENDER, "Extender");
+                JCheckBox logAllTools = (JCheckBox) logFromPanel.addPreferenceComponent(PREF_LOG_GLOBAL, "All Tools");
+                JCheckBox logSpider = (JCheckBox) logFromPanel.addPreferenceComponent(PREF_LOG_SPIDER, "Spider");
+                JCheckBox logIntruder = (JCheckBox) logFromPanel.addPreferenceComponent(PREF_LOG_INTRUDER, "Intruder");
+                JCheckBox logScanner = (JCheckBox) logFromPanel.addPreferenceComponent(PREF_LOG_SCANNER, "Scanner");
+                JCheckBox logRepeater = (JCheckBox) logFromPanel.addPreferenceComponent(PREF_LOG_REPEATER, "Repeater");
+                JCheckBox logSequencer = (JCheckBox) logFromPanel.addPreferenceComponent(PREF_LOG_SEQUENCER, "Sequencer");
+                JCheckBox logProxy = (JCheckBox) logFromPanel.addPreferenceComponent(PREF_LOG_PROXY, "Proxy");
+                JCheckBox logTarget = (JCheckBox) logFromPanel.addPreferenceComponent(PREF_LOG_TARGET_TAB, "Target");
+                JCheckBox logExtender = (JCheckBox) logFromPanel.addPreferenceComponent(PREF_LOG_EXTENDER, "Extender");
 
                 {   //Disable check boxes if global logging is enabled.
                     boolean globalDisabled = !logAllTools.isSelected();

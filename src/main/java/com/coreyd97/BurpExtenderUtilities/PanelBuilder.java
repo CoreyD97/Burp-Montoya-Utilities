@@ -14,6 +14,7 @@ public class PanelBuilder {
 
     private final Preferences preferences;
     private Set<ComponentGroup> componentGroups;
+
     public enum Alignment {TOPLEFT, TOPMIDDLE, TOPRIGHT, MIDDLELEFT, CENTER, MIDDLERIGHT, BOTTOMLEFT, BOTTOMMIDDLE, BOTTOMRIGHT}
 
     public PanelBuilder(Preferences preferences){
@@ -22,16 +23,132 @@ public class PanelBuilder {
     }
 
     public ComponentGroup createComponentGroup(String title){
-        ComponentGroup componentGroup;
-        if(title == null)
-            componentGroup = new ComponentGroup();
-        else
-            componentGroup = new ComponentGroup(title);
-
+        ComponentGroup componentGroup = new ComponentGroup(this, title);
         this.componentGroups.add(componentGroup);
-
         return componentGroup;
     }
+
+    Preferences getPreferences() {
+        return preferences;
+    }
+
+    public JButton createButton(String title, ActionListener actionListener){
+        JButton button = new JButton(title);
+        if(actionListener != null)
+            button.addActionListener(actionListener);
+        return button;
+    }
+
+    public JToggleButton createToggleButton(String title, ActionListener actionListener) {
+        JToggleButton button = new JToggleButton(title);
+        if(actionListener != null)
+            button.addActionListener(actionListener);
+        return button;
+    }
+
+    public JToggleButton createPreferenceToggleButton(String title, String preferenceKey){
+        JToggleButton toggleButton = createToggleButton(title, e -> {
+            this.preferences.setSetting(preferenceKey, ((JToggleButton) e.getSource()).isSelected());
+        });
+
+        boolean isSelected = (boolean) this.preferences.getSetting(preferenceKey);
+        toggleButton.setSelected(isSelected);
+        return toggleButton;
+    }
+    
+    public JTextField createPreferenceTextField(String preferenceKey){
+        final JTextField textComponent = new JTextField();
+        String defaultValue = String.valueOf(this.preferences.getSetting(preferenceKey));
+        textComponent.setText(defaultValue);
+        textComponent.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent documentEvent) {
+                preferences.setSetting(preferenceKey, textComponent.getText(), false);
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent documentEvent) {
+                preferences.setSetting(preferenceKey, textComponent.getText(), false);
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent documentEvent) {
+                preferences.setSetting(preferenceKey, textComponent.getText(), false);
+            }
+        });
+
+        preferences.addSettingListener((changedpreferenceKey, newValue) -> {
+            if(changedpreferenceKey.equals(preferenceKey)){
+                textComponent.setText((String) newValue);
+            }
+        });
+
+        return textComponent;
+    }
+
+    public JSpinner createPreferenceSpinner(String preferenceKey){
+        final JSpinner spinnerComponent = new JSpinner();
+        Number value = (Number) this.preferences.getSetting(preferenceKey);
+        spinnerComponent.setValue(value);
+        spinnerComponent.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent changeEvent) {
+                preferences.setSetting(preferenceKey, spinnerComponent.getValue(), false);
+            }
+        });
+
+        preferences.addSettingListener((changedSettingName, newValue) -> {
+            if(changedSettingName.equals(preferenceKey)){
+                spinnerComponent.setValue(newValue);
+            }
+        });
+
+        return spinnerComponent;
+    }
+
+    public JCheckBox createPreferenceCheckBox(String preferenceKey, String label){
+        final JCheckBox checkComponent = new JCheckBox(label);
+        Boolean value = (Boolean) this.preferences.getSetting(preferenceKey);
+        checkComponent.setSelected(value);
+        checkComponent.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                preferences.setSetting(preferenceKey, checkComponent.isSelected(), false);
+            }
+        });
+
+        preferences.addSettingListener((changedSettingName, newValue) -> {
+            if(changedSettingName.equals(preferenceKey)){
+                checkComponent.setSelected((boolean) newValue);
+            }
+        });
+
+        return checkComponent;
+    }
+
+    public JTextArea createPreferenceTextArea(String settingName){
+        String value = String.valueOf(preferences.getSetting(settingName));
+
+        JTextArea textArea = new JTextArea();
+        textArea.setText(value);
+
+        textArea.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent documentEvent) { saveChanges(); }
+            @Override
+            public void removeUpdate(DocumentEvent documentEvent) { saveChanges(); }
+            @Override
+            public void changedUpdate(DocumentEvent documentEvent) { saveChanges(); }
+
+            private void saveChanges(){
+                preferences.setSetting(settingName, textArea.getText(), false);
+            }
+        });
+
+        return textArea;
+    }
+
+
 
     public JPanel build(JComponent[][] viewGrid, Alignment alignment) throws Exception {
         JPanel containerPanel = new JPanel(new GridBagLayout());
@@ -142,263 +259,5 @@ public class PanelBuilder {
         containerPanel.add(new JPanel(), gbc);
 
         return containerPanel;
-    }
-
-    public class ComponentGroup extends JPanel {
-        String title;
-        Map<String, JComponent> preferences;
-        int currentGridY = 1;
-
-        private ComponentGroup(String title){
-            this();
-            this.title = title;
-            this.setBorder(BorderFactory.createTitledBorder(title));
-        }
-
-        private ComponentGroup(){
-            super(new GridBagLayout());
-            this.preferences = new LinkedHashMap<>();
-        }
-
-        public JButton addButton(String title, final ActionListener actionListener){
-            GridBagConstraints gbc = new GridBagConstraints();
-            gbc.fill = GridBagConstraints.BOTH;
-            gbc.gridx = 1;
-            gbc.gridy = currentGridY;
-            gbc.weightx = 1;
-            gbc.gridwidth = 2;
-            JButton button = addButton(title, gbc, actionListener);
-            currentGridY++;
-
-            return button;
-        }
-
-        public JButton addButton(String title, GridBagConstraints constraints, final ActionListener actionListener){
-            JButton button = new JButton(title);
-            if(actionListener != null)
-                button.addActionListener(actionListener);
-            this.add(button, constraints);
-            return button;
-        }
-
-        public JToggleButton addToggleButton(String title, final ActionListener actionListener){
-            GridBagConstraints gbc = new GridBagConstraints();
-            gbc.fill = GridBagConstraints.BOTH;
-            gbc.gridx = 1;
-            gbc.gridy = currentGridY;
-            gbc.weightx = 1;
-            gbc.gridwidth = 2;
-            JToggleButton button = addToggleButton(title, gbc, actionListener);
-            currentGridY++;
-
-            return button;
-        }
-
-        public JToggleButton addToggleButton(String title, GridBagConstraints constraints,
-                                             final ActionListener actionListener){
-            JToggleButton button = new JToggleButton(title);
-            if(actionListener != null)
-                button.addActionListener(actionListener);
-
-            this.add(button, constraints);
-            return button;
-        }
-
-        public JComponent addSetting(final String settingName){
-            return addSetting(settingName, settingName);
-        }
-
-        public JComponent addSetting(final String settingName, final String label){
-//            Class clazz = PanelBuilder.this.preferences.getSettingType(settingName);
-            Object value = PanelBuilder.this.preferences.getSetting(settingName);
-            final JComponent component;
-
-            if(String.class.isInstance(value)){
-                final JTextField textComponent = new JTextField();
-                textComponent.setText((String) value);
-                textComponent.getDocument().addDocumentListener(new DocumentListener() {
-                    @Override
-                    public void insertUpdate(DocumentEvent documentEvent) {
-                        PanelBuilder.this.preferences.setSetting(settingName, textComponent.getText(), false);
-                    }
-
-                    @Override
-                    public void removeUpdate(DocumentEvent documentEvent) {
-                        PanelBuilder.this.preferences.setSetting(settingName, textComponent.getText(), false);
-                    }
-
-                    @Override
-                    public void changedUpdate(DocumentEvent documentEvent) {
-                        PanelBuilder.this.preferences.setSetting(settingName, textComponent.getText(), false);
-                    }
-                });
-
-                PanelBuilder.this.preferences.addSettingListener((changedSettingName, newValue) -> {
-                    if(changedSettingName.equals(settingName)){
-                        textComponent.setText((String) newValue);
-                    }
-                });
-
-                component = textComponent;
-            }else if(Integer.class.isInstance(value)){
-                final JSpinner spinnerComponent = new JSpinner();
-                spinnerComponent.setValue(value);
-                spinnerComponent.addChangeListener(new ChangeListener() {
-                    @Override
-                    public void stateChanged(ChangeEvent changeEvent) {
-                        PanelBuilder.this.preferences.setSetting(settingName, spinnerComponent.getValue(), false);
-                    }
-                });
-                component = spinnerComponent;
-
-                PanelBuilder.this.preferences.addSettingListener((changedSettingName, newValue) -> {
-                    if(changedSettingName.equals(settingName)){
-                        spinnerComponent.setValue(newValue);
-                    }
-                });
-
-            }else if(Boolean.class.isInstance(value)){
-                final JCheckBox checkComponent = new JCheckBox(label);
-                checkComponent.setSelected((Boolean) value);
-                checkComponent.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent actionEvent) {
-                        PanelBuilder.this.preferences.setSetting(settingName, checkComponent.isSelected(), false);
-                    }
-                });
-
-                component = checkComponent;
-
-                PanelBuilder.this.preferences.addSettingListener((changedSettingName, newValue) -> {
-                    if(changedSettingName.equals(settingName)){
-                        checkComponent.setSelected((boolean) newValue);
-                    }
-                });
-
-                this.preferences.put(settingName, component);
-                GridBagConstraints gbc = new GridBagConstraints();
-                gbc.fill = GridBagConstraints.BOTH;
-                gbc.gridx = 1;
-                gbc.weightx = 1;
-                gbc.gridwidth = 2;
-                gbc.weighty = 1;
-                gbc.gridy = currentGridY;
-                this.add(this.preferences.get(settingName), gbc);
-                currentGridY++;
-
-                return component;
-
-            }else{
-                final JTextField textComponent = new JTextField();
-                textComponent.setText(String.valueOf(value));
-                textComponent.getDocument().addDocumentListener(new DocumentListener() {
-                    @Override
-                    public void insertUpdate(DocumentEvent documentEvent) {
-                        PanelBuilder.this.preferences.setSetting(settingName, textComponent.getText(), false);
-                    }
-
-                    @Override
-                    public void removeUpdate(DocumentEvent documentEvent) {
-                        PanelBuilder.this.preferences.setSetting(settingName, textComponent.getText(), false);
-                    }
-
-                    @Override
-                    public void changedUpdate(DocumentEvent documentEvent) {
-                        PanelBuilder.this.preferences.setSetting(settingName, textComponent.getText(), false);
-                    }
-                });
-
-                PanelBuilder.this.preferences.addSettingListener((changedSettingName, newValue) -> {
-                    if(changedSettingName.equals(settingName)){
-                        textComponent.setText((String) newValue);
-                    }
-                });
-
-                component = textComponent;
-            }
-
-
-            this.preferences.put(settingName, component);
-
-            GridBagConstraints gbc = new GridBagConstraints();
-            gbc.fill = GridBagConstraints.BOTH;
-            gbc.gridx = 1;
-//            gbc.ipadx = gbc.ipady = 5;
-            gbc.weightx = 0.15;
-            gbc.weighty = 1;
-            gbc.gridy = currentGridY;
-            this.add(new JLabel(label), gbc);
-            gbc.gridx++;
-            gbc.weightx = 0.85;
-            this.add(this.preferences.get(settingName), gbc);
-            currentGridY++;
-
-            return component;
-        }
-
-        public JTextArea addTextAreaSetting(String settingName){
-            String value = String.valueOf(PanelBuilder.this.preferences.getSetting(settingName));
-
-            JTextArea textArea = new JTextArea();
-            textArea.setText(value);
-
-            textArea.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent documentEvent) { saveChanges(); }
-                @Override
-                public void removeUpdate(DocumentEvent documentEvent) { saveChanges(); }
-                @Override
-                public void changedUpdate(DocumentEvent documentEvent) { saveChanges(); }
-
-                private void saveChanges(){
-                    PanelBuilder.this.preferences.setSetting(settingName, textArea.getText(), false);
-                }
-            });
-
-            return textArea;
-        }
-
-
-        /**
-         * Generate the constraints for the next element in the group.
-         * Useful for customising before addition.
-         * @return GridBagConstraints The default constraints for the next item in the group.
-         */
-        public GridBagConstraints generateNextConstraints(){
-            GridBagConstraints gbc = new GridBagConstraints();
-            gbc.fill = GridBagConstraints.BOTH;
-            gbc.weighty = gbc.weightx = 1;
-            gbc.gridwidth = 2;
-            gbc.gridx = 1;
-            gbc.gridy = currentGridY;
-            currentGridY++;
-            return gbc;
-        }
-
-        /**
-         * Gets the current Y coord used for generation of the panel.
-         * @return int The Y coordinate.
-         */
-        public int getGridY(){
-            return this.currentGridY;
-        }
-
-
-        /**
-         * Sets the Y coord used for generation of the panel.
-         */
-        public void setGridY(int y){
-            this.currentGridY = y;
-        }
-
-        public JComponent addComponent(JComponent jComponent){
-            this.add(jComponent, generateNextConstraints());
-            return jComponent;
-        }
-
-        public JComponent addComponent(JComponent jComponent, GridBagConstraints gridBagConstraints){
-            this.add(jComponent, gridBagConstraints);
-            return jComponent;
-        }
     }
 }
