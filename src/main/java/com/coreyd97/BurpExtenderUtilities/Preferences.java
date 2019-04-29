@@ -12,11 +12,11 @@ public class Preferences {
     private ILogProvider logProvider;
     private final IGsonProvider gsonProvider;
     private final IBurpExtenderCallbacks callbacks;
-    private final HashMap<String, Object> settings;
+    private final HashMap<String, Object> preferences;
     private final HashMap<String, Object> defaults;
-    private final HashMap<String, Type> settingTypes;
+    private final HashMap<String, Type> preferenceTypes;
     private final ArrayList<String> volatileKeys;
-    private final ArrayList<SettingListener> settingListeners;
+    private final ArrayList<PreferenceListener> preferenceListeners;
 
     public Preferences(final IGsonProvider gsonProvider, final ILogProvider logProvider, final IBurpExtenderCallbacks callbacks){
         this(gsonProvider, callbacks);
@@ -26,11 +26,11 @@ public class Preferences {
     public Preferences(final IGsonProvider gsonProvider, final IBurpExtenderCallbacks callbacks){
         this.gsonProvider = gsonProvider;
         this.callbacks = callbacks;
-        this.settings = new HashMap<>();
+        this.preferences = new HashMap<>();
         this.defaults = new HashMap<>();
-        this.settingTypes = new HashMap<>();
+        this.preferenceTypes = new HashMap<>();
         this.volatileKeys = new ArrayList<>();
-        this.settingListeners = new ArrayList<>();
+        this.preferenceListeners = new ArrayList<>();
     }
 
     public void addSetting(String settingName, Type type){
@@ -42,17 +42,17 @@ public class Preferences {
     }
 
     public void addSetting(String settingName, Type type, Object defaultValue){
-        //Get setting from burp settings.
+        //Get setting from burp preferences.
         Object storedValue = getBurpSetting(settingName, type);
-        this.settingTypes.put(settingName, type);
+        this.preferenceTypes.put(settingName, type);
 
         if(storedValue != null){
-            this.settings.put(settingName, storedValue);
+            this.preferences.put(settingName, storedValue);
         }else{
             if(defaultValue != null){
                 setSetting(settingName, defaultValue, true);
             }else{
-                this.settings.put(settingName, null);
+                this.preferences.put(settingName, null);
             }
         }
 
@@ -62,17 +62,17 @@ public class Preferences {
     }
 
     public <T> void addSetting(String settingName, Class<T> clazz, T defaultValue){
-        //Get setting from burp settings.
+        //Get setting from burp preferences.
         T storedValue = (T) getBurpSetting(settingName, clazz);
-        this.settingTypes.put(settingName, clazz);
+        this.preferenceTypes.put(settingName, clazz);
 
         if(storedValue != null){
-            this.settings.put(settingName, storedValue);
+            this.preferences.put(settingName, storedValue);
         }else{
             if(defaultValue != null){
                 setSetting(settingName, defaultValue, true);
             }else{
-                this.settings.put(settingName, null);
+                this.preferences.put(settingName, null);
             }
         }
 
@@ -111,7 +111,7 @@ public class Preferences {
     }
 
     public void setSetting(String settingName, Object value, boolean notifyListeners) {
-        Type type = this.settingTypes.get(settingName);
+        Type type = this.preferenceTypes.get(settingName);
         String oldValue = getBurpSettingJson(settingName, type);
         String jsonValue = gsonProvider.getGson().toJson(value, type);
         if(jsonValue != null && jsonValue.equals(oldValue)) return;
@@ -121,18 +121,18 @@ public class Preferences {
             storePreference(settingName, jsonValue);
         }
 
-        this.settings.put(settingName, value);
+        this.preferences.put(settingName, value);
 
         if(!notifyListeners) return;
-        for (SettingListener settingListener : this.settingListeners) {
-            settingListener.onPreferenceSet(settingName, value);
+        for (PreferenceListener preferenceListener : this.preferenceListeners) {
+            preferenceListener.onPreferenceSet(settingName, value);
         }
     }
 
     public void resetSetting(String settingName){
         Object defaultValue = this.defaults.getOrDefault(settingName, null);
         String jsonDefaultValue = gsonProvider.getGson().toJson(defaultValue);
-        Object newInstance = gsonProvider.getGson().fromJson(jsonDefaultValue, this.settingTypes.get(settingName));
+        Object newInstance = gsonProvider.getGson().fromJson(jsonDefaultValue, this.preferenceTypes.get(settingName));
         setSetting(settingName, newInstance, true);
     }
 
@@ -143,15 +143,15 @@ public class Preferences {
     }
 
     public Set<String> getPreferenceKeys(){
-        return this.settings.keySet();
+        return this.preferences.keySet();
     }
 
     public Object getSetting(String settingName){
-        return this.settings.get(settingName);
+        return this.preferences.get(settingName);
     }
 
     public Type getSettingType(String settingName) {
-        return settingTypes.get(settingName);
+        return preferenceTypes.get(settingName);
     }
 
     private Object getBurpSetting(String settingName, Type settingType) {
@@ -173,12 +173,12 @@ public class Preferences {
         return storedValue;
     }
 
-    public void addSettingListener(SettingListener settingListener){
-        this.settingListeners.add(settingListener);
+    public void addSettingListener(PreferenceListener preferenceListener){
+        this.preferenceListeners.add(preferenceListener);
     }
 
-    public void removeSettingListener(SettingListener settingListener){
-        this.settingListeners.remove(settingListener);
+    public void removeSettingListener(PreferenceListener preferenceListener){
+        this.preferenceListeners.remove(preferenceListener);
     }
 
     private void logOutput(String message){

@@ -11,7 +11,7 @@ public interface IGsonProvider {
     /**
      * Register a type adapter for the given class.
      * This defines how to de/serialize an object.
-     * Required if storing custom types as preferences.
+     * Required if storing custom types as preferenceComponentMap.
      * @param type
      * @param typeAdapter
      */
