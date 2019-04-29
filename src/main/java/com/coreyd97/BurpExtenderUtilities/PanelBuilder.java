@@ -208,7 +208,6 @@ public class PanelBuilder {
                     constraints.fill = GridBagConstraints.BOTH;
                     constraints.weightx = constraints.weighty = 1;
                     JPanel filler = new JPanel();
-//                    filler.setBorder(BorderFactory.createLineBorder(Color.PINK));
                     containerPanel.add(filler, constraints);
                 }
             }
