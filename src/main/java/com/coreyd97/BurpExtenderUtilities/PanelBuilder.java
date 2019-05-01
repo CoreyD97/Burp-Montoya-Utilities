@@ -8,6 +8,8 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.*;
 
 public class PanelBuilder {
@@ -150,11 +152,13 @@ public class PanelBuilder {
         return textArea;
     }
 
-    public JPanel build(JComponent[][] viewGrid, Alignment alignment) throws Exception {
-        return build(viewGrid, null, alignment);
+    public JPanel build(JComponent[][] viewGrid, Alignment alignment, double scaleX, double scaleY) throws Exception {
+        return build(viewGrid, null, alignment, scaleX, scaleY);
     }
 
-    public JPanel build(JComponent[][] viewGrid, int[][] gridWeights, Alignment alignment) throws Exception {
+    public JPanel build(JComponent[][] viewGrid, int[][] gridWeights, Alignment alignment, double scaleX, double scaleY) throws Exception {
+        if(scaleX > 1 || scaleX < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
+        if(scaleY > 1 || scaleY < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
         JPanel containerPanel = new JPanel(new GridBagLayout());
         HashMap<JComponent, GridBagConstraints> constraintsMap = new HashMap<>();
         int minx = Integer.MAX_VALUE, miny = Integer.MAX_VALUE, maxx = Integer.MIN_VALUE, maxy = Integer.MIN_VALUE;
@@ -216,14 +220,15 @@ public class PanelBuilder {
         GridBagConstraints innerPanelGbc = new GridBagConstraints();
         innerPanelGbc.fill = GridBagConstraints.BOTH;
         innerPanelGbc.gridx = innerPanelGbc.gridy = 2;
-        innerPanelGbc.weightx = innerPanelGbc.weighty = 1;
+        innerPanelGbc.weightx = scaleX;
+        innerPanelGbc.weighty = scaleY;
         GridBagConstraints paddingLeftGbc = new GridBagConstraints();
         GridBagConstraints paddingRightGbc = new GridBagConstraints();
         GridBagConstraints paddingTopGbc = new GridBagConstraints();
         GridBagConstraints paddingBottomGbc = new GridBagConstraints();
         paddingLeftGbc.fill = paddingRightGbc.fill = paddingTopGbc.fill = paddingBottomGbc.fill = GridBagConstraints.BOTH;
-        paddingLeftGbc.weightx = paddingRightGbc.weightx = Integer.MAX_VALUE;
-        paddingTopGbc.weighty = paddingBottomGbc.weighty = Integer.MAX_VALUE;
+        paddingLeftGbc.weightx = paddingRightGbc.weightx = (1-scaleX)/2;
+        paddingTopGbc.weighty = paddingBottomGbc.weighty = (1-scaleY)/2;
         paddingLeftGbc.gridy = paddingRightGbc.gridy = 2;
         paddingTopGbc.gridx = paddingBottomGbc.gridx = 2;
         paddingLeftGbc.gridx = 1;
@@ -236,21 +241,25 @@ public class PanelBuilder {
         if(alignment != Alignment.FILL && alignment != Alignment.TOPLEFT
                 && alignment != Alignment.TOPMIDDLE && alignment != Alignment.TOPRIGHT){
             containerPanel.add(topPanel = new JPanel(), paddingTopGbc);
+            topPanel.setBorder(BorderFactory.createLineBorder(Color.GREEN));
         }
 
         if(alignment != Alignment.FILL && alignment != Alignment.TOPLEFT
                 && alignment != Alignment.MIDDLELEFT && alignment != Alignment.BOTTOMLEFT){
             containerPanel.add(leftPanel = new JPanel(), paddingLeftGbc);
+            leftPanel.setBorder(BorderFactory.createLineBorder(Color.GREEN));
         }
 
         if(alignment != Alignment.FILL && alignment != Alignment.TOPRIGHT
                 && alignment != Alignment.MIDDLERIGHT && alignment != Alignment.BOTTOMRIGHT){
             containerPanel.add(rightPanel = new JPanel(), paddingRightGbc);
+            rightPanel.setBorder(BorderFactory.createLineBorder(Color.GREEN));
         }
 
         if(alignment != Alignment.FILL && alignment != Alignment.BOTTOMLEFT
                 && alignment != Alignment.BOTTOMMIDDLE && alignment != Alignment.BOTTOMRIGHT){
             containerPanel.add(bottomPanel = new JPanel(), paddingBottomGbc);
+            bottomPanel.setBorder(BorderFactory.createLineBorder(Color.GREEN));
         }
 
 

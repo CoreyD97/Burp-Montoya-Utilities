@@ -164,7 +164,7 @@ public class Extension implements ITab, IBurpExtender, IGsonProvider{
 
 
                 try {
-                    Extension.this.extensionPreferencesPanel = panelBuilder.build(layout, PanelBuilder.Alignment.CENTER);
+                    Extension.this.extensionPreferencesPanel = panelBuilder.build(layout, PanelBuilder.Alignment.CENTER, 1, 0);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
