@@ -8,18 +8,14 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class PanelBuilder {
 
     private final Preferences preferences;
     private Set<ComponentGroup> componentGroups;
-
-    public enum Alignment { TOPLEFT, TOPMIDDLE, TOPRIGHT,
-                            MIDDLELEFT, CENTER, MIDDLERIGHT,
-                            BOTTOMLEFT, BOTTOMMIDDLE, BOTTOMRIGHT, FILL }
 
     public PanelBuilder(Preferences preferences){
         this.preferences = preferences;

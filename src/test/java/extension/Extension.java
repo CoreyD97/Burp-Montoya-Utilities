@@ -1,13 +1,9 @@
 package extension;
 
 import burp.*;
-import com.coreyd97.BurpExtenderUtilities.ComponentGroup;
-import com.coreyd97.BurpExtenderUtilities.IGsonProvider;
-import com.coreyd97.BurpExtenderUtilities.PanelBuilder;
-import com.coreyd97.BurpExtenderUtilities.Preferences;
+import com.coreyd97.BurpExtenderUtilities.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.TypeAdapter;
 import com.google.gson.reflect.TypeToken;
 
 import javax.swing.*;
@@ -164,7 +160,7 @@ public class Extension implements ITab, IBurpExtender, IGsonProvider{
 
 
                 try {
-                    Extension.this.extensionPreferencesPanel = panelBuilder.build(layout, PanelBuilder.Alignment.CENTER, 1, 0);
+                    Extension.this.extensionPreferencesPanel = panelBuilder.build(layout, Alignment.CENTER, 1, 0);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
