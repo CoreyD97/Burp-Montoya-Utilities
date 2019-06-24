@@ -9,9 +9,10 @@ import com.google.gson.reflect.TypeToken;
 import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Extension implements ITab, IBurpExtender, IGsonProvider{
+public class Extension implements ITab, IBurpExtender, IGsonProvider, ILogProvider {
     private static String extensionName = "My Extension";
     private static String extensionTabTitle = "Extension";
 
@@ -50,41 +51,58 @@ public class Extension implements ITab, IBurpExtender, IGsonProvider{
         Extension.callbacks = callbacks;
         //END Burp Specific
 
-
         //Extension Required
         Extension.instance = this;
         callbacks.setExtensionName(extensionName);
-        Extension.preferences = new Preferences(this, callbacks);
+        Extension.preferences = new Preferences("PreferenceTest", this, this, callbacks);
         //END Extension Required
 
+        try {
+            Extension.preferences.addProjectSetting("Alpha", String.class, "Project Alpha");
+            Extension.preferences.addProjectSetting("Beta", String.class, "Project Beta");
+            Extension.preferences.addProjectSetting("Charlie", String.class, "Project Charlie");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
         //Define Settings Here
-        Extension.preferences.addSetting("TextArea", String.class, "Hello World!");
+        Extension.preferences.addGlobalSetting("TextArea", String.class, "Hello World!");
 
-        Extension.preferences.addSetting(PREF_RESTRICT_TO_SCOPE, Boolean.class, false);
-        Extension.preferences.addSetting(PREF_LOG_GLOBAL, Boolean.class, true);
-        Extension.preferences.addSetting(PREF_LOG_PROXY, Boolean.class, true);
-        Extension.preferences.addSetting(PREF_LOG_SPIDER, Boolean.class, true);
-        Extension.preferences.addSetting(PREF_LOG_INTRUDER, Boolean.class, true);
-        Extension.preferences.addSetting(PREF_LOG_SCANNER, Boolean.class, true);
-        Extension.preferences.addSetting(PREF_LOG_REPEATER, Boolean.class, true);
-        Extension.preferences.addSetting(PREF_LOG_SEQUENCER, Boolean.class, true);
-        Extension.preferences.addSetting(PREF_LOG_EXTENDER, Boolean.class, true);
-        Extension.preferences.addSetting(PREF_LOG_TARGET_TAB, Boolean.class, true);
+        Extension.preferences.addGlobalSetting(PREF_RESTRICT_TO_SCOPE, Boolean.class, false);
+        Extension.preferences.addGlobalSetting(PREF_LOG_GLOBAL, Boolean.class, true);
+        Extension.preferences.addGlobalSetting(PREF_LOG_PROXY, Boolean.class, true);
+        Extension.preferences.addGlobalSetting(PREF_LOG_SPIDER, Boolean.class, true);
+        Extension.preferences.addGlobalSetting(PREF_LOG_INTRUDER, Boolean.class, true);
+        Extension.preferences.addGlobalSetting(PREF_LOG_SCANNER, Boolean.class, true);
+        Extension.preferences.addGlobalSetting(PREF_LOG_REPEATER, Boolean.class, true);
+        Extension.preferences.addGlobalSetting(PREF_LOG_SEQUENCER, Boolean.class, true);
+        Extension.preferences.addGlobalSetting(PREF_LOG_EXTENDER, Boolean.class, true);
+        Extension.preferences.addGlobalSetting(PREF_LOG_TARGET_TAB, Boolean.class, true);
 
-        Extension.preferences.addSetting("G1String", String.class, "Example String 1");
-        Extension.preferences.addSetting("G1Integer", Integer.class, 1024);
-        Extension.preferences.addSetting("G1Boolean", Boolean.class, true);
+        Extension.preferences.addGlobalSetting("G1String", String.class, "Example String 1");
+        Extension.preferences.addGlobalSetting("G1Integer", Integer.class, 1024);
+        Extension.preferences.addGlobalSetting("G1Boolean", Boolean.class, true);
 
-        Extension.preferences.addSetting("G2String", String.class, "Example String 2");
-        Extension.preferences.addSetting("G2Integer", Integer.class, 2048);
-        Extension.preferences.addSetting("G2Boolean", Boolean.class, false);
+        Extension.preferences.addGlobalSetting("G2String", String.class, "Example String 2");
+        Extension.preferences.addGlobalSetting("G2Integer", Integer.class, 2048);
+        Extension.preferences.addGlobalSetting("G2Boolean", Boolean.class, false);
 
-        Extension.preferences.addSetting("TypeTest", new TypeToken<HashMap<String, String>>(){}.getType(), new HashMap<String, String>());
+        Extension.preferences.addGlobalSetting("TypeTest", new TypeToken<HashMap<String, String>>(){}.getType(), new HashMap<String, String>());
 
         Object test = Extension.preferences.getSetting("TypeTest");
         //END Setting Definition
 
         buildUI();
+    }
+
+    @Override
+    public void logOutput(String message) {
+        System.out.println(message);
+    }
+
+    @Override
+    public void logError(String errorMessage) {
+        System.err.println(errorMessage);
     }
 
     private void buildUI(){
@@ -106,56 +124,16 @@ public class Extension implements ITab, IBurpExtender, IGsonProvider{
                 ComponentGroup group5 = panelBuilder.createComponentGroup("Group 5");
                 ComponentGroup group6 = panelBuilder.createComponentGroup("Group 6");
 
-                ComponentGroup logFromPanel = panelBuilder.createComponentGroup("Log From");
-                JCheckBox restrict = (JCheckBox) logFromPanel.addPreferenceComponent(PREF_RESTRICT_TO_SCOPE, "In scope items only");
-                restrict.setBorder(BorderFactory.createLineBorder(Color.BLUE));
-                logFromPanel.addComponent((JComponent) Box.createVerticalStrut(5));
-                JCheckBox logAllTools = (JCheckBox) logFromPanel.addPreferenceComponent(PREF_LOG_GLOBAL, "All Tools");
-                JCheckBox logSpider = (JCheckBox) logFromPanel.addPreferenceComponent(PREF_LOG_SPIDER, "Spider");
-                JCheckBox logIntruder = (JCheckBox) logFromPanel.addPreferenceComponent(PREF_LOG_INTRUDER, "Intruder");
-                JCheckBox logScanner = (JCheckBox) logFromPanel.addPreferenceComponent(PREF_LOG_SCANNER, "Scanner");
-                JCheckBox logRepeater = (JCheckBox) logFromPanel.addPreferenceComponent(PREF_LOG_REPEATER, "Repeater");
-                JCheckBox logSequencer = (JCheckBox) logFromPanel.addPreferenceComponent(PREF_LOG_SEQUENCER, "Sequencer");
-                JCheckBox logProxy = (JCheckBox) logFromPanel.addPreferenceComponent(PREF_LOG_PROXY, "Proxy");
-                JCheckBox logTarget = (JCheckBox) logFromPanel.addPreferenceComponent(PREF_LOG_TARGET_TAB, "Target");
-                JCheckBox logExtender = (JCheckBox) logFromPanel.addPreferenceComponent(PREF_LOG_EXTENDER, "Extender");
-
-                {   //Disable check boxes if global logging is enabled.
-                    boolean globalDisabled = !logAllTools.isSelected();
-                    logSpider.setEnabled(globalDisabled);
-                    logIntruder.setEnabled(globalDisabled);
-                    logScanner.setEnabled(globalDisabled);
-                    logRepeater.setEnabled(globalDisabled);
-                    logSequencer.setEnabled(globalDisabled);
-                    logProxy.setEnabled(globalDisabled);
-                    logTarget.setEnabled(globalDisabled);
-                    logExtender.setEnabled(globalDisabled);
-                }
-
-                logAllTools.addActionListener(actionEvent -> {
-                    boolean globalDisabled = !logAllTools.isSelected();
-                    logSpider.setEnabled(globalDisabled);
-                    logIntruder.setEnabled(globalDisabled);
-                    logScanner.setEnabled(globalDisabled);
-                    logRepeater.setEnabled(globalDisabled);
-                    logSequencer.setEnabled(globalDisabled);
-                    logProxy.setEnabled(globalDisabled);
-                    logTarget.setEnabled(globalDisabled);
-                    logExtender.setEnabled(globalDisabled);
-                });
-
-
-                JLabel statusLabel = new JLabel("Status: Not Running");
-                statusLabel.setBorder(BorderFactory.createLineBorder(Color.CYAN));
-                group1.addComponent(statusLabel);
-                JToggleButton startStopButton = group1.addToggleButton("Start", null);
+                group5.addPreferenceComponent("Alpha");
+                group5.addPreferenceComponent("Beta");
+                group5.addPreferenceComponent("Charlie");
 
                 JPanel[][] layout = new JPanel[][]{
                         new JPanel[]{group1,group1,group1, null , null },
                         new JPanel[]{group1,group1,group1, null , null },
                         new JPanel[]{ null , null ,group2,group2, null },
-                        new JPanel[]{logFromPanel, null ,group3,group4, null },
-                        new JPanel[]{logFromPanel, null , null , null ,group6},
+                        new JPanel[]{group5, null ,group3,group4, null },
+                        new JPanel[]{group5, null , null , null ,group6},
                 };
 
 

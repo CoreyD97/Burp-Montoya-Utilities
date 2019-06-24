@@ -1,126 +1,147 @@
 package com.coreyd97.BurpExtenderUtilities;
 
 import burp.IBurpExtenderCallbacks;
+import burp.IHttpRequestResponse;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.net.MalformedURLException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
 public class Preferences {
 
+    public enum PreferenceVisibility {GLOBAL, PROJECT, VOLATILE}
+
     private ILogProvider logProvider;
+    private final String extensionIdentifier;
     private final IGsonProvider gsonProvider;
     private final IBurpExtenderCallbacks callbacks;
     private final HashMap<String, Object> preferences;
-    private final HashMap<String, Object> defaults;
+    private final HashMap<String, Object> preferenceDefaults;
     private final HashMap<String, Type> preferenceTypes;
-    private final ArrayList<String> volatileKeys;
+    private final HashMap<String, PreferenceVisibility> preferenceVisibilities;
     private final ArrayList<PreferenceListener> preferenceListeners;
+    private ProjectSettingStore projectSettingsStore;
 
-    public Preferences(final IGsonProvider gsonProvider, final ILogProvider logProvider, final IBurpExtenderCallbacks callbacks){
-        this(gsonProvider, callbacks);
+    public Preferences(final String extensionIdentifier, final IGsonProvider gsonProvider,
+                       final ILogProvider logProvider, final IBurpExtenderCallbacks callbacks){
+        this(extensionIdentifier, gsonProvider, callbacks);
         this.logProvider = logProvider;
     }
 
-    public Preferences(final IGsonProvider gsonProvider, final IBurpExtenderCallbacks callbacks){
+    public Preferences(final String extensionIdentifier, final IGsonProvider gsonProvider,
+                       final IBurpExtenderCallbacks callbacks){
+        this.extensionIdentifier = extensionIdentifier;
         this.gsonProvider = gsonProvider;
         this.callbacks = callbacks;
+        this.preferenceDefaults = new HashMap<>();
         this.preferences = new HashMap<>();
-        this.defaults = new HashMap<>();
         this.preferenceTypes = new HashMap<>();
-        this.volatileKeys = new ArrayList<>();
+        this.preferenceVisibilities = new HashMap<>();
         this.preferenceListeners = new ArrayList<>();
+        setupProjectSettingsStore();
     }
 
-    public void addSetting(String settingName, Type type){
-        this.addSetting(settingName, type, null);
+    private void setupProjectSettingsStore(){
+        try{
+            //Create store object.
+            this.projectSettingsStore = new ProjectSettingStore(this, callbacks, extensionIdentifier);
+            String extensionIdentifierEncoded = URLEncoder.encode(extensionIdentifier, "UTF-8");
+
+            //Load existing from sitemap
+            IHttpRequestResponse[] existingItems = callbacks.getSiteMap(
+                    projectSettingsStore.getHttpService().toString() + "/" + extensionIdentifierEncoded);
+
+            //If we have an existing item
+            if(existingItems.length != 0){
+                //Pick the first one
+                IHttpRequestResponse existingSettings = existingItems[0];
+                //If it has a response body (settings json)
+                if(existingSettings.getResponse() != null){
+                    //Load it into our current store item.
+                    this.projectSettingsStore.setResponse(existingSettings.getResponse());
+                }
+            }
+
+            //Add it to the sitemap
+            callbacks.addToSiteMap(this.projectSettingsStore);
+        } catch (UnsupportedEncodingException | MalformedURLException e) {
+            this.projectSettingsStore = null;
+            logError("Could not initiate the project setting store. See the below stack trace for more info.");
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            logError(sw.toString());
+        }
     }
 
-    public <T> void addSetting(String settingName, Class<T> clazz){
-        this.addSetting(settingName, clazz, null);
+    public void addGlobalSetting(String settingName, Type type){
+        this.addGlobalSetting(settingName, type, null);
     }
 
-    public void addSetting(String settingName, Type type, Object defaultValue){
+    public void addGlobalSetting(String settingName, Type type, Object defaultValue){
+        throwExceptionIfAlreadyRegistered(settingName);
         //Get setting from burp preferences.
-        Object storedValue = getBurpSetting(settingName, type);
+        Object storedValue = getGlobalSettingFromBurp(settingName, type);
+        this.preferenceVisibilities.put(settingName, PreferenceVisibility.GLOBAL);
         this.preferenceTypes.put(settingName, type);
 
         if(storedValue != null){
             this.preferences.put(settingName, storedValue);
         }else{
             if(defaultValue != null){
-                setSetting(settingName, defaultValue, true);
+                setGlobalSetting(settingName, defaultValue, true);
             }else{
                 this.preferences.put(settingName, null);
             }
         }
 
-        this.defaults.put(settingName, defaultValue);
-        logOutput("Setting \"" + settingName + "\" registered with type " + type.getTypeName()
+        this.preferenceDefaults.put(settingName, defaultValue);
+        logOutput("Global setting \"" + settingName + "\" registered with type " + type.getTypeName()
                 + " and default value: " + (defaultValue != null ? defaultValue : "null"));
     }
 
-    public <T> void addSetting(String settingName, Class<T> clazz, T defaultValue){
-        //Get setting from burp preferences.
-        T storedValue = (T) getBurpSetting(settingName, clazz);
-        this.preferenceTypes.put(settingName, clazz);
+    public void addProjectSetting(String settingName, Type type) throws Exception {
+        this.addProjectSetting(settingName, type, null);
+    }
 
-        if(storedValue != null){
-            this.preferences.put(settingName, storedValue);
-        }else{
-            if(defaultValue != null){
-                setSetting(settingName, defaultValue, true);
-            }else{
-                this.preferences.put(settingName, null);
-            }
+    public void addProjectSetting(String settingName, Type type, Object defaultValue) throws Exception {
+        throwExceptionIfAlreadyRegistered(settingName);
+
+        if(projectSettingsStore == null)
+            throw new Exception("The project settings store was not initialised. Project settings cannot be setup.");
+        this.preferenceVisibilities.put(settingName, PreferenceVisibility.PROJECT);
+        projectSettingsStore.addSetting(settingName, type, defaultValue);
+    }
+
+    private void setProjectSetting(String setting, Object value){
+        setProjectSetting(setting, value, true);
+    }
+
+    private void setProjectSetting(String setting, Object value, boolean notifyListeners){
+        this.projectSettingsStore.setSetting(setting, value);
+
+        if(!notifyListeners) return;
+        for (PreferenceListener preferenceListener : this.preferenceListeners) {
+            preferenceListener.onPreferenceSet(setting, value);
         }
-
-        this.defaults.put(settingName, defaultValue);
-        logOutput("Setting \"" + settingName + "\" registered with type " + clazz.getTypeName()
-                + " and default value: " + (defaultValue != null ? defaultValue : "null"));
     }
 
-    public void addVolatileSetting(String settingName, Type type){
-        this.volatileKeys.add(settingName);
-        this.addSetting(settingName, type);
+    private void setGlobalSetting(String settingName, Object value){
+        this.setGlobalSetting(settingName, value, true);
     }
 
-    public void addVolatileSetting(String settingName, Class clazz){
-        this.volatileKeys.add(settingName);
-        this.addSetting(settingName, clazz);
-    }
-
-    public void addVolatileSetting(String settingName, Type type, Object defaultValue){
-        this.volatileKeys.add(settingName);
-        this.addSetting(settingName, type, defaultValue);
-    }
-
-    public <T> void addVolatileSetting(String settingName, Class<T> clazz, T defaultValue){
-        this.volatileKeys.add(settingName);
-        this.addSetting(settingName, clazz, defaultValue);
-    }
-
-
-    private void storePreference(String settingName, String jsonValue){
-        this.callbacks.saveExtensionSetting(settingName, jsonValue);
-    }
-
-    public void setSetting(String settingName, Object value){
-        this.setSetting(settingName, value, true);
-    }
-
-    public void setSetting(String settingName, Object value, boolean notifyListeners) {
+    private void setGlobalSetting(String settingName, Object value, boolean notifyListeners) {
         Type type = this.preferenceTypes.get(settingName);
-        String oldValue = getBurpSettingJson(settingName, type);
+        String oldValue = getGlobalSettingJson(settingName);
         String jsonValue = gsonProvider.getGson().toJson(value, type);
         if(jsonValue != null && jsonValue.equals(oldValue)) return;
 
-        if(!volatileKeys.contains(settingName)) {
-            logOutput("Saving setting \"" + settingName + "\" with value: " + String.valueOf(value));
-            storePreference(settingName, jsonValue);
-        }
-
+        storeGlobalSetting(settingName, jsonValue);
         this.preferences.put(settingName, value);
 
         if(!notifyListeners) return;
@@ -129,48 +150,110 @@ public class Preferences {
         }
     }
 
-    public void resetSetting(String settingName){
-        Object defaultValue = this.defaults.getOrDefault(settingName, null);
-        String jsonDefaultValue = gsonProvider.getGson().toJson(defaultValue);
-        Object newInstance = gsonProvider.getGson().fromJson(jsonDefaultValue, this.preferenceTypes.get(settingName));
-        setSetting(settingName, newInstance, true);
+    private void storeGlobalSetting(String settingName, String jsonValue){
+        this.callbacks.saveExtensionSetting(settingName, jsonValue);
     }
 
-    public void resetSettings(Set<String> keys){
-        for (String key : keys) {
-            resetSetting(key);
-        }
-    }
-
-    public Set<String> getPreferenceKeys(){
-        return this.preferences.keySet();
-    }
-
-    public Object getSetting(String settingName){
-        return this.preferences.get(settingName);
-    }
-
-    public Type getSettingType(String settingName) {
-        return preferenceTypes.get(settingName);
-    }
-
-    private Object getBurpSetting(String settingName, Type settingType) {
-        String storedValue = this.callbacks.loadExtensionSetting(settingName);
+    private Object getGlobalSettingFromBurp(String settingName, Type settingType) {
+        String storedValue = getGlobalSettingJson(settingName);
         if(storedValue == null) return null;
 
+        logOutput(String.format("Value %s loaded for global setting \"%s\". Trying to deserialize.", storedValue, settingName));
         try {
             return gsonProvider.getGson().fromJson(storedValue, settingType);
         }catch (Exception e){
-            logError("Could not load stored setting \"" + storedValue + "\". This may be due to a change in stored types. Falling back to default.");
+            logError("Could not load stored setting \"" + settingName
+                    + "\". This may be due to a change in stored types. Falling back to default.");
             return null;
         }
     }
 
-    private String getBurpSettingJson(String settingName, Type settingType) {
-        String storedValue = this.callbacks.loadExtensionSetting(settingName);
-        if(storedValue == null) return null;
+    public void addVolatileSetting(String settingName, Type type){
+        this.addVolatileSetting(settingName, type, null);
+    }
 
-        return storedValue;
+    public void addVolatileSetting(String settingName, Type type, Object defaultValue){
+        throwExceptionIfAlreadyRegistered(settingName);
+        this.preferenceVisibilities.put(settingName, PreferenceVisibility.VOLATILE);
+        this.preferenceTypes.put(settingName, type);
+        this.preferences.put(settingName, null);
+
+        this.preferenceDefaults.put(settingName, defaultValue);
+        logOutput("Volatile setting \"" + settingName + "\" registered with type " + type.getTypeName()
+                + " and default value: " + (defaultValue != null ? defaultValue : "null"));
+    }
+
+    public HashMap<String, PreferenceVisibility> getRegisteredSettings(){
+        return this.preferenceVisibilities;
+    }
+
+    public <T> T getSetting(String settingName){
+        PreferenceVisibility visibility = this.preferenceVisibilities.get(settingName);
+        if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
+
+        Object value = null;
+        switch (visibility){
+            case VOLATILE:
+            case GLOBAL: {
+                value = this.preferences.get(settingName);
+                break;
+            }
+            case PROJECT: {
+                value = this.projectSettingsStore.getSetting(settingName);
+                break;
+            }
+        }
+
+        return (T) value;
+    }
+
+    public void setSetting(String settingName, Object value){
+        setSetting(settingName, value, true);
+    }
+
+    public void setSetting(String settingName, Object value, boolean notifyListeners){
+        PreferenceVisibility visibility = this.preferenceVisibilities.get(settingName);
+        if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
+        switch (visibility) {
+            case VOLATILE: {
+                this.preferences.put(settingName, value);
+                break;
+            }
+            case PROJECT: {
+                this.projectSettingsStore.setSetting(settingName, value);
+                break;
+            }
+            case GLOBAL: {
+                this.setGlobalSetting(settingName, value, notifyListeners);
+                return;
+            }
+        }
+
+        if(!notifyListeners) return;
+        for (PreferenceListener preferenceListener : this.preferenceListeners) {
+            preferenceListener.onPreferenceSet(settingName, value);
+        }
+    }
+
+    public Type getSettingType(String settingName) {
+        PreferenceVisibility visibility = this.preferenceVisibilities.get(settingName);
+        if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
+        switch (visibility){
+            case PROJECT: {
+                return this.projectSettingsStore.getSettingType(settingName);
+            }
+
+            case VOLATILE:
+            case GLOBAL: {
+                return preferenceTypes.get(settingName);
+            }
+        }
+
+        return null;
+    }
+
+    private String getGlobalSettingJson(String settingName) {
+        return this.callbacks.loadExtensionSetting(settingName);
     }
 
     public void addSettingListener(PreferenceListener preferenceListener){
@@ -181,13 +264,36 @@ public class Preferences {
         this.preferenceListeners.remove(preferenceListener);
     }
 
-    private void logOutput(String message){
+    public void resetSetting(String settingName){
+        Object defaultValue = this.preferenceDefaults.getOrDefault(settingName, null);
+        String jsonDefaultValue = gsonProvider.getGson().toJson(defaultValue);
+        Object newInstance = gsonProvider.getGson().fromJson(jsonDefaultValue, this.preferenceTypes.get(settingName));
+        setGlobalSetting(settingName, newInstance, true);
+    }
+
+    public void resetSettings(Set<String> keys){
+        for (String key : keys) {
+            resetSetting(key);
+        }
+    }
+
+    IGsonProvider getGsonProvider() {
+        return gsonProvider;
+    }
+
+    void logOutput(String message){
         if(this.logProvider != null)
             logProvider.logOutput(message);
     }
 
-    private void logError(String errorMessage){
+    void logError(String errorMessage){
         if(this.logProvider != null)
             logProvider.logError(errorMessage);
+    }
+
+    private void throwExceptionIfAlreadyRegistered(String settingName){
+        if(this.preferenceVisibilities.get(settingName) != null)
+            throw new RuntimeException("Setting " + settingName + " has already been registered with " +
+                    this.preferenceVisibilities.get(settingName) + " visibility.");
     }
 }

@@ -50,13 +50,13 @@ public class PreferencesTest {
     @Before
     public void setUp() throws Exception {
         prefs = new HashMap<>();
-        preferences = new Preferences(extension, callbacks);
+        preferences = new Preferences("Preference Test", extension, callbacks);
     }
 
     @Test
     public void addNewSetting() throws Exception {
         //New setting with no value yet.
-        preferences.addSetting("test", String.class);
+        preferences.addGlobalSetting("test", String.class);
         assertEquals(String.class, preferences.getSettingType("test"));
         assertNull(preferences.getSetting("test"));
         assertNull(callbacks.loadExtensionSetting("test"));
@@ -64,7 +64,7 @@ public class PreferencesTest {
 
     @Test
     public void addNewSettingWithDefault() throws Exception {
-        preferences.addSetting("test", String.class, "Hello World!");
+        preferences.addGlobalSetting("test", String.class, "Hello World!");
         assertEquals(String.class, preferences.getSettingType("test"));
         assertEquals("Hello World!", preferences.getSetting("test"));
         assertEquals(new Gson().toJson("Hello World!"), callbacks.loadExtensionSetting("test"));
@@ -72,7 +72,7 @@ public class PreferencesTest {
 
     @Test
     public void setSetting() throws Exception {
-        preferences.addSetting("test", String.class);
+        preferences.addGlobalSetting("test", String.class);
         assertNull(preferences.getSetting("test"));
         assertEquals(String.class, preferences.getSettingType("test"));
         preferences.setSetting("test", "New Value");
@@ -82,7 +82,7 @@ public class PreferencesTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testSetSettingWithIncorrectType() throws Exception {
-        preferences.addSetting("test", String.class);
+        preferences.addGlobalSetting("test", String.class);
         preferences.setSetting("test", 1);
     }
 

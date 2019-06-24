@@ -8,15 +8,16 @@ public abstract class PreferenceFactory {
     protected IGsonProvider gsonProvider;
     protected ILogProvider logProvider;
 
-    public PreferenceFactory(IGsonProvider gsonProvider, ILogProvider logProvider, IBurpExtenderCallbacks callbacks){
+    public PreferenceFactory(String extensionIdentifier, IGsonProvider gsonProvider,
+                             ILogProvider logProvider, IBurpExtenderCallbacks callbacks){
         this.gsonProvider = gsonProvider;
         this.logProvider = logProvider;
-        prefs = new Preferences(gsonProvider, logProvider, callbacks);
+        prefs = new Preferences(extensionIdentifier, gsonProvider, logProvider, callbacks);
     }
 
-    public PreferenceFactory(IGsonProvider gsonProvider, IBurpExtenderCallbacks callbacks){
+    public PreferenceFactory(String extensionIdentifier, IGsonProvider gsonProvider, IBurpExtenderCallbacks callbacks){
         this.gsonProvider = gsonProvider;
-        prefs = new Preferences(gsonProvider, callbacks);
+        prefs = new Preferences(extensionIdentifier, gsonProvider, callbacks);
     }
 
     protected abstract void createDefaults();

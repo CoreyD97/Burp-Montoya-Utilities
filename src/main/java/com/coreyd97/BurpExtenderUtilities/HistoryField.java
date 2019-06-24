@@ -65,7 +65,7 @@ public class HistoryField extends JComboBox {
     private void loadHistory(){
         if(this.preferences != null && this.preferencesKey != null){
             history.clear();
-            preferences.addSetting(preferencesKey, HISTORY_TYPE_TOKEN, new ArrayList<String>());
+            preferences.addGlobalSetting(preferencesKey, HISTORY_TYPE_TOKEN, new ArrayList<String>());
             ArrayList<String> oldSearches = (ArrayList<String>) preferences.getSetting(preferencesKey);
             history.addAll(oldSearches);
         }

@@ -67,11 +67,11 @@ public class ComponentGroup extends JPanel {
         return button;
     }
 
-    public JComponent addPreferenceComponent(final String settingName){
+    public <T extends JComponent> T addPreferenceComponent(final String settingName){
         return addPreferenceComponent(settingName, settingName);
     }
 
-    public JComponent addPreferenceComponent(final String settingName, final String label){
+    public <T extends JComponent> T addPreferenceComponent(final String settingName, final String label){
         Object value = this.panelBuilder.getPreferences().getSetting(settingName);
         final JComponent component;
 
@@ -94,7 +94,7 @@ public class ComponentGroup extends JPanel {
             this.add(this.preferenceComponentMap.get(settingName), gbc);
             currentGridY++;
 
-            return component;
+            return (T) component;
         }else{
             component = this.panelBuilder.createPreferenceTextField(settingName);
         }
@@ -115,7 +115,7 @@ public class ComponentGroup extends JPanel {
         this.add(this.preferenceComponentMap.get(settingName), gbc);
         currentGridY++;
 
-        return component;
+        return (T) component;
     }
 
 

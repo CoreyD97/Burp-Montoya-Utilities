@@ -51,14 +51,14 @@ public class PanelBuilder {
             this.preferences.setSetting(preferenceKey, ((JToggleButton) e.getSource()).isSelected());
         });
 
-        boolean isSelected = (boolean) this.preferences.getSetting(preferenceKey);
+        boolean isSelected = this.preferences.getSetting(preferenceKey);
         toggleButton.setSelected(isSelected);
         return toggleButton;
     }
     
     public JTextField createPreferenceTextField(String preferenceKey){
         final JTextField textComponent = new JTextField();
-        String defaultValue = String.valueOf(this.preferences.getSetting(preferenceKey));
+        String defaultValue = this.preferences.getSetting(preferenceKey);
         textComponent.setText(defaultValue);
         textComponent.getDocument().addDocumentListener(new DocumentListener() {
             @Override
@@ -88,7 +88,7 @@ public class PanelBuilder {
 
     public JSpinner createPreferenceSpinner(String preferenceKey){
         final JSpinner spinnerComponent = new JSpinner();
-        Number value = (Number) this.preferences.getSetting(preferenceKey);
+        Number value = this.preferences.getSetting(preferenceKey);
         spinnerComponent.setValue(value);
         spinnerComponent.addChangeListener(new ChangeListener() {
             @Override
@@ -127,7 +127,7 @@ public class PanelBuilder {
     }
 
     public JTextArea createPreferenceTextArea(String settingName){
-        String value = String.valueOf(preferences.getSetting(settingName));
+        String value = preferences.getSetting(settingName);
 
         JTextArea textArea = new JTextArea();
         textArea.setText(value);
