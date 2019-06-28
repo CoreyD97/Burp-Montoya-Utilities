@@ -89,9 +89,11 @@ class ProjectSettingStore implements IHttpRequestResponse {
         if(this.preferences == null){
             this.preferences = new HashMap<>();
         }
-        for (String key : tempPreferences.keySet()) {
-            Object value = tempPreferences.get(key);
-            this.preferences.put(key, gson.toJson(value));
+        if(tempPreferences != null) {
+            for (String key : tempPreferences.keySet()) {
+                Object value = tempPreferences.get(key);
+                this.preferences.put(key, gson.toJson(value));
+            }
         }
 
         this.serializedValue = json;
