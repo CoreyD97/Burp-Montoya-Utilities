@@ -24,7 +24,7 @@ public class VariableViewPanel extends JPanel {
         this.preferenceKey = preferenceKey;
 
         if(this.preferences != null && this.preferenceKey != null){
-            this.preferences.addGlobalSetting(this.preferenceKey, View.class, defaultView);
+            this.preferences.registerSetting(this.preferenceKey, View.class, defaultView, Preferences.Visibility.GLOBAL);
             view = (View) this.preferences.getSetting(this.preferenceKey);
         }else{
             view = defaultView;

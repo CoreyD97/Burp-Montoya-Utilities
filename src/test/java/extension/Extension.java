@@ -2,14 +2,11 @@ package extension;
 
 import burp.*;
 import com.coreyd97.BurpExtenderUtilities.*;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 //Note
@@ -68,43 +65,39 @@ public class Extension implements ITab, IBurpExtender, ILogProvider {
 
 
         //Here we register settings which will persist over the current project.
-        //addProjectSetting(settingName, Type, defaultValue)
-        try {
-            Extension.preferences.addProjectSetting("Alpha", String.class, "Project Alpha");
-            Extension.preferences.addProjectSetting("Beta", String.class, "Project Beta");
-            Extension.preferences.addProjectSetting("Charlie", String.class, "Project Charlie");
-        }catch (Exception e){
-            e.printStackTrace();
-        }
+        //registerProjectSetting(settingName, Type, defaultValue)
+        Extension.preferences.registerSetting("Alpha", String.class, "Project Alpha", Preferences.Visibility.PROJECT);
+        Extension.preferences.registerSetting("Beta", String.class, "Project Beta", Preferences.Visibility.PROJECT);
+        Extension.preferences.registerSetting("Charlie", String.class, "Project Charlie", Preferences.Visibility.PROJECT);
 
         //Defining global settings works in the same way.
-        Extension.preferences.addGlobalSetting("TextArea", String.class, "Hello World!");
+        Extension.preferences.registerSetting("TextArea", String.class, "Hello World!", Preferences.Visibility.GLOBAL);
 
-        Extension.preferences.addGlobalSetting(PREF_RESTRICT_TO_SCOPE, Boolean.class, false);
-        Extension.preferences.addGlobalSetting(PREF_LOG_GLOBAL, Boolean.class, true);
-        Extension.preferences.addGlobalSetting(PREF_LOG_PROXY, Boolean.class, true);
-        Extension.preferences.addGlobalSetting(PREF_LOG_SPIDER, Boolean.class, true);
-        Extension.preferences.addGlobalSetting(PREF_LOG_INTRUDER, Boolean.class, true);
-        Extension.preferences.addGlobalSetting(PREF_LOG_SCANNER, Boolean.class, true);
-        Extension.preferences.addGlobalSetting(PREF_LOG_REPEATER, Boolean.class, true);
-        Extension.preferences.addGlobalSetting(PREF_LOG_SEQUENCER, Boolean.class, true);
-        Extension.preferences.addGlobalSetting(PREF_LOG_EXTENDER, Boolean.class, true);
-        Extension.preferences.addGlobalSetting(PREF_LOG_TARGET_TAB, Boolean.class, true);
+        Extension.preferences.registerSetting(PREF_RESTRICT_TO_SCOPE, Boolean.class, false, Preferences.Visibility.GLOBAL);
+        Extension.preferences.registerSetting(PREF_LOG_GLOBAL, Boolean.class, true, Preferences.Visibility.GLOBAL);
+        Extension.preferences.registerSetting(PREF_LOG_PROXY, Boolean.class, true, Preferences.Visibility.GLOBAL);
+        Extension.preferences.registerSetting(PREF_LOG_SPIDER, Boolean.class, true, Preferences.Visibility.GLOBAL);
+        Extension.preferences.registerSetting(PREF_LOG_INTRUDER, Boolean.class, true, Preferences.Visibility.GLOBAL);
+        Extension.preferences.registerSetting(PREF_LOG_SCANNER, Boolean.class, true, Preferences.Visibility.GLOBAL);
+        Extension.preferences.registerSetting(PREF_LOG_REPEATER, Boolean.class, true, Preferences.Visibility.GLOBAL);
+        Extension.preferences.registerSetting(PREF_LOG_SEQUENCER, Boolean.class, true, Preferences.Visibility.GLOBAL);
+        Extension.preferences.registerSetting(PREF_LOG_EXTENDER, Boolean.class, true, Preferences.Visibility.GLOBAL);
+        Extension.preferences.registerSetting(PREF_LOG_TARGET_TAB, Boolean.class, true, Preferences.Visibility.GLOBAL);
 
-        Extension.preferences.addGlobalSetting("G1String", String.class, "Example String 1");
-        Extension.preferences.addGlobalSetting("G1Integer", Integer.class, 1024);
-        Extension.preferences.addGlobalSetting("G1Boolean", Boolean.class, true);
+        Extension.preferences.registerSetting("G1String", String.class, "Example String 1", Preferences.Visibility.GLOBAL);
+        Extension.preferences.registerSetting("G1Integer", Integer.class, 1024, Preferences.Visibility.GLOBAL);
+        Extension.preferences.registerSetting("G1Boolean", Boolean.class, true, Preferences.Visibility.GLOBAL);
 
-        Extension.preferences.addGlobalSetting("G2String", String.class, "Example String 2");
-        Extension.preferences.addGlobalSetting("G2Integer", Integer.class, 2048);
-        Extension.preferences.addGlobalSetting("G2Boolean", Boolean.class, false);
+        Extension.preferences.registerSetting("G2String", String.class, "Example String 2", Preferences.Visibility.GLOBAL);
+        Extension.preferences.registerSetting("G2Integer", Integer.class, 2048, Preferences.Visibility.GLOBAL);
+        Extension.preferences.registerSetting("G2Boolean", Boolean.class, false, Preferences.Visibility.GLOBAL);
 
         //If you have a more complex type such as an arraylist or hash map, use the format below for the type parameter.
         //new TypeToken<YOURTYPEHERE>(){}.getType()
-        Extension.preferences.addGlobalSetting("TypeTest", new TypeToken<HashMap<String, String>>(){}.getType(), new HashMap<String, String>());
+        Extension.preferences.registerSetting("TypeTest", new TypeToken<HashMap<String, String>>(){}.getType(), new HashMap<String, String>());
 
         //You can also create volatile preferences, which will only exist until burp is closed!
-        Extension.preferences.addVolatileSetting("Volatile", String.class, "Default");
+        Extension.preferences.registerSetting("Volatile", String.class, "Default", Preferences.Visibility.VOLATILE);
 
         //You want to get a value?
         String example = Extension.preferences.getSetting("G1String");

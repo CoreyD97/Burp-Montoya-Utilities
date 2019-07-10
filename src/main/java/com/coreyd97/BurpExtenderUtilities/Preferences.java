@@ -15,7 +15,7 @@ import java.util.Set;
 
 public class Preferences {
 
-    public enum PreferenceVisibility {GLOBAL, PROJECT, VOLATILE}
+    public enum Visibility {GLOBAL, PROJECT, VOLATILE}
 
     private ILogProvider logProvider;
     private final String extensionIdentifier;
@@ -24,7 +24,7 @@ public class Preferences {
     private final HashMap<String, Object> preferences;
     private final HashMap<String, Object> preferenceDefaults;
     private final HashMap<String, Type> preferenceTypes;
-    private final HashMap<String, PreferenceVisibility> preferenceVisibilities;
+    private final HashMap<String, Visibility> preferenceVisibilities;
     private final ArrayList<PreferenceListener> preferenceListeners;
     private ProjectSettingStore projectSettingsStore;
 
@@ -79,60 +79,92 @@ public class Preferences {
         }
     }
 
-    public void addGlobalSetting(String settingName, Type type){
-        this.addGlobalSetting(settingName, type, null);
+    public void registerSetting(String settingName, Type type){
+        registerSetting(settingName, type, null, Visibility.GLOBAL);
     }
 
-    public void addGlobalSetting(String settingName, Type type, Object defaultValue){
-        throwExceptionIfAlreadyRegistered(settingName);
-        //Get setting from burp preferences.
-        Object storedValue = getGlobalSettingFromBurp(settingName, type);
-        this.preferenceVisibilities.put(settingName, PreferenceVisibility.GLOBAL);
-        this.preferenceTypes.put(settingName, type);
+    public void registerSetting(String settingName, Type type, Object defaultValue){
+        registerSetting(settingName, type, defaultValue, Visibility.GLOBAL);
+    }
 
-        if(storedValue != null){
-            this.preferences.put(settingName, storedValue);
-        }else{
-            if(defaultValue != null){
-                setGlobalSetting(settingName, defaultValue, true);
-            }else{
+    public void registerSetting(String settingName, Type type, Visibility visibility){
+        registerSetting(settingName, type, null, visibility);
+    }
+
+    public void registerSetting(String settingName, Type type, Object defaultValue, Visibility visibility){
+        throwExceptionIfAlreadyRegistered(settingName);
+        this.preferenceVisibilities.put(settingName, visibility);
+
+        switch (visibility){
+            case PROJECT: {
+                if(projectSettingsStore == null)
+                    throw new RuntimeException("The project settings store was not initialised. Project settings cannot be setup.");
+
+                this.projectSettingsStore.registerSetting(settingName, type, defaultValue);
+                return;
+            }
+            case GLOBAL: {
+                Object storedValue = getGlobalSettingFromBurp(settingName, type);
+                this.preferenceTypes.put(settingName, type);
+
+                if(storedValue != null){
+                    this.preferences.put(settingName, storedValue);
+                }else{
+                    if(defaultValue != null){
+                        setGlobalSetting(settingName, defaultValue, true);
+                    }else{
+                        this.preferences.put(settingName, null);
+                    }
+                }
+
+                this.preferenceDefaults.put(settingName, defaultValue);
+
+                logOutput("Global setting \"" + settingName + "\" registered with type " + type.getTypeName()
+                        + " and default value: " + (defaultValue != null ? defaultValue : "null"));
+                return;
+            }
+            case VOLATILE: {
+                this.preferenceTypes.put(settingName, type);
                 this.preferences.put(settingName, null);
+                this.preferenceDefaults.put(settingName, defaultValue);
+
+                logOutput("Volatile setting \"" + settingName + "\" registered with type " + type.getTypeName()
+                        + " and default value: " + (defaultValue != null ? defaultValue : "null"));
+                return;
             }
         }
 
-        this.preferenceDefaults.put(settingName, defaultValue);
-        logOutput("Global setting \"" + settingName + "\" registered with type " + type.getTypeName()
-                + " and default value: " + (defaultValue != null ? defaultValue : "null"));
     }
 
-    public void addProjectSetting(String settingName, Type type) {
-        this.addProjectSetting(settingName, type, null);
+    @Deprecated
+    public void registerGlobalSetting(String settingName, Type type){
+        registerSetting(settingName, type, Visibility.GLOBAL);
     }
 
-    public void addProjectSetting(String settingName, Type type, Object defaultValue) {
-        throwExceptionIfAlreadyRegistered(settingName);
-
-        if(projectSettingsStore == null)
-            throw new RuntimeException("The project settings store was not initialised. Project settings cannot be setup.");
-        this.preferenceVisibilities.put(settingName, PreferenceVisibility.PROJECT);
-        projectSettingsStore.addSetting(settingName, type, defaultValue);
+    @Deprecated
+    public void registerGlobalSetting(String settingName, Type type, Object defaultValue){
+        registerSetting(settingName, type, defaultValue, Visibility.GLOBAL);
     }
 
-    private void setProjectSetting(String setting, Object value){
-        setProjectSetting(setting, value, true);
+    @Deprecated
+    public void registerProjectSetting(String settingName, Type type) {
+        registerSetting(settingName, type, Visibility.PROJECT);
     }
 
-    private void setProjectSetting(String setting, Object value, boolean notifyListeners){
-        this.projectSettingsStore.setSetting(setting, value);
-
-        if(!notifyListeners) return;
-        for (PreferenceListener preferenceListener : this.preferenceListeners) {
-            preferenceListener.onPreferenceSet(setting, value);
-        }
+    @Deprecated
+    public void registerProjectSetting(String settingName, Type type, Object defaultValue) {
+        registerSetting(settingName, type, defaultValue, Visibility.PROJECT);
     }
 
-    private void setGlobalSetting(String settingName, Object value){
-        this.setGlobalSetting(settingName, value, true);
+
+    @Deprecated
+    public void registerVolatileSetting(String settingName, Type type){
+        registerSetting(settingName, type, Visibility.VOLATILE);
+    }
+
+    @Deprecated
+    public void registerVolatileSetting(String settingName, Type type, Object defaultValue){
+        registerSetting(settingName, type, defaultValue, Visibility.VOLATILE);
     }
 
     private void setGlobalSetting(String settingName, Object value, boolean notifyListeners) {
@@ -168,27 +200,12 @@ public class Preferences {
         }
     }
 
-    public void addVolatileSetting(String settingName, Type type){
-        this.addVolatileSetting(settingName, type, null);
-    }
-
-    public void addVolatileSetting(String settingName, Type type, Object defaultValue){
-        throwExceptionIfAlreadyRegistered(settingName);
-        this.preferenceVisibilities.put(settingName, PreferenceVisibility.VOLATILE);
-        this.preferenceTypes.put(settingName, type);
-        this.preferences.put(settingName, null);
-
-        this.preferenceDefaults.put(settingName, defaultValue);
-        logOutput("Volatile setting \"" + settingName + "\" registered with type " + type.getTypeName()
-                + " and default value: " + (defaultValue != null ? defaultValue : "null"));
-    }
-
-    public HashMap<String, PreferenceVisibility> getRegisteredSettings(){
+    public HashMap<String, Visibility> getRegisteredSettings(){
         return this.preferenceVisibilities;
     }
 
     public <T> T getSetting(String settingName){
-        PreferenceVisibility visibility = this.preferenceVisibilities.get(settingName);
+        Visibility visibility = this.preferenceVisibilities.get(settingName);
         if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
 
         Object value = null;
@@ -212,7 +229,7 @@ public class Preferences {
     }
 
     public void setSetting(String settingName, Object value, boolean notifyListeners){
-        PreferenceVisibility visibility = this.preferenceVisibilities.get(settingName);
+        Visibility visibility = this.preferenceVisibilities.get(settingName);
         if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
         switch (visibility) {
             case VOLATILE: {
@@ -236,7 +253,7 @@ public class Preferences {
     }
 
     public Type getSettingType(String settingName) {
-        PreferenceVisibility visibility = this.preferenceVisibilities.get(settingName);
+        Visibility visibility = this.preferenceVisibilities.get(settingName);
         if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
         switch (visibility){
             case PROJECT: {

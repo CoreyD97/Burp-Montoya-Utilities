@@ -1,6 +1,7 @@
 package extension;
 
 import burp.IBurpExtenderCallbacks;
+import com.coreyd97.BurpExtenderUtilities.DefaultGsonProvider;
 import com.coreyd97.BurpExtenderUtilities.Preferences;
 import com.google.gson.Gson;
 import org.junit.Before;
@@ -50,13 +51,13 @@ public class PreferencesTest {
     @Before
     public void setUp() throws Exception {
         prefs = new HashMap<>();
-        preferences = new Preferences("Preference Test", extension, callbacks);
+        preferences = new Preferences("Preference Test", new DefaultGsonProvider(), callbacks);
     }
 
     @Test
     public void addNewSetting() throws Exception {
         //New setting with no value yet.
-        preferences.addGlobalSetting("test", String.class);
+        preferences.registerSetting("test", String.class, Preferences.Visibility.GLOBAL);
         assertEquals(String.class, preferences.getSettingType("test"));
         assertNull(preferences.getSetting("test"));
         assertNull(callbacks.loadExtensionSetting("test"));
@@ -64,7 +65,7 @@ public class PreferencesTest {
 
     @Test
     public void addNewSettingWithDefault() throws Exception {
-        preferences.addGlobalSetting("test", String.class, "Hello World!");
+        preferences.registerSetting("test", String.class, "Hello World!", Preferences.Visibility.GLOBAL);
         assertEquals(String.class, preferences.getSettingType("test"));
         assertEquals("Hello World!", preferences.getSetting("test"));
         assertEquals(new Gson().toJson("Hello World!"), callbacks.loadExtensionSetting("test"));
@@ -72,7 +73,7 @@ public class PreferencesTest {
 
     @Test
     public void setSetting() throws Exception {
-        preferences.addGlobalSetting("test", String.class);
+        preferences.registerSetting("test", String.class, Preferences.Visibility.GLOBAL);
         assertNull(preferences.getSetting("test"));
         assertEquals(String.class, preferences.getSettingType("test"));
         preferences.setSetting("test", "New Value");
@@ -82,7 +83,7 @@ public class PreferencesTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testSetSettingWithIncorrectType() throws Exception {
-        preferences.addGlobalSetting("test", String.class);
+        preferences.registerSetting("test", String.class, Preferences.Visibility.GLOBAL);
         preferences.setSetting("test", 1);
     }
 

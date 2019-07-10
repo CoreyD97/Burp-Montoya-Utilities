@@ -38,11 +38,11 @@ class ProjectSettingStore implements IHttpRequestResponse {
     }
 
 
-    public void addSetting(String settingName, Type type) {
-        this.addSetting(settingName, type, null);
+    public void registerSetting(String settingName, Type type) {
+        this.registerSetting(settingName, type, null);
     }
 
-    public void addSetting(String settingName, Type type, Object defaultValue) {
+    public void registerSetting(String settingName, Type type, Object defaultValue) {
         if(this.preferenceTypes.containsKey(settingName)){
             throw new RuntimeException("Setting " + settingName + " has already been registered in the project settings store!");
         }
@@ -92,7 +92,7 @@ class ProjectSettingStore implements IHttpRequestResponse {
         if(tempPreferences != null) {
             for (String key : tempPreferences.keySet()) {
                 Object value = tempPreferences.get(key);
-                this.preferences.put(key, gson.toJson(value));
+                this.preferences.put(key, value);
             }
         }
 
