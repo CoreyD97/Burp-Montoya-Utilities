@@ -52,17 +52,15 @@ class ProjectSettingStore implements IHttpRequestResponse {
         if(this.preferences.get(settingName) == null){
             this.preferences.put(settingName, defaultValue);
         }else{
-            if(type != String.class) {
-                try {
-                    String existingSerializedValue = (String) this.preferences.get(settingName);
-                    Object deserializedValue = this.preferenceController.getGsonProvider()
-                            .getGson().fromJson(existingSerializedValue, type);
-                    this.preferences.put(settingName, deserializedValue);
-                } catch (Exception e) {
-                    preferenceController.logError("Could not deserialize the loaded value for setting " +
-                            "\"" + settingName + "\" to type \"" + type + "\". Falling back to the default value.");
-                    this.preferences.put(settingName, defaultValue);
-                }
+            try {
+                String existingSerializedValue = (String) this.preferences.get(settingName);
+                Object deserializedValue = this.preferenceController.getGsonProvider()
+                        .getGson().fromJson(existingSerializedValue, type);
+                this.preferences.put(settingName, deserializedValue);
+            } catch (Exception e) {
+                preferenceController.logError("Could not deserialize the loaded value for setting " +
+                        "\"" + settingName + "\" to type \"" + type + "\". Falling back to the default value.");
+                this.preferences.put(settingName, defaultValue);
             }
         }
 
@@ -92,7 +90,7 @@ class ProjectSettingStore implements IHttpRequestResponse {
         if(tempPreferences != null) {
             for (String key : tempPreferences.keySet()) {
                 Object value = tempPreferences.get(key);
-                this.preferences.put(key, value);
+                this.preferences.put(key, gson.toJson(value));
             }
         }
 
