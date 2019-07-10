@@ -105,15 +105,15 @@ public class Preferences {
                 + " and default value: " + (defaultValue != null ? defaultValue : "null"));
     }
 
-    public void addProjectSetting(String settingName, Type type) throws Exception {
+    public void addProjectSetting(String settingName, Type type) {
         this.addProjectSetting(settingName, type, null);
     }
 
-    public void addProjectSetting(String settingName, Type type, Object defaultValue) throws Exception {
+    public void addProjectSetting(String settingName, Type type, Object defaultValue) {
         throwExceptionIfAlreadyRegistered(settingName);
 
         if(projectSettingsStore == null)
-            throw new Exception("The project settings store was not initialised. Project settings cannot be setup.");
+            throw new RuntimeException("The project settings store was not initialised. Project settings cannot be setup.");
         this.preferenceVisibilities.put(settingName, PreferenceVisibility.PROJECT);
         projectSettingsStore.addSetting(settingName, type, defaultValue);
     }

@@ -38,11 +38,11 @@ class ProjectSettingStore implements IHttpRequestResponse {
     }
 
 
-    public void addSetting(String settingName, Type type) throws Exception {
+    public void addSetting(String settingName, Type type) {
         this.addSetting(settingName, type, null);
     }
 
-    public void addSetting(String settingName, Type type, Object defaultValue) throws Exception {
+    public void addSetting(String settingName, Type type, Object defaultValue) {
         if(this.preferenceTypes.containsKey(settingName)){
             throw new RuntimeException("Setting " + settingName + " has already been registered in the project settings store!");
         }
