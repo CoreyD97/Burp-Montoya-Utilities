@@ -208,7 +208,7 @@ public class PanelBuilder {
                     constraints.fill = GridBagConstraints.BOTH;
                     constraints.weightx = constraints.weighty = 1;
                     JPanel filler = new JPanel();
-                    containerPanel.add(filler, constraints);
+                    constraintsMap.put(filler, constraints);
                 }
             }
         }
@@ -237,25 +237,25 @@ public class PanelBuilder {
         if(alignment != Alignment.FILL && alignment != Alignment.TOPLEFT
                 && alignment != Alignment.TOPMIDDLE && alignment != Alignment.TOPRIGHT){
             containerPanel.add(topPanel = new JPanel(), paddingTopGbc);
-//            topPanel.setBorder(BorderFactory.createLineBorder(Color.GREEN));
+//            topPanel.setBorder(BorderFactory.createLineBorder(Color.BLUE));
         }
 
         if(alignment != Alignment.FILL && alignment != Alignment.TOPLEFT
                 && alignment != Alignment.MIDDLELEFT && alignment != Alignment.BOTTOMLEFT){
             containerPanel.add(leftPanel = new JPanel(), paddingLeftGbc);
-//            leftPanel.setBorder(BorderFactory.createLineBorder(Color.GREEN));
+//            leftPanel.setBorder(BorderFactory.createLineBorder(Color.BLUE));
         }
 
         if(alignment != Alignment.FILL && alignment != Alignment.TOPRIGHT
                 && alignment != Alignment.MIDDLERIGHT && alignment != Alignment.BOTTOMRIGHT){
             containerPanel.add(rightPanel = new JPanel(), paddingRightGbc);
-//            rightPanel.setBorder(BorderFactory.createLineBorder(Color.GREEN));
+//            rightPanel.setBorder(BorderFactory.createLineBorder(Color.BLUE));
         }
 
         if(alignment != Alignment.FILL && alignment != Alignment.BOTTOMLEFT
                 && alignment != Alignment.BOTTOMMIDDLE && alignment != Alignment.BOTTOMRIGHT){
             containerPanel.add(bottomPanel = new JPanel(), paddingBottomGbc);
-//            bottomPanel.setBorder(BorderFactory.createLineBorder(Color.GREEN));
+//            bottomPanel.setBorder(BorderFactory.createLineBorder(Color.ORANGE));
         }
 
 
@@ -264,6 +264,7 @@ public class PanelBuilder {
             innerContainer.add(component, constraintsMap.get(component));
         }
         containerPanel.add(innerContainer, innerPanelGbc);
+
         return containerPanel;
     }
 

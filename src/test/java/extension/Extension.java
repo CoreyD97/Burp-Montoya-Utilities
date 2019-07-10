@@ -6,6 +6,8 @@ import com.google.gson.reflect.TypeToken;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 
@@ -117,7 +119,28 @@ public class Extension implements ITab, IBurpExtender, ILogProvider {
         // The lib will handle it for you.
 
         //Now we've registered our settings. We can build the UI!
-        buildUI();
+        //Create our panels as you normally would.
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                Extension.this.extensionTabbedPanel = new JTabbedPane();
+                extensionTabbedPanel.addTab("Preferences", buildUI());
+                callbacks.addSuiteTab(Extension.this);
+                extensionTabbedPanel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        if(SwingUtilities.isMiddleMouseButton(e)){
+                            reloadUI();
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    private void reloadUI(){
+        extensionTabbedPanel.removeAll();
+        extensionTabbedPanel.addTab("Preferences", buildUI());
     }
 
     @Override
@@ -130,116 +153,103 @@ public class Extension implements ITab, IBurpExtender, ILogProvider {
         System.err.println(errorMessage);
     }
 
-    private void buildUI(){
-        SwingUtilities.invokeLater(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                //Create our panels as you normally would.
-		        Extension.this.extensionTabbedPanel = new JTabbedPane();
-                Extension.this.extensionMainPanel = new JPanel();
+    private JComponent buildUI(){
+        //To make it easy to build our UI, PanelBuilder can be used to generate the UI.
+        PanelBuilder panelBuilder = new PanelBuilder(preferences);
+
+        //Here we create our component groups.
+        //These will be used as sections to segregate different preference areas.
+        //Note: The title parameter is optional.
+        // Specify null if you do not wish to have a title border on your panel.
+        //These component groups are simply standard JPanels with some added features.
+        //And can be added directly to your panel. Or use the panel builder as described further on here.
+        ComponentGroup group1 = panelBuilder.createComponentGroup("Group 1");
+        ComponentGroup group2 = panelBuilder.createComponentGroup("Group 2");
+        ComponentGroup group3 = panelBuilder.createComponentGroup("Group 3");
+        ComponentGroup group4 = panelBuilder.createComponentGroup("Group 4");
+        ComponentGroup group5 = panelBuilder.createComponentGroup("Group 5");
+        ComponentGroup group6 = panelBuilder.createComponentGroup("Group 6");
+
+        //We can now add components to their panels to manage the preferences.
+        //For example, we want to add some components to "Group 5"
+        group5.addPreferenceComponent("Alpha");
+        group5.addPreferenceComponent("Beta");
+        group5.addPreferenceComponent("Charlie");
+        //componentGroup.addPreferenceComponent(String preferenceName)
+        //This will automatically determine the appropriate type for our preference and add the
+        //component to the group.
+        //The preference components generated will automatically update the stored value in the preferences
+        //when the component is modified.
+        //Additionally, if you set a preference value using preferences.setSetting(setting, value)
+        //The component will also automatically update to reflect that!
 
 
-                //To make it easy to build our UI, PanelBuilder can be used to generate the UI.
-                PanelBuilder panelBuilder = new PanelBuilder(preferences);
+        //If we want to create a specific component for our setting. These methods also exist.
+        //JTextArea jTextArea = panelBuilder.createPreferenceTextArea("G2String");
+        //JCheckBox jCheckBox = panelBuilder.createPreferenceCheckBox("SettingName", "A label for the component, or null!");
+        //JSpinner jspinner = panelBuilder.createPreferenceSpinner("SettingName");
+        //JTextField jTextField = panelBuilder.createPreferenceTextField("SettingName");
+        //JToggleButton jToggleButton = panelBuilder.createPreferenceToggleButton("A title for the button", "SettingName");
 
-                //Here we create our component groups.
-                //These will be used as sections to segregate different preference areas.
-                //Note: The title parameter is optional.
-                // Specify null if you do not wish to have a title border on your panel.
-                //These component groups are simply standard JPanels with some added features.
-                //And can be added directly to your panel. Or use the panel builder as described further on here.
-                ComponentGroup group1 = panelBuilder.createComponentGroup("Group 1");
-                ComponentGroup group2 = panelBuilder.createComponentGroup("Group 2");
-                ComponentGroup group3 = panelBuilder.createComponentGroup("Group 3");
-                ComponentGroup group4 = panelBuilder.createComponentGroup("Group 4");
-                ComponentGroup group5 = panelBuilder.createComponentGroup("Group 5");
-                ComponentGroup group6 = panelBuilder.createComponentGroup("Group 6");
+        //To then add these components to a componentgroup, you would do the below:
+        //group5.addComponent(jCheckBox);
+        //Or if you want to specify your own gridbagconstraints
+        //group5.addComponent(jCheckBox, gridbagconstraints);
 
-                //We can now add components to their panels to manage the preferences.
-                //For example, we want to add some components to "Group 5"
-                group5.addPreferenceComponent("Alpha");
-                group5.addPreferenceComponent("Beta");
-                group5.addPreferenceComponent("Charlie");
-                //componentGroup.addPreferenceComponent(String preferenceName)
-                //This will automatically determine the appropriate type for our preference and add the
-                //component to the group.
-                //The preference components generated will automatically update the stored value in the preferences
-                //when the component is modified.
-                //Additionally, if you set a preference value using preferences.setSetting(setting, value)
-                //The component will also automatically update to reflect that!
+        //When adding components to a componentgroup, the components are added in a column, with the last added
+        //item at the bottom.
+        //If you wish to customise the gridbagconstraints before the component is added:
+        GridBagConstraints gbc = group5.generateNextConstraints();
+        gbc.fill = GridBagConstraints.NONE;
+        //etc.
+        //Then add your component as described earlier.
+        //group5.addComponent(jCheckBox, gbc);
 
 
-                //If we want to create a specific component for our setting. These methods also exist.
-                //JTextArea jTextArea = panelBuilder.createPreferenceTextArea("G2String");
-                //JCheckBox jCheckBox = panelBuilder.createPreferenceCheckBox("SettingName", "A label for the component, or null!");
-                //JSpinner jspinner = panelBuilder.createPreferenceSpinner("SettingName");
-                //JTextField jTextField = panelBuilder.createPreferenceTextField("SettingName");
-                //JToggleButton jToggleButton = panelBuilder.createPreferenceToggleButton("A title for the button", "SettingName");
+        //If you want to create a panel with various sized components or various placements
+        //The panelbuilder can be used to specify the layout of various components to be placed in a panel.
+        //Simply create a 2D grid and specify which of your components to place where.
+        //If a component spans multiple columns/rows, simply add its reference to both locations!
+        //See group 1 for an example of a group which spans multiple rows/columns.
+        //To have a section which is empty, simply set the cell to null.
 
-                //To then add these components to a componentgroup, you would do the below:
-                //group5.addComponent(jCheckBox);
-                //Or if you want to specify your own gridbagconstraints
-                //group5.addComponent(jCheckBox, gridbagconstraints);
-
-                //When adding components to a componentgroup, the components are added in a column, with the last added
-                //item at the bottom.
-                //If you wish to customise the gridbagconstraints before the component is added:
-                GridBagConstraints gbc = group5.generateNextConstraints();
-                gbc.fill = GridBagConstraints.NONE;
-                //etc.
-                //Then add your component as described earlier.
-                //group5.addComponent(jCheckBox, gbc);
+        JPanel[][] layout = new JPanel[][]{
+                new JPanel[]{group1,group1,group1, null , null },
+                new JPanel[]{group1,group1,group1, null , null },
+                new JPanel[]{ null , null ,group2,group2, null },
+                new JPanel[]{group5, null ,group3,group4, null },
+                new JPanel[]{group5, null , null , null ,group6},
+        };
 
 
-                //If you want to create a panel with various sized components or various placements
-                //The panelbuilder can be used to specify the layout of various components to be placed in a panel.
-                //Simply create a 2D grid and specify which of your components to place where.
-                //If a component spans multiple columns/rows, simply add its reference to both locations!
-                //See group 1 for an example of a group which spans multiple rows/columns.
-                //To have a section which is empty, simply set the cell to null.
+        //If you want more control over the size of individual cells in the layout, you can also provide
+        //another 2d grid of weights to be used by the panel.
 
-                JPanel[][] layout = new JPanel[][]{
-                        new JPanel[]{group1,group1,group1, null , null },
-                        new JPanel[]{group1,group1,group1, null , null },
-                        new JPanel[]{ null , null ,group2,group2, null },
-                        new JPanel[]{group5, null ,group3,group4, null },
-                        new JPanel[]{group5, null , null , null ,group6},
-                };
+        int[][] weights = new int[][]{
+                new int[]{1,1,1,0,0},
+                new int[]{1,1,1,0,0},
+                new int[]{0,0,10,10,0},
+                new int[]{5,0,1,1,0},
+                new int[]{5,0,0,0,1}
+        };
+        //A weight of zero will cause the cell to auto-size.
+
+        //Then build the panel specifying the weights along with the layout.
+        //Extension.this.extensionPreferencesPanel = panelBuilder.build(layout, weights, Alignment.CENTER, 1, 0);
+
+        JComponent panel;
+        try {
+            //Now to actually build the panel.
+            //Use the panelbuilder and specify your layout, alignment and the x and y scales.
+            //The Alignment value will pad the panel as required to shift your panel to a specific location.
+            panel = panelBuilder.build(layout, null, Alignment.CENTER, 0.5, 0.5);
+        } catch (Exception e) {
+            e.printStackTrace();
+            panel = new JLabel("Failed to build panel!");
+        }
 
 
-                try {
-                    //Now to actually build the panel.
-                    //Use the panelbuilder and specify your layout, alignment and the x and y scales.
-                    //The Alignment value will pad the panel as required to shift your panel to a specific location.
-                    Extension.this.extensionPreferencesPanel = panelBuilder.build(layout, Alignment.CENTER, 1, 0);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-
-                //If you want more control over the size of individual cells in the layout, you can also provide
-                //another 2d grid of weights to be used by the panel.
-
-                int[][] weights = new int[][]{
-                        new int[]{1,1,1,0,0},
-                        new int[]{1,1,1,0,0},
-                        new int[]{0,0,10,10,0},
-                        new int[]{5,0,0,0,0},
-                        new int[]{5,0,0,0,0}
-                };
-                //A weight of zero will cause the cell to auto-size.
-
-                //Then build the panel specifying the weights along with the layout.
-                //Extension.this.extensionPreferencesPanel = panelBuilder.build(layout, weights, Alignment.CENTER, 1, 0);
-
-                Extension.this.extensionTabbedPanel.addTab("Content", Extension.this.extensionMainPanel);
-		        Extension.this.extensionTabbedPanel.addTab("Preferences", new JScrollPane(Extension.this.extensionPreferencesPanel));
-
-                callbacks.addSuiteTab(Extension.this);
-            }
-        });
+        return panel;
     }
 
 
