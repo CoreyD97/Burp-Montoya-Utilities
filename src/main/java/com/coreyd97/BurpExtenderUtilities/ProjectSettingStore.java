@@ -6,6 +6,8 @@ import burp.IHttpService;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.net.MalformedURLException;
@@ -57,7 +59,11 @@ class ProjectSettingStore implements IHttpRequestResponse {
                 Object deserializedValue = this.preferenceController.getGsonProvider()
                         .getGson().fromJson(existingSerializedValue, type);
                 this.preferences.put(settingName, deserializedValue);
+                preferenceController.logOutput("Deserialized existing value.");
             } catch (Exception e) {
+                StringWriter sw = new StringWriter();
+                e.printStackTrace(new PrintWriter(sw));
+                preferenceController.logError(sw.toString());
                 preferenceController.logError("Could not deserialize the loaded value for setting " +
                         "\"" + settingName + "\" to type \"" + type + "\". Falling back to the default value.");
                 this.preferences.put(settingName, defaultValue);

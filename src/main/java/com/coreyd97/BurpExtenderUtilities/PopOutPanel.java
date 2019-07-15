@@ -14,6 +14,7 @@ public class PopOutPanel extends JPanel {
     private String title;
     private boolean isPoppedOut;
     private JFrame popoutFrame;
+    private JMenuItem popoutMenuItem;
 
     public PopOutPanel(Component component, String title){
         this.component = component;
@@ -36,6 +37,7 @@ public class PopOutPanel extends JPanel {
         this.repaint();
         this.isPoppedOut = false;
         this.popoutFrame.dispose();
+        if(popoutMenuItem != null) popoutMenuItem.setText("Pop Out " + title);
     }
 
     public void popOut(){
@@ -74,6 +76,18 @@ public class PopOutPanel extends JPanel {
         });
 
         popoutFrame.setVisible(true);
+        if(popoutMenuItem != null) popoutMenuItem.setText("Pop In " + title);
+    }
+
+    public JMenuItem getPopoutMenuItem(){
+        if(this.popoutMenuItem == null){
+            popoutMenuItem = new JMenuItem((isPoppedOut ? "Pop In " : "Pop Out ") + title);
+            popoutMenuItem.addActionListener(e -> {
+                this.toggle();
+            });
+        }
+
+        return popoutMenuItem;
     }
 
     public JFrame getPopoutFrame() {

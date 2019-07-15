@@ -2,6 +2,7 @@ package com.coreyd97.BurpExtenderUtilities;
 
 import burp.IBurpExtenderCallbacks;
 import burp.IHttpRequestResponse;
+import com.coreyd97.BurpExtenderUtilities.TypeAdapter.AtomicIntegerTypeAdapter;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -12,6 +13,7 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Preferences {
 
@@ -44,7 +46,12 @@ public class Preferences {
         this.preferenceTypes = new HashMap<>();
         this.preferenceVisibilities = new HashMap<>();
         this.preferenceListeners = new ArrayList<>();
+        registerRequiredTypeAdapters();
         setupProjectSettingsStore();
+    }
+
+    private void registerRequiredTypeAdapters(){
+        this.gsonProvider.registerTypeAdapter(AtomicInteger.class, new AtomicIntegerTypeAdapter());
     }
 
     private void setupProjectSettingsStore(){
