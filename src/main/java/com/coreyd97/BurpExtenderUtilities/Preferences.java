@@ -132,7 +132,7 @@ public class Preferences {
             }
             case VOLATILE: {
                 this.preferenceTypes.put(settingName, type);
-                this.preferences.put(settingName, null);
+                this.preferences.put(settingName, defaultValue);
                 this.preferenceDefaults.put(settingName, defaultValue);
 
                 logOutput("Volatile setting \"" + settingName + "\" registered with type " + type.getTypeName()
