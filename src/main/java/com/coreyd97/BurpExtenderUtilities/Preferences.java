@@ -176,11 +176,12 @@ public class Preferences {
 
     private void setGlobalSetting(String settingName, Object value, boolean notifyListeners) {
         Type type = this.preferenceTypes.get(settingName);
-        String oldValue = getGlobalSettingJson(settingName);
-        String jsonValue = gsonProvider.getGson().toJson(value, type);
-        if(jsonValue != null && jsonValue.equals(oldValue)) return;
+        Object currentValue = this.preferences.get(settingName);
+        String currentValueJson = gsonProvider.getGson().toJson(currentValue, type);
+        String newValueJson = gsonProvider.getGson().toJson(value, type);
+        if(newValueJson != null && newValueJson.equals(currentValueJson)) return;
 
-        storeGlobalSetting(settingName, jsonValue);
+        storeGlobalSetting(settingName, newValueJson);
         this.preferences.put(settingName, value);
 
         if(!notifyListeners) return;
