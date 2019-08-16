@@ -148,11 +148,11 @@ public class PanelBuilder {
         return textArea;
     }
 
-    public JPanel build(JComponent[][] viewGrid, Alignment alignment, double scaleX, double scaleY) throws Exception {
+    public JPanel build(JComponent[][] viewGrid, Alignment alignment, double scaleX, double scaleY) {
         return build(viewGrid, null, alignment, scaleX, scaleY);
     }
 
-    public JPanel build(JComponent[][] viewGrid, int[][] gridWeights, Alignment alignment, double scaleX, double scaleY) throws Exception {
+    public JPanel build(JComponent[][] viewGrid, int[][] gridWeights, Alignment alignment, double scaleX, double scaleY) {
         if(scaleX > 1 || scaleX < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
         if(scaleY > 1 || scaleY < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
         JPanel containerPanel = new JPanel(new GridBagLayout());
@@ -169,10 +169,10 @@ public class PanelBuilder {
                     if (constraintsMap.containsKey(panel)) {
                         GridBagConstraints constraints = constraintsMap.get(panel);
                         if (gridx < constraints.gridx || (constraints.gridx + constraints.gridwidth) < gridx) {
-                            throw new Exception("Panels must be contiguous.");
+                            throw new RuntimeException("Panels must be contiguous.");
                         }
                         if (gridy < constraints.gridy || (constraints.gridy + constraints.gridheight) < gridy) {
-                            throw new Exception("Panels must be contiguous.");
+                            throw new RuntimeException("Panels must be contiguous.");
                         }
 
                         constraints.gridwidth = gridx - constraints.gridx + 1;
