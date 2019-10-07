@@ -11,7 +11,7 @@ sourceCompatibility = 1.8
 
 dependencies {
     api 'net.portswigger.burp.extender:burp-extender-api:1.7.22'
-    api 'com.google.code.gson:gson:2.8.5'
+    compile 'com.google.code.gson:gson:2.8.5'
     testCompile 'junit:junit:+'
     testCompile 'org.mockito:mockito-core:+'
     testCompile files('/opt/BurpSuitePro/burpsuite_pro.jar')

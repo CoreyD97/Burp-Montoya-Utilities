@@ -3,6 +3,7 @@ package com.coreyd97.BurpExtenderUtilities;
 import burp.IBurpExtenderCallbacks;
 import burp.IHttpRequestResponse;
 import com.coreyd97.BurpExtenderUtilities.TypeAdapter.AtomicIntegerTypeAdapter;
+import com.coreyd97.BurpExtenderUtilities.TypeAdapter.ByteArrayToBase64TypeAdapter;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -52,6 +53,7 @@ public class Preferences {
 
     private void registerRequiredTypeAdapters(){
         this.gsonProvider.registerTypeAdapter(AtomicInteger.class, new AtomicIntegerTypeAdapter());
+        this.gsonProvider.registerTypeAdapter(byte[].class, new ByteArrayToBase64TypeAdapter());
     }
 
     private void setupProjectSettingsStore(){

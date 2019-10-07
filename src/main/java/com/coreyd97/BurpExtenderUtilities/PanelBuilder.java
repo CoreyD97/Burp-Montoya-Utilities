@@ -17,6 +17,10 @@ public class PanelBuilder {
     private final Preferences preferences;
     private Set<ComponentGroup> componentGroups;
 
+    public PanelBuilder(){
+        this(null);
+    }
+
     public PanelBuilder(Preferences preferences){
         this.preferences = preferences;
         this.componentGroups = new LinkedHashSet<>();
@@ -47,6 +51,7 @@ public class PanelBuilder {
     }
 
     public JToggleButton createPreferenceToggleButton(String title, String preferenceKey){
+        throwExceptionIfNoPreferences();
         JToggleButton toggleButton = createToggleButton(title, e -> {
             this.preferences.setSetting(preferenceKey, ((JToggleButton) e.getSource()).isSelected());
         });
@@ -57,6 +62,7 @@ public class PanelBuilder {
     }
     
     public JTextField createPreferenceTextField(String preferenceKey){
+        throwExceptionIfNoPreferences();
         final JTextField textComponent = new JTextField();
         String defaultValue = this.preferences.getSetting(preferenceKey);
         textComponent.setText(defaultValue);
@@ -87,6 +93,7 @@ public class PanelBuilder {
     }
 
     public JSpinner createPreferenceSpinner(String preferenceKey){
+        throwExceptionIfNoPreferences();
         final JSpinner spinnerComponent = new JSpinner();
         Number value = this.preferences.getSetting(preferenceKey);
         spinnerComponent.setValue(value);
@@ -107,6 +114,7 @@ public class PanelBuilder {
     }
 
     public JCheckBox createPreferenceCheckBox(String preferenceKey, String label){
+        throwExceptionIfNoPreferences();
         final JCheckBox checkComponent = new JCheckBox(label);
         Boolean value = (Boolean) this.preferences.getSetting(preferenceKey);
         checkComponent.setSelected(value);
@@ -127,6 +135,7 @@ public class PanelBuilder {
     }
 
     public JTextArea createPreferenceTextArea(String settingName){
+        throwExceptionIfNoPreferences();
         String value = preferences.getSetting(settingName);
 
         JTextArea textArea = new JTextArea();
@@ -148,20 +157,27 @@ public class PanelBuilder {
         return textArea;
     }
 
-    public JPanel build(JComponent[][] viewGrid, Alignment alignment, double scaleX, double scaleY) {
+    public JPanel build(Component singleComponent, Alignment alignment, double scaleX, double scaleY){
+        return build(
+                new Component[][]{new Component[]{singleComponent}},
+                new int[][]{new int[]{1}},
+                alignment, scaleX, scaleY);
+    }
+
+    public JPanel build(Component[][] viewGrid, Alignment alignment, double scaleX, double scaleY) {
         return build(viewGrid, null, alignment, scaleX, scaleY);
     }
 
-    public JPanel build(JComponent[][] viewGrid, int[][] gridWeights, Alignment alignment, double scaleX, double scaleY) {
+    public JPanel build(Component[][] viewGrid, int[][] gridWeights, Alignment alignment, double scaleX, double scaleY) {
         if(scaleX > 1 || scaleX < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
         if(scaleY > 1 || scaleY < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
         JPanel containerPanel = new JPanel(new GridBagLayout());
-        HashMap<JComponent, GridBagConstraints> constraintsMap = new HashMap<>();
+        HashMap<Component, GridBagConstraints> constraintsMap = new HashMap<>();
         int minx = Integer.MAX_VALUE, miny = Integer.MAX_VALUE, maxx = Integer.MIN_VALUE, maxy = Integer.MIN_VALUE;
 
         for (int row = 0; row < viewGrid.length; row++) {
             for (int column = 0; column < viewGrid[row].length; column++) {
-                JComponent panel = viewGrid[row][column];
+                Component panel = viewGrid[row][column];
                 if(panel != null) {
                     int gridx = column + 1;
                     int gridy = row + 1;
@@ -260,7 +276,7 @@ public class PanelBuilder {
 
 
         JPanel innerContainer = new JPanel(new GridBagLayout());
-        for (JComponent component : constraintsMap.keySet()) {
+        for (Component component : constraintsMap.keySet()) {
             innerContainer.add(component, constraintsMap.get(component));
         }
         containerPanel.add(innerContainer, innerPanelGbc);
@@ -282,5 +298,11 @@ public class PanelBuilder {
         containerPanel.add(new JPanel(), gbc);
 
         return containerPanel;
+    }
+
+    private void throwExceptionIfNoPreferences(){
+        if(this.preferences == null){
+            throw new IllegalStateException("Method unavailable. No preference context defined.");
+        }
     }
 }
