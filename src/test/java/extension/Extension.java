@@ -237,19 +237,14 @@ public class Extension implements ITab, IBurpExtender, ILogProvider {
         //Then build the panel specifying the weights along with the layout.
         //Extension.this.extensionPreferencesPanel = panelBuilder.build(layout, weights, Alignment.CENTER, 1, 0);
 
-        JComponent panel;
-        try {
-            //Now to actually build the panel.
-            //Use the panelbuilder and specify your layout, alignment and the x and y scales.
-            //The Alignment value will pad the panel as required to shift your panel to a specific location.
-            panel = panelBuilder.build(layout, null, Alignment.CENTER, 0.5, 0.5);
-        } catch (Exception e) {
-            e.printStackTrace();
-            panel = new JLabel("Failed to build panel!");
-        }
 
+        //Now to actually build the panel.
+        //Use the panelbuilder and specify your layout, alignment and the x and y scales.
+        //The Alignment value will pad the panel as required to shift your panel to a specific location.
+        return panelBuilder.build(layout, weights, Alignment.CENTER, 0.5, 0.5);
 
-        return panel;
+        //If weights is null, all components will be autosized :)
+        //return panelBuilder.build(layout, null, Alignment.CENTER, 0.5, 0.5);
     }
 
 
