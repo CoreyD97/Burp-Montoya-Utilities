@@ -7,7 +7,9 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 import java.awt.*;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 /**
  * Created by corey on 05/09/17.
@@ -18,7 +20,7 @@ public class HistoryField extends JComboBox {
     private final int maxHistory;
     private final Preferences preferences;
     private final String preferencesKey;
-    private ArrayList<String> history;
+    private LinkedList<String> history;
 
     public HistoryField(final int maxHistory){
         this(null, null, maxHistory);
@@ -28,14 +30,7 @@ public class HistoryField extends JComboBox {
         this.maxHistory = maxHistory;
         this.preferences = preferences;
         this.preferencesKey = preferencesKey;
-
-        history = new ArrayList<String>(){
-            @Override
-            public boolean add(String s) {
-                if(this.size() >= maxHistory) remove(0);
-                return super.add(s);
-            }
-        };
+        this.history = new LinkedList<>();
 
         configureComponent();
 
@@ -66,7 +61,7 @@ public class HistoryField extends JComboBox {
         if(this.preferences != null && this.preferencesKey != null){
             history.clear();
             preferences.registerSetting(preferencesKey, HISTORY_TYPE_TOKEN, new ArrayList<String>(), Preferences.Visibility.GLOBAL);
-            ArrayList<String> oldSearches = (ArrayList<String>) preferences.getSetting(preferencesKey);
+            ArrayList<String> oldSearches = preferences.getSetting(preferencesKey);
             history.addAll(oldSearches);
         }
     }
@@ -83,13 +78,15 @@ public class HistoryField extends JComboBox {
 
         public void addToHistory(String val){
             if(val.equals("")) return;
-            if(history.contains(val)) history.remove(val);
-            history.add((String) val);
+            history.remove(val); //Remove in case it was already in the list
+            history.addFirst(val); //Add to the top of the list
+
+            while(history.size() > maxHistory) history.removeLast();
 
             if(preferences != null && preferencesKey != null ){
                 preferences.setSetting(preferencesKey, history);
             }
-            this.fireContentsChanged(val, history.size()-1, history.size()-1);
+            this.fireContentsChanged(val, 0, history.size());
         }
 
         @Override
@@ -99,7 +96,7 @@ public class HistoryField extends JComboBox {
 
         @Override
         public Object getElementAt(int i) {
-            return history.get(history.size() - i -1);
+            return history.get(i);
         }
     }
 }
