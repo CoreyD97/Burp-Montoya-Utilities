@@ -8,8 +8,8 @@ import java.util.function.Consumer;
 
 public class CustomTabComponent extends JPanel {
 
-    private final JTabbedPane parentPane;
     private JLabel indexLabel;
+    private JLabel titleLabel;
     private JTextField editableField;
     private Border editableFieldBorder;
     private JButton removeTabButton;
@@ -26,13 +26,12 @@ public class CustomTabComponent extends JPanel {
     private String originalTitle;
     private boolean wasEdited;
 
-    public CustomTabComponent(JTabbedPane parentPane, int index, String title,
+    public CustomTabComponent(int index, String title,
                               boolean showIndex,
                               boolean isEditable, Consumer<String> onTitleChanged,
                               boolean isRemovable, Consumer<Void> onRemovePressed){
-        super(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        super(new BorderLayout());
         this.setOpaque(false);
-        this.parentPane = parentPane;
         this.index = index;
         this.showIndex = showIndex;
         this.isEditable = isEditable;
@@ -43,7 +42,7 @@ public class CustomTabComponent extends JPanel {
 
         if(this.showIndex){
             indexLabel = new JLabel(index + ": ");
-            this.add(indexLabel);
+            this.add(indexLabel, BorderLayout.WEST);
         }
 
         editableField = new JTextField(title);
@@ -51,16 +50,21 @@ public class CustomTabComponent extends JPanel {
         editableField.setBorder(null);
         editableField.setOpaque(false);
         editableField.setBackground(new Color(0,0,0,0));
-        add(editableField);
+
+//        add(editableField);
+        titleLabel = new JLabel(title);
+        add(titleLabel, BorderLayout.CENTER);
 
         if(this.isEditable) {
             this.editClickListener = new EditClickListener();
-
-            if(this.showIndex){
-                indexLabel.addMouseListener(editClickListener);
-            }
-            editableField.addMouseListener(editClickListener);
             this.addMouseListener(editClickListener);
+
+            this.addFocusListener(new FocusAdapter() {
+                @Override
+                public void focusLost(FocusEvent e) {
+                    endEditLabel();
+                }
+            });
 
             editableField.addFocusListener(new FocusAdapter() {
                 @Override
@@ -89,8 +93,8 @@ public class CustomTabComponent extends JPanel {
             removeTabButton.setPreferredSize(new Dimension(20,20));
             removeTabButton.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
             removeTabButton.setBackground(new Color(0,0,0,0));
-            add(Box.createHorizontalStrut(5));
-            add(removeTabButton);
+//            add(Box.createHorizontalStrut(5));
+            add(removeTabButton, BorderLayout.EAST);
         }
 
         revalidate();
@@ -99,45 +103,58 @@ public class CustomTabComponent extends JPanel {
     }
 
     private void editLabel(){
-        originalTitle = editableField.getText();
-        editableField.setEditable(true);
+        this.remove(titleLabel);
+        originalTitle = titleLabel.getText();
+        editableField.setText(originalTitle);
         editableField.setBorder(editableFieldBorder);
-//        editableField.setCaretPosition(0);
+        editableField.requestFocus();
+        this.add(editableField, BorderLayout.CENTER);
+        this.revalidate();
+        this.repaint();
     }
 
     private void endEditLabel(){
+        this.remove(editableField);
         editableField.setBorder(null);
         if(!editableField.getText().equals(originalTitle)){
             wasEdited = true;
         }
         if(this.onTitleChanged != null)
             this.onTitleChanged.accept(editableField.getText());
-        editableField.setEditable(false);
-        editableField.setSelectionStart(0);
-        editableField.setSelectionEnd(0);
-        this.requestFocusInWindow();
+        titleLabel.setText(editableField.getText());
+        this.add(titleLabel, BorderLayout.CENTER);
+        this.revalidate();
+        this.repaint();
     }
-
 
     private class EditClickListener extends MouseAdapter {
         @Override
-        public void mousePressed(MouseEvent mouseEvent) {
-            super.mouseClicked(mouseEvent);
-            if(mouseEvent.getClickCount() > 1) {
-                editLabel();
-            }else{
-                //For some reason, Custom tab components with mouselisteners
-                //do not bubble up to select the tab. This kind of fixes that.
-                if(CustomTabComponent.this.parentPane != null){
-                    for (int i = 0; i < parentPane.getTabCount(); i++) {
-                        if(parentPane.getTabComponentAt(i) == CustomTabComponent.this){
-                            parentPane.setSelectedIndex(i);
-                            parentPane.requestFocus(true);
-                            return;
-                        }
-                    }
+        public void mousePressed(MouseEvent e) {
+            handleEvent(e);
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            handleEvent(e);
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            handleEvent(e);
+        }
+
+        private void handleEvent(MouseEvent mouseEvent){
+            if(SwingUtilities.isLeftMouseButton(mouseEvent)) {
+                if (mouseEvent.getClickCount() > 1) {
+                    editLabel();
                 }
             }
+
+            //For some reason, Custom tab components with mouselisteners
+            //do not bubble up to select the tab. This kind of fixes that.
+            JTabbedPane parent = (JTabbedPane) CustomTabComponent.this.getParent().getParent();
+            int tabIndex = parent.indexOfTabComponent(CustomTabComponent.this);
+            parent.setSelectedIndex(tabIndex);
         }
     }
 
@@ -154,6 +171,9 @@ public class CustomTabComponent extends JPanel {
 
     public void setTitle(String title){
         this.editableField.setText(title);
+        this.titleLabel.setText(title);
+        this.revalidate();
+        this.repaint();
     }
 
     public boolean wasEditedByUser() {
