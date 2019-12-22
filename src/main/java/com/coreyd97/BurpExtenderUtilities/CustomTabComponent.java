@@ -26,6 +26,10 @@ public class CustomTabComponent extends JPanel {
     private String originalTitle;
     private boolean wasEdited;
 
+    public CustomTabComponent(String title){
+        this(-1, title, false, false, null, false, null);
+    }
+
     public CustomTabComponent(int index, String title,
                               boolean showIndex,
                               boolean isEditable, Consumer<String> onTitleChanged,
