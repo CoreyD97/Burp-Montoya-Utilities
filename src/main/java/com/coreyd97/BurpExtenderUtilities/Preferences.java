@@ -181,7 +181,8 @@ public class Preferences {
         Object currentValue = this.preferences.get(settingName);
         String currentValueJson = gsonProvider.getGson().toJson(currentValue, type);
         String newValueJson = gsonProvider.getGson().toJson(value, type);
-        if(newValueJson != null && newValueJson.equals(currentValueJson)) return;
+        //Temporarily removed. Not saving preferences for instance variables.
+//        if(newValueJson != null && newValueJson.equals(currentValueJson)) return;
 
         storeGlobalSetting(settingName, newValueJson);
         this.preferences.put(settingName, value);
