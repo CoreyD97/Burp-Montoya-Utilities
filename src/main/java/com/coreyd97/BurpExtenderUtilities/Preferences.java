@@ -104,13 +104,15 @@ public class Preferences {
         throwExceptionIfAlreadyRegistered(settingName);
         this.preferenceVisibilities.put(settingName, visibility);
 
+        Object value = null;
         switch (visibility){
             case PROJECT: {
                 if(projectSettingsStore == null)
                     throw new RuntimeException("The project settings store was not initialised. Project settings cannot be setup.");
 
                 this.projectSettingsStore.registerSetting(settingName, type, defaultValue);
-                return;
+                value = this.projectSettingsStore.getSetting(settingName);
+                break;
             }
             case GLOBAL: {
                 Object storedValue = getGlobalSettingFromBurp(settingName, type);
@@ -127,21 +129,24 @@ public class Preferences {
                 }
 
                 this.preferenceDefaults.put(settingName, defaultValue);
-
-                logOutput("Global setting \"" + settingName + "\" registered with type " + type.getTypeName()
-                        + " and default value: " + (defaultValue != null ? defaultValue : "null"));
-                return;
+                value = this.preferences.get(settingName);
+//                logOutput("Global setting \"" + settingName + "\" registered with type " + type.getTypeName()
+//                        + " and default value: " + (defaultValue != null ? defaultValue : "null"));
+                break;
             }
             case VOLATILE: {
                 this.preferenceTypes.put(settingName, type);
                 this.preferences.put(settingName, defaultValue);
                 this.preferenceDefaults.put(settingName, defaultValue);
-
-                logOutput("Volatile setting \"" + settingName + "\" registered with type " + type.getTypeName()
-                        + " and default value: " + (defaultValue != null ? defaultValue : "null"));
-                return;
+                value = this.preferences.get(settingName);
+//                logOutput("Volatile setting \"" + settingName + "\" registered with type " + type.getTypeName()
+//                        + " and default value: " + (defaultValue != null ? defaultValue : "null"));
+                break;
             }
         }
+
+        logOutput(String.format("Registered setting: [Key=%s, Scope=%s, Type=%s, Default=%s, Value=%s]",
+                settingName, visibility, type, defaultValue, value));
 
     }
 
@@ -201,7 +206,7 @@ public class Preferences {
         String storedValue = getGlobalSettingJson(settingName);
         if(storedValue == null) return null;
 
-        logOutput(String.format("Value %s loaded for global setting \"%s\". Trying to deserialize.", storedValue, settingName));
+//        logOutput(String.format("Value %s loaded for global setting \"%s\". Trying to deserialize.", storedValue, settingName));
         try {
             return gsonProvider.getGson().fromJson(storedValue, settingType);
         }catch (Exception e){

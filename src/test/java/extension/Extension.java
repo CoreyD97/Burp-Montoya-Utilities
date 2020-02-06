@@ -74,6 +74,7 @@ public class Extension implements ITab, IBurpExtender, ILogProvider {
 
         //Defining global settings works in the same way.
         Extension.preferences.registerSetting("TextArea", String.class, "Hello World!", Preferences.Visibility.GLOBAL);
+        Extension.preferences.registerSetting("LongTest", Long.class, 0, Preferences.Visibility.GLOBAL);
 
         Extension.preferences.registerSetting(PREF_RESTRICT_TO_SCOPE, Boolean.class, false, Preferences.Visibility.GLOBAL);
         Extension.preferences.registerSetting(PREF_LOG_GLOBAL, Boolean.class, true, Preferences.Visibility.GLOBAL);
