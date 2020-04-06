@@ -35,10 +35,12 @@ public class PopOutPanel extends JPanel {
 
     public void setComponent(Component component) {
         this.component = component;
+        this.componentWrapper.add(component);
     }
 
     public void setTitle(String title) {
         this.title = title;
+        this.placeholder.setText(title + " is popped out.");
     }
 
     public void toggle(){
