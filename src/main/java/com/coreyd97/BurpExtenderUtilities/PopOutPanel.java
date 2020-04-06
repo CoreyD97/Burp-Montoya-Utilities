@@ -9,20 +9,36 @@ import java.awt.event.WindowListener;
  * Created by corey on 24/08/17.
  */
 public class PopOutPanel extends JPanel {
-    private final Component component;
+    private final JPanel componentWrapper;
     private final JLabel placeholder;
+    private Component component;
     private String title;
     private boolean isPoppedOut;
     private JFrame popoutFrame;
     private JMenuItem popoutMenuItem;
 
+    public PopOutPanel(){
+        this.setLayout(new BorderLayout());
+        this.componentWrapper = new JPanel(new BorderLayout());
+        this.add(componentWrapper, BorderLayout.CENTER);
+        this.placeholder = new JLabel("Component is popped out.");
+        this.placeholder.setHorizontalAlignment(SwingConstants.CENTER);
+    }
+
     public PopOutPanel(Component component, String title){
+        this();
         this.component = component;
         this.title = title;
-        this.placeholder = new JLabel(title + " is popped out.");
-        this.placeholder.setHorizontalAlignment(SwingConstants.CENTER);
-        this.setLayout(new BorderLayout());
-        this.add(component, BorderLayout.CENTER);
+        this.placeholder.setText(title + " is popped out.");
+        this.componentWrapper.add(component, BorderLayout.CENTER);
+    }
+
+    public void setComponent(Component component) {
+        this.component = component;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public void toggle(){
@@ -32,7 +48,7 @@ public class PopOutPanel extends JPanel {
 
     public void popIn(){
         this.remove(placeholder);
-        this.add(component, BorderLayout.CENTER);
+        this.add(componentWrapper, BorderLayout.CENTER);
         this.revalidate();
         this.repaint();
         this.isPoppedOut = false;
@@ -46,7 +62,7 @@ public class PopOutPanel extends JPanel {
         popoutFrame.addWindowListener(new WindowListener() {
             @Override
             public void windowOpened(WindowEvent windowEvent) {
-                popoutFrame.add(component);
+                popoutFrame.add(componentWrapper);
                 isPoppedOut = true;
                 PopOutPanel.this.add(placeholder, BorderLayout.CENTER);
                 PopOutPanel.this.revalidate();
