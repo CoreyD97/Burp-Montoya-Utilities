@@ -24,6 +24,9 @@ public class ComponentGroup extends JPanel {
         this.setBorder(BorderFactory.createTitledBorder(title));
     }
 
+    public <T extends JComponent> T addPreferenceComponent(final Preferences preferences, final String settingName){
+        return addPreferenceComponent(preferences, settingName, settingName, true);
+    }
 
     public <T extends JComponent> T addPreferenceComponent(final Preferences preferences, final String settingName,
                                                            final boolean fillVertical){
