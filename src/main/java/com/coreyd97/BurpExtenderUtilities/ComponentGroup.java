@@ -34,6 +34,11 @@ public class ComponentGroup extends JPanel {
     }
 
     public <T extends JComponent> T addPreferenceComponent(final Preferences preferences, final String settingName,
+                                                           final String label){
+        return addPreferenceComponent(preferences, settingName, label, true);
+    }
+
+    public <T extends JComponent> T addPreferenceComponent(final Preferences preferences, final String settingName,
                                                            final String label, boolean fillVertical){
         Class clazz = (Class) preferences.getSettingType(settingName);
         final JComponent component;
