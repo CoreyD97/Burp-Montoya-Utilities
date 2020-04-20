@@ -122,7 +122,7 @@ public class Preferences {
                     this.preferences.put(settingName, storedValue);
                 }else{
                     if(defaultValue != null){
-                        setGlobalSetting(settingName, defaultValue, true);
+                        setGlobalSetting(settingName, defaultValue, this);
                     }else{
                         this.preferences.put(settingName, null);
                     }
@@ -181,7 +181,7 @@ public class Preferences {
         registerSetting(settingName, type, defaultValue, Visibility.VOLATILE);
     }
 
-    private void setGlobalSetting(String settingName, Object value, boolean notifyListeners) {
+    private void setGlobalSetting(String settingName, Object value, Object eventSource) {
         Type type = this.preferenceTypes.get(settingName);
         Object currentValue = this.preferences.get(settingName);
         String currentValueJson = gsonProvider.getGson().toJson(currentValue, type);
@@ -192,9 +192,8 @@ public class Preferences {
         storeGlobalSetting(settingName, newValueJson);
         this.preferences.put(settingName, value);
 
-        if(!notifyListeners) return;
         for (PreferenceListener preferenceListener : this.preferenceListeners) {
-            preferenceListener.onPreferenceSet(settingName, value);
+            preferenceListener.onPreferenceSet(eventSource, settingName, value);
         }
     }
 
@@ -241,10 +240,10 @@ public class Preferences {
     }
 
     public void setSetting(String settingName, Object value){
-        setSetting(settingName, value, true);
+        setSetting(settingName, value, this);
     }
 
-    public void setSetting(String settingName, Object value, boolean notifyListeners){
+    public void setSetting(String settingName, Object value, Object eventSource){
         Visibility visibility = this.preferenceVisibilities.get(settingName);
         if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
         switch (visibility) {
@@ -257,14 +256,13 @@ public class Preferences {
                 break;
             }
             case GLOBAL: {
-                this.setGlobalSetting(settingName, value, notifyListeners);
+                this.setGlobalSetting(settingName, value, eventSource);
                 return;
             }
         }
 
-        if(!notifyListeners) return;
         for (PreferenceListener preferenceListener : this.preferenceListeners) {
-            preferenceListener.onPreferenceSet(settingName, value);
+            preferenceListener.onPreferenceSet(this, settingName, value);
         }
     }
 
@@ -301,7 +299,7 @@ public class Preferences {
         Object defaultValue = this.preferenceDefaults.getOrDefault(settingName, null);
         String jsonDefaultValue = gsonProvider.getGson().toJson(defaultValue);
         Object newInstance = gsonProvider.getGson().fromJson(jsonDefaultValue, this.preferenceTypes.get(settingName));
-        setGlobalSetting(settingName, newInstance, true);
+        setGlobalSetting(settingName, newInstance, this);
     }
 
     public void resetSettings(Set<String> keys){

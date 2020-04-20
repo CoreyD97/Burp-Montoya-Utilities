@@ -2,118 +2,75 @@ package com.coreyd97.BurpExtenderUtilities;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class ComponentGroup extends JPanel {
 
-    private final PanelBuilder panelBuilder;
-    private final String title;
+    public enum Orientation {HORIZONTAL, VERTICAL}
+
     private final Map<String, JComponent> preferenceComponentMap;
-    private int currentGridY = 1;
+    private final Orientation orientation;
+    private int componentIndex = 1;
 
-    ComponentGroup(PanelBuilder panelBuilder, String title){
+    public ComponentGroup(Orientation orientation){
         super(new GridBagLayout());
-        this.panelBuilder = panelBuilder;
-        this.title = title;
+        this.orientation = orientation;
         this.preferenceComponentMap = new LinkedHashMap<>();
-
-        if(this.title != null && this.title != "") {
-            this.setBorder(BorderFactory.createTitledBorder(title));
-        }
     }
 
-    ComponentGroup(PanelBuilder panelBuilder){
-        this(panelBuilder, null);
+    public ComponentGroup(Orientation orientation, String title){
+        this(orientation);
+        this.setBorder(BorderFactory.createTitledBorder(title));
     }
 
-    public JButton addButton(String title, final ActionListener actionListener){
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.gridx = 1;
-        gbc.gridy = currentGridY;
-        gbc.weightx = 1;
-        gbc.gridwidth = 2;
-        JButton button = addButton(title, gbc, actionListener);
-        currentGridY++;
 
-        return button;
+    public <T extends JComponent> T addPreferenceComponent(final Preferences preferences, final String settingName,
+                                                           final boolean fillVertical){
+        return addPreferenceComponent(preferences, settingName, settingName, fillVertical);
     }
 
-    public JButton addButton(String title, GridBagConstraints constraints, final ActionListener actionListener){
-        JButton button = this.panelBuilder.createButton(title, actionListener);
-        this.add(button, constraints);
-        return button;
-    }
-
-    public JToggleButton addToggleButton(String title, final ActionListener actionListener){
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.gridx = 1;
-        gbc.gridy = currentGridY;
-        gbc.weightx = 1;
-        gbc.gridwidth = 2;
-        JToggleButton button = addToggleButton(title, gbc, actionListener);
-        currentGridY++;
-
-        return button;
-    }
-
-    public JToggleButton addToggleButton(String title, GridBagConstraints constraints,
-                                         final ActionListener actionListener){
-        JToggleButton button = this.panelBuilder.createToggleButton(title, actionListener);
-        this.add(button, constraints);
-        return button;
-    }
-
-    public <T extends JComponent> T addPreferenceComponent(final String settingName){
-        return addPreferenceComponent(settingName, settingName);
-    }
-
-    public <T extends JComponent> T addPreferenceComponent(final String settingName, final String label){
-        Object value = this.panelBuilder.getPreferences().getSetting(settingName);
+    public <T extends JComponent> T addPreferenceComponent(final Preferences preferences, final String settingName,
+                                                           final String label, boolean fillVertical){
+        Class clazz = (Class) preferences.getSettingType(settingName);
         final JComponent component;
 
-        if(value instanceof String){
-            component = this.panelBuilder.createPreferenceTextField(settingName);
-        }else if(value instanceof Number){
-            component = this.panelBuilder.createPreferenceSpinner(settingName);
-        }else if(value instanceof Boolean){
-            component = this.panelBuilder.createPreferenceCheckBox(settingName, label);
-
-            //Add to panel here because we don't want to add a label like with the other components.
-            this.preferenceComponentMap.put(settingName, component);
-            GridBagConstraints gbc = new GridBagConstraints();
-            gbc.fill = GridBagConstraints.BOTH;
-            gbc.gridx = 1;
-            gbc.weightx = 1;
-            gbc.gridwidth = 2;
-            gbc.weighty = 1;
-            gbc.gridy = currentGridY;
-            this.add(this.preferenceComponentMap.get(settingName), gbc);
-            currentGridY++;
-
-            return (T) component;
+        if(clazz.equals(String.class)){
+            component = PanelBuilder.createPreferenceTextField(preferences, settingName);
+        }else if(Number.class.isAssignableFrom(clazz)){
+            component = PanelBuilder.createPreferenceSpinner(preferences, settingName);
+        }else if(clazz.equals(Boolean.class)){
+            component = PanelBuilder.createPreferenceCheckBox(preferences, settingName);
         }else{
-            component = this.panelBuilder.createPreferenceTextField(settingName);
+            component = PanelBuilder.createPreferenceTextField(preferences, settingName);
         }
 
 
         this.preferenceComponentMap.put(settingName, component);
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.gridx = 1;
-//            gbc.ipadx = gbc.ipady = 5;
-        gbc.weightx = 0.15;
-        gbc.weighty = 1;
-        gbc.gridy = currentGridY;
+        gbc.fill = fillVertical ? GridBagConstraints.BOTH : GridBagConstraints.HORIZONTAL;
+        if(orientation == Orientation.VERTICAL) {
+            gbc.gridx = 1;
+            gbc.gridy = componentIndex;
+            gbc.weightx = 0.15;
+            gbc.weighty = 1;
+        }else{
+            gbc.gridx = componentIndex;
+            gbc.gridy = 1;
+            gbc.weightx = 1;
+        }
         this.add(new JLabel(label), gbc);
-        gbc.gridx++;
-        gbc.weightx = 0.85;
+
+        if(orientation == Orientation.VERTICAL){
+            gbc.gridx++;
+            gbc.weightx = 0.85;
+        }else{
+            gbc.gridy++;
+        }
+
         this.add(this.preferenceComponentMap.get(settingName), gbc);
-        currentGridY++;
+        componentIndex++;
 
         return (T) component;
     }
@@ -129,35 +86,20 @@ public class ComponentGroup extends JPanel {
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weighty = gbc.weightx = 1;
         gbc.gridwidth = 2;
-        gbc.gridx = 1;
-        gbc.gridy = currentGridY;
-        currentGridY++;
+        if(orientation == Orientation.VERTICAL) {
+            gbc.gridx = 1;
+            gbc.gridy = componentIndex;
+        }else{
+            gbc.gridy = 1;
+            gbc.gridx = componentIndex;
+        }
+        componentIndex++;
         return gbc;
     }
 
-    /**
-     * Gets the current Y coord used for generation of the panel.
-     * @return int The Y coordinate.
-     */
-    public int getGridY(){
-        return this.currentGridY;
-    }
-
-
-    /**
-     * Sets the Y coord used for generation of the panel.
-     */
-    public void setGridY(int y){
-        this.currentGridY = y;
-    }
-
-    public JComponent addComponent(JComponent jComponent){
-        this.add(jComponent, generateNextConstraints());
-        return jComponent;
-    }
-
-    public JComponent addComponent(JComponent jComponent, GridBagConstraints gridBagConstraints){
-        this.add(jComponent, gridBagConstraints);
-        return jComponent;
+    @Override
+    public Component add(Component comp) {
+        this.add(comp, generateNextConstraints());
+        return comp;
     }
 }

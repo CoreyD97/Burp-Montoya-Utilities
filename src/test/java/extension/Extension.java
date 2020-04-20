@@ -1,6 +1,8 @@
 package extension;
 
-import burp.*;
+import burp.IBurpExtender;
+import burp.IBurpExtenderCallbacks;
+import burp.ITab;
 import com.coreyd97.BurpExtenderUtilities.*;
 import com.google.gson.reflect.TypeToken;
 
@@ -156,26 +158,29 @@ public class Extension implements ITab, IBurpExtender, ILogProvider {
 
     private JComponent buildUI(){
         //To make it easy to build our UI, PanelBuilder can be used to generate the UI.
-        PanelBuilder panelBuilder = new PanelBuilder(preferences);
 
         //Here we create our component groups.
         //These will be used as sections to segregate different preference areas.
-        //Note: The title parameter is optional.
-        // Specify null if you do not wish to have a title border on your panel.
-        //These component groups are simply standard JPanels with some added features.
+        //Note: The title parameter is optional and will add a border with the title if provided
+        //These component groups are simply standard JPanels with some added preference adding methods
         //And can be added directly to your panel. Or use the panel builder as described further on here.
-        ComponentGroup group1 = panelBuilder.createComponentGroup("Group 1");
-        ComponentGroup group2 = panelBuilder.createComponentGroup("Group 2");
-        ComponentGroup group3 = panelBuilder.createComponentGroup("Group 3");
-        ComponentGroup group4 = panelBuilder.createComponentGroup("Group 4");
-        ComponentGroup group5 = panelBuilder.createComponentGroup("Group 5");
-        ComponentGroup group6 = panelBuilder.createComponentGroup("Group 6");
+        ComponentGroup group1 = new ComponentGroup(ComponentGroup.Orientation.HORIZONTAL, "Group 1");
+        ComponentGroup group2 = new ComponentGroup(ComponentGroup.Orientation.HORIZONTAL, "Group 2");
+        ComponentGroup group3 = new ComponentGroup(ComponentGroup.Orientation.HORIZONTAL, "Group 3");
+        ComponentGroup group4 = new ComponentGroup(ComponentGroup.Orientation.HORIZONTAL, "Group 4");
+        ComponentGroup group5 = new ComponentGroup(ComponentGroup.Orientation.VERTICAL, "Group 5");
+        ComponentGroup group6 = new ComponentGroup(ComponentGroup.Orientation.HORIZONTAL, "Group 6");
 
         //We can now add components to their panels to manage the preferences.
         //For example, we want to add some components to "Group 5"
-        group5.addPreferenceComponent("Alpha");
-        group5.addPreferenceComponent("Beta");
-        group5.addPreferenceComponent("Charlie");
+        group5.addPreferenceComponent(preferences, "G2String","AA:", false);
+        group5.addPreferenceComponent(preferences, "G2Integer", "BB:", true);
+        group5.addPreferenceComponent(preferences, "G2Boolean", "CC:", true);
+
+        group1.addPreferenceComponent(preferences, "G1String", "G1String:", false);
+        group1.addPreferenceComponent(preferences, "G1Integer", "G1Integer:", false);
+        group1.addPreferenceComponent(preferences, "G1Boolean", "G1Boolean:", false);
+
         //componentGroup.addPreferenceComponent(String preferenceName)
         //This will automatically determine the appropriate type for our preference and add the
         //component to the group.
@@ -186,19 +191,16 @@ public class Extension implements ITab, IBurpExtender, ILogProvider {
 
 
         //If we want to create a specific component for our setting. These methods also exist.
-        //JTextArea jTextArea = panelBuilder.createPreferenceTextArea("G2String");
-        //JCheckBox jCheckBox = panelBuilder.createPreferenceCheckBox("SettingName", "A label for the component, or null!");
-        //JSpinner jspinner = panelBuilder.createPreferenceSpinner("SettingName");
-        //JTextField jTextField = panelBuilder.createPreferenceTextField("SettingName");
-        //JToggleButton jToggleButton = panelBuilder.createPreferenceToggleButton("A title for the button", "SettingName");
+        //JTextArea jTextArea = PanelBuilder.createPreferenceTextArea(preferences, "G2String", "Optional label for the component");
+        //JCheckBox jCheckBox = PanelBuilder.createPreferenceCheckBox(preferences, "SettingName", "Optional label for the component");
+        //JSpinner jspinner = PanelBuilder.createPreferenceSpinner(preferences, "SettingName");
+        //JTextField jTextField = PanelBuilder.createPreferenceTextField(preferences, "SettingName");
+        //JToggleButton jToggleButton = PanelBuilder.createPreferenceToggleButton(preferences, "A title for the button", "SettingName");
 
-        //To then add these components to a componentgroup, you would do the below:
-        //group5.addComponent(jCheckBox);
-        //Or if you want to specify your own gridbagconstraints
-        //group5.addComponent(jCheckBox, gridbagconstraints);
+        //These components can then be added as normal.
 
-        //When adding components to a componentgroup, the components are added in a column, with the last added
-        //item at the bottom.
+        //When adding components to a componentgroup, the components are added in a column or row
+        //depending on orientation specified, with the last added item at the bottom/right
         //If you wish to customise the gridbagconstraints before the component is added:
         GridBagConstraints gbc = group5.generateNextConstraints();
         gbc.fill = GridBagConstraints.NONE;
@@ -215,11 +217,13 @@ public class Extension implements ITab, IBurpExtender, ILogProvider {
         //To have a section which is empty, simply set the cell to null.
 
         JPanel[][] layout = new JPanel[][]{
-                new JPanel[]{group1,group1,group1, null , null },
-                new JPanel[]{group1,group1,group1, null , null },
-                new JPanel[]{ null , null ,group2,group2, null },
-                new JPanel[]{group5, null ,group3,group4, null },
-                new JPanel[]{group5, null , null , null ,group6},
+//                new JPanel[]{group1,group1,group1, null , null },
+//                new JPanel[]{group1,group1,group1, null , null },
+//                new JPanel[]{ null , null ,group2,group2, null },
+//                new JPanel[]{group5, null ,group3,group4, null },
+//                new JPanel[]{group5, null , null , null ,group6},
+                new JPanel[]{group1, null},
+                new JPanel[]{null, group5}
         };
 
 
@@ -227,11 +231,13 @@ public class Extension implements ITab, IBurpExtender, ILogProvider {
         //another 2d grid of weights to be used by the panel.
 
         int[][] weights = new int[][]{
-                new int[]{1,1,1,0,0},
-                new int[]{1,1,1,0,0},
-                new int[]{0,0,10,10,0},
-                new int[]{5,0,1,1,0},
-                new int[]{5,0,0,0,1}
+//                new int[]{1,1,1,0,0},
+//                new int[]{1,1,1,0,0},
+//                new int[]{0,0,10,10,0},
+//                new int[]{5,0,1,1,0},
+//                new int[]{5,0,0,0,1}
+                new int[]{0,0},
+                new int[]{0,0}
         };
         //A weight of zero will cause the cell to auto-size.
 
@@ -242,10 +248,10 @@ public class Extension implements ITab, IBurpExtender, ILogProvider {
         //Now to actually build the panel.
         //Use the panelbuilder and specify your layout, alignment and the x and y scales.
         //The Alignment value will pad the panel as required to shift your panel to a specific location.
-        return panelBuilder.build(layout, weights, Alignment.CENTER, 0.5, 0.5);
+        return PanelBuilder.build(layout, weights, Alignment.CENTER, 0.5, 0.5);
 
         //If weights is null, all components will be autosized :)
-        //return panelBuilder.build(layout, null, Alignment.CENTER, 0.5, 0.5);
+        //return PanelBuilder.build(layout, null, Alignment.CENTER, 0.5, 0.5);
     }
 
 

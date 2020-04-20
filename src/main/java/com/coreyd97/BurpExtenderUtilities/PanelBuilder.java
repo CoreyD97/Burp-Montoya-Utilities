@@ -14,161 +14,20 @@ import java.util.Set;
 
 public class PanelBuilder {
 
-    private final Preferences preferences;
-    private Set<ComponentGroup> componentGroups;
+    private PanelBuilder(){}
 
-    public PanelBuilder(){
-        this(null);
-    }
-
-    public PanelBuilder(Preferences preferences){
-        this.preferences = preferences;
-        this.componentGroups = new LinkedHashSet<>();
-    }
-
-    public ComponentGroup createComponentGroup(String title){
-        ComponentGroup componentGroup = new ComponentGroup(this, title);
-        this.componentGroups.add(componentGroup);
-        return componentGroup;
-    }
-
-    Preferences getPreferences() {
-        return preferences;
-    }
-
-    public JButton createButton(String title, ActionListener actionListener){
-        JButton button = new JButton(title);
-        if(actionListener != null)
-            button.addActionListener(actionListener);
-        return button;
-    }
-
-    public JToggleButton createToggleButton(String title, ActionListener actionListener) {
-        JToggleButton button = new JToggleButton(title);
-        if(actionListener != null)
-            button.addActionListener(actionListener);
-        return button;
-    }
-
-    public JToggleButton createPreferenceToggleButton(String title, String preferenceKey){
-        throwExceptionIfNoPreferences();
-        JToggleButton toggleButton = createToggleButton(title, e -> {
-            this.preferences.setSetting(preferenceKey, ((JToggleButton) e.getSource()).isSelected());
-        });
-
-        boolean isSelected = this.preferences.getSetting(preferenceKey);
-        toggleButton.setSelected(isSelected);
-        return toggleButton;
-    }
-    
-    public JTextField createPreferenceTextField(String preferenceKey){
-        throwExceptionIfNoPreferences();
-        final JTextField textComponent = new JTextField();
-        String defaultValue = this.preferences.getSetting(preferenceKey);
-        textComponent.setText(defaultValue);
-        textComponent.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, textComponent.getText(), false);
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, textComponent.getText(), false);
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, textComponent.getText(), false);
-            }
-        });
-
-        preferences.addSettingListener((changedpreferenceKey, newValue) -> {
-            if(changedpreferenceKey.equals(preferenceKey)){
-                textComponent.setText((String) newValue);
-            }
-        });
-
-        return textComponent;
-    }
-
-    public JSpinner createPreferenceSpinner(String preferenceKey){
-        throwExceptionIfNoPreferences();
-        final JSpinner spinnerComponent = new JSpinner();
-        Number value = this.preferences.getSetting(preferenceKey);
-        spinnerComponent.setValue(value);
-        spinnerComponent.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent changeEvent) {
-                preferences.setSetting(preferenceKey, spinnerComponent.getValue(), false);
-            }
-        });
-
-        preferences.addSettingListener((changedSettingName, newValue) -> {
-            if(changedSettingName.equals(preferenceKey)){
-                spinnerComponent.setValue(newValue);
-            }
-        });
-
-        return spinnerComponent;
-    }
-
-    public JCheckBox createPreferenceCheckBox(String preferenceKey, String label){
-        throwExceptionIfNoPreferences();
-        final JCheckBox checkComponent = new JCheckBox(label);
-        Boolean value = (Boolean) this.preferences.getSetting(preferenceKey);
-        checkComponent.setSelected(value);
-        checkComponent.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                preferences.setSetting(preferenceKey, checkComponent.isSelected(), false);
-            }
-        });
-
-        preferences.addSettingListener((changedSettingName, newValue) -> {
-            if(changedSettingName.equals(preferenceKey)){
-                checkComponent.setSelected((boolean) newValue);
-            }
-        });
-
-        return checkComponent;
-    }
-
-    public JTextArea createPreferenceTextArea(String settingName){
-        throwExceptionIfNoPreferences();
-        String value = preferences.getSetting(settingName);
-
-        JTextArea textArea = new JTextArea();
-        textArea.setText(value);
-
-        textArea.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent documentEvent) { saveChanges(); }
-            @Override
-            public void removeUpdate(DocumentEvent documentEvent) { saveChanges(); }
-            @Override
-            public void changedUpdate(DocumentEvent documentEvent) { saveChanges(); }
-
-            private void saveChanges(){
-                preferences.setSetting(settingName, textArea.getText(), false);
-            }
-        });
-
-        return textArea;
-    }
-
-    public JPanel build(Component singleComponent, Alignment alignment, double scaleX, double scaleY){
+    public static JPanel build(Component singleComponent, Alignment alignment, double scaleX, double scaleY){
         return build(
                 new Component[][]{new Component[]{singleComponent}},
                 new int[][]{new int[]{1}},
                 alignment, scaleX, scaleY);
     }
 
-    public JPanel build(Component[][] viewGrid, Alignment alignment, double scaleX, double scaleY) {
+    public static JPanel build(Component[][] viewGrid, Alignment alignment, double scaleX, double scaleY) {
         return build(viewGrid, null, alignment, scaleX, scaleY);
     }
 
-    public JPanel build(Component[][] viewGrid, int[][] gridWeights, Alignment alignment, double scaleX, double scaleY) {
+    public static JPanel build(Component[][] viewGrid, int[][] gridWeights, Alignment alignment, double scaleX, double scaleY) {
         if(scaleX > 1 || scaleX < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
         if(scaleY > 1 || scaleY < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
         JPanel containerPanel = new JPanel(new GridBagLayout());
@@ -284,25 +143,124 @@ public class PanelBuilder {
         return containerPanel;
     }
 
-    public JPanel build(){
-        JPanel containerPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridy = gbc.gridx = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        for (ComponentGroup componentGroup : this.componentGroups) {
-            containerPanel.add(componentGroup, gbc);
-            gbc.gridy++;
-        }
+    /**
+     * Preference components
+     */
 
-        gbc.weighty = gbc.weightx = 100;
-        containerPanel.add(new JPanel(), gbc);
+    public static JToggleButton createPreferenceToggleButton(Preferences preferences, String title, String preferenceKey){
+        JToggleButton toggleButton = new JToggleButton(title);
+        toggleButton.setAction(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                preferences.setSetting(preferenceKey, ((JToggleButton) actionEvent.getSource()).isSelected(), toggleButton);
+            }
+        });
 
-        return containerPanel;
+        boolean isSelected = preferences.getSetting(preferenceKey);
+        toggleButton.setSelected(isSelected);
+        preferences.addSettingListener((eventSource, settingName, newValue) -> {
+            if(!toggleButton.equals(eventSource) && settingName.equalsIgnoreCase(preferenceKey)){
+                toggleButton.setSelected((Boolean) newValue);
+            }
+        });
+        return toggleButton;
     }
 
-    private void throwExceptionIfNoPreferences(){
-        if(this.preferences == null){
-            throw new IllegalStateException("Method unavailable. No preference context defined.");
-        }
+    public static JTextField createPreferenceTextField(Preferences preferences, String preferenceKey){
+        final JTextField textComponent = new JTextField();
+        String defaultValue = preferences.getSetting(preferenceKey);
+        textComponent.setText(defaultValue);
+        textComponent.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent documentEvent) {
+                preferences.setSetting(preferenceKey, textComponent.getText(), textComponent);
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent documentEvent) {
+                preferences.setSetting(preferenceKey, textComponent.getText(), textComponent);
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent documentEvent) {
+                preferences.setSetting(preferenceKey, textComponent.getText(), textComponent);
+            }
+        });
+
+        preferences.addSettingListener((eventSource, settingName, newValue) ->  {
+            if(!textComponent.equals(eventSource) && settingName.equals(preferenceKey)){
+                textComponent.setText((String) newValue);
+            }
+        });
+
+        return textComponent;
+    }
+
+    public static JSpinner createPreferenceSpinner(Preferences preferences, String preferenceKey){
+        final JSpinner spinnerComponent = new JSpinner();
+        Number value = preferences.getSetting(preferenceKey);
+        spinnerComponent.setValue(value);
+        spinnerComponent.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent changeEvent) {
+                preferences.setSetting(preferenceKey, spinnerComponent.getValue(), this);
+            }
+        });
+
+        preferences.addSettingListener((eventSource, settingName, newValue) -> {
+            if(!spinnerComponent.equals(eventSource) && settingName.equals(preferenceKey)){
+                spinnerComponent.setValue(newValue);
+            }
+        });
+
+        return spinnerComponent;
+    }
+
+    public static JCheckBox createPreferenceCheckBox(Preferences preferences, String preferenceKey){
+        return createPreferenceCheckBox(preferences, preferenceKey, null);
+    }
+
+    public static JCheckBox createPreferenceCheckBox(Preferences preferences, String preferenceKey, String label){
+        final JCheckBox checkComponent = new JCheckBox(label);
+        Boolean value = preferences.getSetting(preferenceKey);
+        checkComponent.setSelected(value);
+        checkComponent.addActionListener(actionEvent ->
+                preferences.setSetting(preferenceKey, checkComponent.isSelected(), checkComponent));
+
+        preferences.addSettingListener((eventSource, changedSettingName, newValue) -> {
+            if(!checkComponent.equals(eventSource) && changedSettingName.equals(preferenceKey)){
+                checkComponent.setSelected((boolean) newValue);
+            }
+        });
+
+        return checkComponent;
+    }
+
+    public static JTextArea createPreferenceTextArea(Preferences preferences, String settingName){
+        String value = preferences.getSetting(settingName);
+
+        JTextArea textArea = new JTextArea();
+        textArea.setText(value);
+
+        textArea.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent documentEvent) { saveChanges(); }
+            @Override
+            public void removeUpdate(DocumentEvent documentEvent) { saveChanges(); }
+            @Override
+            public void changedUpdate(DocumentEvent documentEvent) { saveChanges(); }
+
+            private void saveChanges(){
+                preferences.setSetting(settingName, textArea.getText(), textArea);
+            }
+        });
+
+        preferences.addSettingListener((eventSource, changedKey, newValue) -> {
+            if(!textArea.equals(eventSource) && changedKey.equals(settingName)){
+                textArea.setText((String) newValue);
+            }
+        });
+
+        return textArea;
     }
 }
