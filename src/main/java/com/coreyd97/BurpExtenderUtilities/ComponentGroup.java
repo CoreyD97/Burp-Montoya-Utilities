@@ -93,7 +93,7 @@ public class ComponentGroup extends JPanel {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weighty = gbc.weightx = 1;
-        gbc.gridwidth = 2;
+        gbc.gridwidth = 1;
         if(orientation == Orientation.VERTICAL) {
             gbc.gridx = 1;
             gbc.gridy = componentIndex;
