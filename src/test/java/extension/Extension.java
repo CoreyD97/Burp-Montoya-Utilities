@@ -202,7 +202,7 @@ public class Extension implements ITab, IBurpExtender, ILogProvider {
         //When adding components to a componentgroup, the components are added in a column or row
         //depending on orientation specified, with the last added item at the bottom/right
         //If you wish to customise the gridbagconstraints before the component is added:
-        GridBagConstraints gbc = group5.generateNextConstraints();
+        GridBagConstraints gbc = group5.generateNextConstraints(true);
         gbc.fill = GridBagConstraints.NONE;
         //etc.
         //Then add your component as described earlier.

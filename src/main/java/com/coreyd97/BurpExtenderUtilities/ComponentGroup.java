@@ -9,14 +9,12 @@ public class ComponentGroup extends JPanel {
 
     public enum Orientation {HORIZONTAL, VERTICAL}
 
-    private final Map<String, JComponent> preferenceComponentMap;
     private final Orientation orientation;
     private int componentIndex = 1;
 
     public ComponentGroup(Orientation orientation){
         super(new GridBagLayout());
         this.orientation = orientation;
-        this.preferenceComponentMap = new LinkedHashMap<>();
     }
 
     public ComponentGroup(Orientation orientation, String title){
@@ -53,9 +51,6 @@ public class ComponentGroup extends JPanel {
             component = PanelBuilder.createPreferenceTextField(preferences, settingName);
         }
 
-
-        this.preferenceComponentMap.put(settingName, component);
-
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = fillVertical ? GridBagConstraints.BOTH : GridBagConstraints.HORIZONTAL;
         if(orientation == Orientation.VERTICAL) {
@@ -77,7 +72,7 @@ public class ComponentGroup extends JPanel {
             gbc.gridy++;
         }
 
-        this.add(this.preferenceComponentMap.get(settingName), gbc);
+        this.add(component, gbc);
         componentIndex++;
 
         return (T) component;
@@ -89,9 +84,9 @@ public class ComponentGroup extends JPanel {
      * Useful for customising before addition.
      * @return GridBagConstraints The default constraints for the next item in the group.
      */
-    public GridBagConstraints generateNextConstraints(){
+    public GridBagConstraints generateNextConstraints(boolean fillVertical){
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.BOTH;
+        gbc.fill = fillVertical ? GridBagConstraints.BOTH : GridBagConstraints.HORIZONTAL;
         gbc.weighty = gbc.weightx = 1;
         gbc.gridwidth = 2;
         if(orientation == Orientation.VERTICAL) {
@@ -107,7 +102,12 @@ public class ComponentGroup extends JPanel {
 
     @Override
     public Component add(Component comp) {
-        this.add(comp, generateNextConstraints());
+        this.add(comp, generateNextConstraints(true));
+        return comp;
+    }
+
+    public Component add(Component comp, boolean fillVertical) {
+        this.add(comp, generateNextConstraints(fillVertical));
         return comp;
     }
 }

@@ -149,7 +149,7 @@ public class PanelBuilder {
 
     public static JToggleButton createPreferenceToggleButton(Preferences preferences, String title, String preferenceKey){
         JToggleButton toggleButton = new JToggleButton(title);
-        toggleButton.setAction(new AbstractAction() {
+        toggleButton.setAction(new AbstractAction(title) {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 preferences.setSetting(preferenceKey, ((JToggleButton) actionEvent.getSource()).isSelected(), toggleButton);
