@@ -21,6 +21,7 @@ class ProjectSettingStore implements IHttpRequestResponse {
     private final IBurpExtenderCallbacks callbacks;
     private final IHttpService httpService;
     private final byte[] requestBytes;
+    private final String extensionIdentifier;
     private String serializedValue;
     private HashMap<String, Object> preferences;
     private HashMap<String, Type> preferenceTypes;
@@ -30,10 +31,23 @@ class ProjectSettingStore implements IHttpRequestResponse {
                                String extensionIdentifier) throws MalformedURLException, UnsupportedEncodingException {
         this.preferenceController = preferenceController;
         this.callbacks = callbacks;
-        this.httpService = callbacks.getHelpers().buildHttpService("com.coreyd97.burpextenderutilities", 65535, true);
-        String encodedExtensionIdentifier = URLEncoder.encode(extensionIdentifier, "UTF-8");
+        this.httpService = callbacks.getHelpers().buildHttpService("PROJECT-EXTENSION-PREFERENCE-STORE-DO-NOT-DELETE", 65535, true);
+        this.extensionIdentifier = URLEncoder.encode(extensionIdentifier, "UTF-8");
         this.requestBytes = callbacks.getHelpers().buildHttpRequest(
-                new URL(httpService.getProtocol(), httpService.getHost(), httpService.getPort(), "/" + encodedExtensionIdentifier));
+                new URL(httpService.getProtocol(), httpService.getHost(), httpService.getPort(), "/" + this.extensionIdentifier));
+        this.preferences = new HashMap<>();
+        this.preferenceTypes = new HashMap<>();
+        this.preferenceDefaults = new HashMap<>();
+    }
+
+    public ProjectSettingStore(Preferences preferenceController, IBurpExtenderCallbacks callbacks,
+                               String domain, String extensionIdentifier) throws MalformedURLException, UnsupportedEncodingException {
+        this.preferenceController = preferenceController;
+        this.callbacks = callbacks;
+        this.httpService = callbacks.getHelpers().buildHttpService(domain, 65535, true);
+        this.extensionIdentifier = URLEncoder.encode(extensionIdentifier, "UTF-8");
+        this.requestBytes = callbacks.getHelpers().buildHttpRequest(
+                new URL(httpService.getProtocol(), httpService.getHost(), httpService.getPort(), "/" + this.extensionIdentifier));
         this.preferences = new HashMap<>();
         this.preferenceTypes = new HashMap<>();
         this.preferenceDefaults = new HashMap<>();
@@ -84,7 +98,7 @@ class ProjectSettingStore implements IHttpRequestResponse {
         return this.preferences.get(settingName);
     }
 
-    private void loadSettingsFromJson(String json){
+    void loadSettingsFromJson(String json){
         //Initially load the stored values as key, serialized value pairs.
         //When settings are registered, we will get their value and convert into the requested type.
         //We can then update the entry with the converted type.
@@ -100,7 +114,30 @@ class ProjectSettingStore implements IHttpRequestResponse {
             }
         }
 
+        if(this.serializedValue != null){
+            //If we already have a serialized value, overwrite its entries with any from the new one to combine them
+            HashMap<String, String> currentJson = gson.fromJson(serializedValue, new TypeToken<HashMap<String, String>>(){}.getType());
+            currentJson.putAll(tempPreferences);
+            json = gson.toJson(currentJson);
+        }
         this.serializedValue = json;
+    }
+
+    void loadFromSiteMap(){
+        //Load existing from sitemap
+        IHttpRequestResponse[] existingItems = callbacks.getSiteMap(
+                this.httpService.toString() + "/" + extensionIdentifier);
+
+        //If we have an existing item
+        if(existingItems.length != 0){
+            //Pick the first one
+            IHttpRequestResponse existingSettings = existingItems[0];
+            //If it has a response body (settings json)
+            if(existingSettings.getResponse() != null){
+                //Load it into our current store item.
+                loadSettingsFromJson(new String(existingSettings.getResponse()));
+            }
+        }
     }
 
     public void saveToProject(){
@@ -124,8 +161,12 @@ class ProjectSettingStore implements IHttpRequestResponse {
 
     @Override
     public void setResponse(byte[] message) {
-        loadSettingsFromJson(new String(message));
-        //Parse the value and load the setting elements.
+        if(message == null){
+            this.serializedValue = null;
+        }else {
+            //Parse the value and load the setting elements.
+            loadSettingsFromJson(new String(message));
+        }
     }
 
     @Override

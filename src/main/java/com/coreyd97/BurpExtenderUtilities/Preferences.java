@@ -2,6 +2,8 @@ package com.coreyd97.BurpExtenderUtilities;
 
 import burp.IBurpExtenderCallbacks;
 import burp.IHttpRequestResponse;
+import burp.IHttpService;
+import burp.IRequestInfo;
 import com.coreyd97.BurpExtenderUtilities.TypeAdapter.AtomicIntegerTypeAdapter;
 import com.coreyd97.BurpExtenderUtilities.TypeAdapter.ByteArrayToBase64TypeAdapter;
 
@@ -10,6 +12,7 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -62,23 +65,24 @@ public class Preferences {
             this.projectSettingsStore = new ProjectSettingStore(this, callbacks, extensionIdentifier);
             String extensionIdentifierEncoded = URLEncoder.encode(extensionIdentifier, "UTF-8");
 
-            //Load existing from sitemap
-            IHttpRequestResponse[] existingItems = callbacks.getSiteMap(
-                    projectSettingsStore.getHttpService().toString() + "/" + extensionIdentifierEncoded);
-
-            //If we have an existing item
-            if(existingItems.length != 0){
-                //Pick the first one
-                IHttpRequestResponse existingSettings = existingItems[0];
-                //If it has a response body (settings json)
-                if(existingSettings.getResponse() != null){
-                    //Load it into our current store item.
-                    this.projectSettingsStore.setResponse(existingSettings.getResponse());
-                }
+            ProjectSettingStore backwardCompatStore = new ProjectSettingStore(this, callbacks, "com.coreyd97.burpextenderutilities", extensionIdentifier);
+            backwardCompatStore.loadFromSiteMap();
+            if(backwardCompatStore.getResponse().length > 0){
+                this.projectSettingsStore.loadSettingsFromJson(new String(backwardCompatStore.getResponse()));
+                backwardCompatStore.setResponse(null);
+                callbacks.addToSiteMap(backwardCompatStore);
+                callbacks.excludeFromScope(new URL(backwardCompatStore.getHttpService().toString() + "/" + extensionIdentifierEncoded));
             }
+
+            projectSettingsStore.loadFromSiteMap();
 
             //Add it to the sitemap
             callbacks.addToSiteMap(this.projectSettingsStore);
+
+            URL scopeURL = new URL(projectSettingsStore.getHttpService().getProtocol(),
+                    projectSettingsStore.getHttpService().getHost(),
+                    projectSettingsStore.getHttpService().getPort(), "/" + extensionIdentifierEncoded);
+            callbacks.includeInScope(scopeURL);
         } catch (UnsupportedEncodingException | MalformedURLException e) {
             this.projectSettingsStore = null;
             logError("Could not initiate the project setting store. See the below stack trace for more info.");
