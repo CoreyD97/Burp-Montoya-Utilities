@@ -327,6 +327,11 @@ public class Preferences {
             resetSetting(key);
         }
     }
+    
+    public void resetAllSettings(){
+        HashMap<String, Preferences.Visibility> registeredSettings = getRegisteredSettings();
+        resetSettings(registeredSettings.keySet());
+    }
 
     IGsonProvider getGsonProvider() {
         return gsonProvider;
