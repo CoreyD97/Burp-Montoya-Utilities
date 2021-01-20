@@ -140,6 +140,14 @@ class ProjectSettingStore implements IHttpRequestResponse {
         }
     }
 
+    public void resetSetting(String settingName){
+        Gson gson = this.preferenceController.getGsonProvider().getGson();
+        Object defaultValue = this.preferenceDefaults.getOrDefault(settingName, null);
+        String jsonDefaultValue = gson.toJson(defaultValue);
+        Object newInstance = gson.fromJson(jsonDefaultValue, this.preferenceTypes.get(settingName));
+        setSetting(settingName, newInstance);
+    }
+
     public void saveToProject(){
         this.serializedValue = this.preferenceController.getGsonProvider().getGson().toJson(this.preferences);
         this.callbacks.addToSiteMap(this);

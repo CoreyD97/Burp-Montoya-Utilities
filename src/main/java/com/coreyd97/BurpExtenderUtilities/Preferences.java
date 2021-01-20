@@ -300,10 +300,26 @@ public class Preferences {
     }
 
     public void resetSetting(String settingName){
-        Object defaultValue = this.preferenceDefaults.getOrDefault(settingName, null);
-        String jsonDefaultValue = gsonProvider.getGson().toJson(defaultValue);
-        Object newInstance = gsonProvider.getGson().fromJson(jsonDefaultValue, this.preferenceTypes.get(settingName));
-        setGlobalSetting(settingName, newInstance, this);
+        Visibility visibility = this.preferenceVisibilities.get(settingName);
+        if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
+        switch (visibility){
+            case PROJECT: {
+                this.projectSettingsStore.resetSetting(settingName);
+                for (PreferenceListener preferenceListener : this.preferenceListeners) {
+                    preferenceListener.onPreferenceSet(null, settingName, projectSettingsStore.getSetting(settingName));
+                }
+                return;
+            }
+
+            case VOLATILE:
+            case GLOBAL: {
+                Object defaultValue = this.preferenceDefaults.getOrDefault(settingName, null);
+                String jsonDefaultValue = gsonProvider.getGson().toJson(defaultValue);
+                Object newInstance = gsonProvider.getGson().fromJson(jsonDefaultValue, this.preferenceTypes.get(settingName));
+                setGlobalSetting(settingName, newInstance, this);
+                return;
+            }
+        }
     }
 
     public void resetSettings(Set<String> keys){
