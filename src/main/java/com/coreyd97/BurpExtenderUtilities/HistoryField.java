@@ -4,7 +4,11 @@ import com.google.gson.reflect.TypeToken;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
+import javax.swing.undo.UndoManager;
 import java.awt.*;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -45,6 +49,21 @@ public class HistoryField extends JComboBox {
             protected JTextField createEditorComponent() {
                 editorComponent = new JTextField();
                 editorComponent.setOpaque(false);
+                UndoManager undoManager = new UndoManager();
+                editorComponent.getDocument().addUndoableEditListener(undoManager);
+                editorComponent.addKeyListener(new KeyAdapter() {
+                    @Override
+                    public void keyReleased(KeyEvent e) {
+                        if((e.getModifiers() & InputEvent.CTRL_MASK) != 0) {
+                            if (e.getKeyCode() == KeyEvent.VK_Z) {
+                                undoManager.undo();
+                            }
+                            if (e.getKeyCode() == KeyEvent.VK_Y) {
+                                undoManager.redo();
+                            }
+                        }
+                    }
+                });
                 return editorComponent;
             }
 
