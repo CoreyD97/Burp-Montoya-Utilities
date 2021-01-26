@@ -56,10 +56,10 @@ public class HistoryField extends JComboBox {
                     public void keyReleased(KeyEvent e) {
                         if((e.getModifiers() & InputEvent.CTRL_MASK) != 0) {
                             if (e.getKeyCode() == KeyEvent.VK_Z) {
-                                undoManager.undo();
+                                if(undoManager.canUndo()) undoManager.undo();
                             }
                             if (e.getKeyCode() == KeyEvent.VK_Y) {
-                                undoManager.redo();
+                                if(undoManager.canRedo()) undoManager.redo();
                             }
                         }
                     }
