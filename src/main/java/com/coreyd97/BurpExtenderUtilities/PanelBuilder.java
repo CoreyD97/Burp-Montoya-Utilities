@@ -7,10 +7,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 public class PanelBuilder {
 
@@ -152,43 +149,73 @@ public class PanelBuilder {
         toggleButton.setAction(new AbstractAction(title) {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                preferences.setSetting(preferenceKey, ((JToggleButton) actionEvent.getSource()).isSelected(), toggleButton);
+                preferences.setSetting(preferenceKey, ((JToggleButton) actionEvent.getSource()).isSelected(), "UI");
             }
         });
 
         boolean isSelected = preferences.getSetting(preferenceKey);
         toggleButton.setSelected(isSelected);
         preferences.addSettingListener((eventSource, settingName, newValue) -> {
-            if(!toggleButton.equals(eventSource) && settingName.equalsIgnoreCase(preferenceKey)){
+            if (!"UI".equals(eventSource) && settingName.equalsIgnoreCase(preferenceKey)) {
                 toggleButton.setSelected((Boolean) newValue);
             }
         });
         return toggleButton;
     }
 
-    public static JTextField createPreferenceTextField(Preferences preferences, String preferenceKey){
+    public static JTextField createPreferenceTextField(Preferences preferences, String preferenceKey) {
         final JTextField textComponent = new JTextField();
         String defaultValue = preferences.getSetting(preferenceKey);
         textComponent.setText(defaultValue);
         textComponent.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, textComponent.getText(), textComponent);
+                preferences.setSetting(preferenceKey, textComponent.getText(), "UI");
             }
 
             @Override
             public void removeUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, textComponent.getText(), textComponent);
+                preferences.setSetting(preferenceKey, textComponent.getText(), "UI");
             }
 
             @Override
             public void changedUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, textComponent.getText(), textComponent);
+                preferences.setSetting(preferenceKey, textComponent.getText(), "UI");
+            }
+        });
+
+        preferences.addSettingListener((eventSource, settingName, newValue) -> {
+            if (!"UI".equals(eventSource) && settingName.equals(preferenceKey)) {
+                textComponent.setText((String) newValue);
+            }
+        });
+
+        return textComponent;
+    }
+
+    public static JPasswordField createPreferencePasswordField(Preferences preferences, String preferenceKey) {
+        final JPasswordField textComponent = new JPasswordField();
+        char[] defaultValue = preferences.getSetting(preferenceKey);
+        textComponent.setText(String.valueOf(defaultValue));
+        textComponent.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent documentEvent) {
+                preferences.setSetting(preferenceKey, textComponent.getPassword(), "UI");
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent documentEvent) {
+                preferences.setSetting(preferenceKey, textComponent.getPassword(), "UI");
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent documentEvent) {
+                preferences.setSetting(preferenceKey, textComponent.getPassword(), "UI");
             }
         });
 
         preferences.addSettingListener((eventSource, settingName, newValue) ->  {
-            if(!textComponent.equals(eventSource) && settingName.equals(preferenceKey)){
+            if (!"UI".equals(eventSource) && settingName.equals(preferenceKey)) {
                 textComponent.setText((String) newValue);
             }
         });
@@ -225,10 +252,10 @@ public class PanelBuilder {
         Boolean value = preferences.getSetting(preferenceKey);
         checkComponent.setSelected(value);
         checkComponent.addActionListener(actionEvent ->
-                preferences.setSetting(preferenceKey, checkComponent.isSelected(), checkComponent));
+                preferences.setSetting(preferenceKey, checkComponent.isSelected(), "UI"));
 
         preferences.addSettingListener((eventSource, changedSettingName, newValue) -> {
-            if(!checkComponent.equals(eventSource) && changedSettingName.equals(preferenceKey)){
+            if (!"UI".equals(eventSource) && changedSettingName.equals(preferenceKey)) {
                 checkComponent.setSelected((boolean) newValue);
             }
         });
@@ -251,12 +278,12 @@ public class PanelBuilder {
             public void changedUpdate(DocumentEvent documentEvent) { saveChanges(); }
 
             private void saveChanges(){
-                preferences.setSetting(settingName, textArea.getText(), textArea);
+                preferences.setSetting(settingName, textArea.getText(), "UI");
             }
         });
 
         preferences.addSettingListener((eventSource, changedKey, newValue) -> {
-            if(!textArea.equals(eventSource) && changedKey.equals(settingName)){
+            if (!"UI".equals(eventSource) && changedKey.equals(settingName)) {
                 textArea.setText((String) newValue);
             }
         });
