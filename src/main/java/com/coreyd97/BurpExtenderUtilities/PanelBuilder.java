@@ -25,6 +25,10 @@ public class PanelBuilder {
     }
 
     public static JPanel build(Component[][] viewGrid, int[][] gridWeights, Alignment alignment, double scaleX, double scaleY) {
+        return build(viewGrid, gridWeights, alignment, scaleX, scaleY, 0, 0);
+    }
+
+    public static JPanel build(Component[][] viewGrid, int[][] gridWeights, Alignment alignment, double scaleX, double scaleY, int insetsX, int insetsY) {
         if(scaleX > 1 || scaleX < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
         if(scaleY > 1 || scaleY < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
         JPanel containerPanel = new JPanel(new GridBagLayout());
@@ -66,6 +70,7 @@ public class PanelBuilder {
                             weight = gridWeights[gridy-1][gridx-1];
                         }catch (Exception e){ weight = 0; }
                         constraints.weightx = constraints.weighty = weight;
+                        constraints.insets = new Insets(insetsY, insetsX, insetsY, insetsX);
                         constraintsMap.put(panel, constraints);
                     }
 
