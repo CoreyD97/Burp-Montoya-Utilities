@@ -51,6 +51,16 @@ public class ComponentGroup extends JPanel {
             component = PanelBuilder.createPreferenceTextField(preferences, settingName);
         }
 
+        addComponentWithLabel(label, component, fillVertical);
+
+        return (T) component;
+    }
+
+    public void addComponentWithLabel(String label, Component component){
+        addComponentWithLabel(label, component, false);
+    }
+
+    public void addComponentWithLabel(String label, Component component, boolean fillVertical){
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = fillVertical ? GridBagConstraints.BOTH : GridBagConstraints.HORIZONTAL;
         if(orientation == Orientation.VERTICAL) {
@@ -74,8 +84,6 @@ public class ComponentGroup extends JPanel {
 
         this.add(component, gbc);
         componentIndex++;
-
-        return (T) component;
     }
 
 
