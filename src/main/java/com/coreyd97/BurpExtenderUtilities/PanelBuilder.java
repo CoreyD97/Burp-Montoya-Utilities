@@ -11,33 +11,89 @@ import java.util.HashMap;
 
 public class PanelBuilder {
 
-    private PanelBuilder(){}
+    public PanelBuilder(){}
 
-    public static JPanel build(Component singleComponent, Alignment alignment, double scaleX, double scaleY){
-        return build(
-                new Component[][]{new Component[]{singleComponent}},
-                new int[][]{new int[]{1}},
-                alignment, scaleX, scaleY);
+    Component[][] componentGrid;
+    int[][] gridWeightsX;
+    int[][] gridWeightsY;
+    Alignment alignment=Alignment.CENTER;
+    double scaleX=1.0, scaleY=1.0;
+    int insetsX=0,insetsY=0;
+
+    public Component[][] getComponentGrid() {
+        return componentGrid;
     }
 
-    public static JPanel build(Component[][] viewGrid, Alignment alignment, double scaleX, double scaleY) {
-        return build(viewGrid, null, alignment, scaleX, scaleY);
+    public void setComponentGrid(Component[][] componentGrid) {
+        this.componentGrid = componentGrid;
     }
 
-    public static JPanel build(Component[][] viewGrid, int[][] gridWeights, Alignment alignment, double scaleX, double scaleY) {
-        return build(viewGrid, gridWeights, alignment, scaleX, scaleY, 0, 0);
+    public int[][] getGridWeightsX() {
+        return gridWeightsX;
     }
 
-    public static JPanel build(Component[][] viewGrid, int[][] gridWeights, Alignment alignment, double scaleX, double scaleY, int insetsX, int insetsY) {
+    public void setGridWeightsX(int[][] gridWeightsX) {
+        this.gridWeightsX = gridWeightsX;
+    }
+
+    public int[][] getGridWeightsY() {
+        return gridWeightsY;
+    }
+
+    public void setGridWeightsY(int[][] gridWeightsY) {
+        this.gridWeightsY = gridWeightsY;
+    }
+
+    public Alignment getAlignment() {
+        return alignment;
+    }
+
+    public void setAlignment(Alignment alignment) {
+        this.alignment = alignment;
+    }
+
+    public double getScaleX() {
+        return scaleX;
+    }
+
+    public void setScaleX(double scaleX) {
+        this.scaleX = scaleX;
+    }
+
+    public double getScaleY() {
+        return scaleY;
+    }
+
+    public void setScaleY(double scaleY) {
+        this.scaleY = scaleY;
+    }
+
+    public int getInsetsX() {
+        return insetsX;
+    }
+
+    public void setInsetsX(int insetsX) {
+        this.insetsX = insetsX;
+    }
+
+    public int getInsetsY() {
+        return insetsY;
+    }
+
+    public void setInsetsY(int insetsY) {
+        this.insetsY = insetsY;
+    }
+
+    public JPanel build() {
         if(scaleX > 1 || scaleX < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
         if(scaleY > 1 || scaleY < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
         JPanel containerPanel = new JPanel(new GridBagLayout());
         HashMap<Component, GridBagConstraints> constraintsMap = new HashMap<>();
         int minx = Integer.MAX_VALUE, miny = Integer.MAX_VALUE, maxx = Integer.MIN_VALUE, maxy = Integer.MIN_VALUE;
 
-        for (int row = 0; row < viewGrid.length; row++) {
-            for (int column = 0; column < viewGrid[row].length; column++) {
-                Component panel = viewGrid[row][column];
+        for (int row = 0; row < componentGrid.length; row++) {
+            for (int column = 0; column < componentGrid[row].length; column++) {
+                Component panel = componentGrid[row][column];
                 if(panel != null) {
                     int gridx = column + 1;
                     int gridy = row + 1;
@@ -53,23 +109,29 @@ public class PanelBuilder {
 
                         constraints.gridwidth = gridx - constraints.gridx + 1;
                         constraints.gridheight = gridy - constraints.gridy + 1;
-                        int weight;
                         try{
-                            weight = gridWeights[gridy-1][gridx-1];
-                        }catch (Exception e){ weight = 0; }
-                        constraints.weightx += weight;
-                        constraints.weighty += weight;
+                            constraints.weightx = gridWeightsX[gridy-1][gridx-1];
+                        }catch (Exception e){  }
+
+                        try{
+                            constraints.weighty = gridWeightsY[gridy-1][gridx-1];
+                        }catch (Exception e){ }
+
+
+
 
                     } else {
                         GridBagConstraints constraints = new GridBagConstraints();
                         constraints.fill = GridBagConstraints.BOTH;
                         constraints.gridx = gridx;
                         constraints.gridy = gridy;
-                        int weight;
                         try{
-                            weight = gridWeights[gridy-1][gridx-1];
-                        }catch (Exception e){ weight = 0; }
-                        constraints.weightx = constraints.weighty = weight;
+                            constraints.weightx = gridWeightsX[gridy-1][gridx-1];
+                        }catch (Exception e){  }
+
+                        try{
+                            constraints.weighty = gridWeightsY[gridy-1][gridx-1];
+                        }catch (Exception e){ }
                         constraints.insets = new Insets(insetsY, insetsX, insetsY, insetsX);
                         constraintsMap.put(panel, constraints);
                     }
