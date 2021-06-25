@@ -57,6 +57,7 @@ public class PanelBuilder {
     }
 
     public void setScaleX(double scaleX) {
+        if(scaleX > 1 || scaleX < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
         this.scaleX = scaleX;
     }
 
@@ -65,6 +66,7 @@ public class PanelBuilder {
     }
 
     public void setScaleY(double scaleY) {
+        if(scaleY > 1 || scaleY < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
         this.scaleY = scaleY;
     }
 
@@ -85,8 +87,6 @@ public class PanelBuilder {
     }
 
     public JPanel build() {
-        if(scaleX > 1 || scaleX < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
-        if(scaleY > 1 || scaleY < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
         JPanel containerPanel = new JPanel(new GridBagLayout());
         HashMap<Component, GridBagConstraints> constraintsMap = new HashMap<>();
         int minx = Integer.MAX_VALUE, miny = Integer.MAX_VALUE, maxx = Integer.MIN_VALUE, maxy = Integer.MIN_VALUE;
@@ -262,28 +262,28 @@ public class PanelBuilder {
 
     public static JPasswordField createPreferencePasswordField(Preferences preferences, String preferenceKey) {
         final JPasswordField textComponent = new JPasswordField();
-        char[] defaultValue = preferences.getSetting(preferenceKey);
+        char[] defaultValue = String.valueOf(preferences.getSetting(preferenceKey)).toCharArray();
         textComponent.setText(String.valueOf(defaultValue));
         textComponent.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, textComponent.getPassword(), "UI");
+                preferences.setSetting(preferenceKey, String.valueOf(textComponent.getPassword()), "UI");
             }
 
             @Override
             public void removeUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, textComponent.getPassword(), "UI");
+                preferences.setSetting(preferenceKey, String.valueOf(textComponent.getPassword()), "UI");
             }
 
             @Override
             public void changedUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, textComponent.getPassword(), "UI");
+                preferences.setSetting(preferenceKey, String.valueOf(textComponent.getPassword()), "UI");
             }
         });
 
         preferences.addSettingListener((eventSource, settingName, newValue) ->  {
             if (!"UI".equals(eventSource) && settingName.equals(preferenceKey)) {
-                textComponent.setText((String) newValue);
+                textComponent.setText(String.valueOf(newValue));
             }
         });
 
