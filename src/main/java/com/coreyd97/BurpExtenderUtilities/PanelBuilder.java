@@ -24,66 +24,74 @@ public class PanelBuilder {
         return componentGrid;
     }
 
-    public void setComponentGrid(Component[][] componentGrid) {
+    public PanelBuilder setComponentGrid(Component[][] componentGrid) {
         this.componentGrid = componentGrid;
+        return this;
     }
 
     public int[][] getGridWeightsX() {
         return gridWeightsX;
     }
 
-    public void setGridWeightsX(int[][] gridWeightsX) {
+    public PanelBuilder setGridWeightsX(int[][] gridWeightsX) {
         this.gridWeightsX = gridWeightsX;
+        return this;
     }
 
     public int[][] getGridWeightsY() {
         return gridWeightsY;
     }
 
-    public void setGridWeightsY(int[][] gridWeightsY) {
+    public PanelBuilder setGridWeightsY(int[][] gridWeightsY) {
         this.gridWeightsY = gridWeightsY;
+        return this;
     }
 
     public Alignment getAlignment() {
         return alignment;
     }
 
-    public void setAlignment(Alignment alignment) {
+    public PanelBuilder setAlignment(Alignment alignment) {
         this.alignment = alignment;
+        return this;
     }
 
     public double getScaleX() {
         return scaleX;
     }
 
-    public void setScaleX(double scaleX) {
+    public PanelBuilder setScaleX(double scaleX) {
         if(scaleX > 1 || scaleX < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
         this.scaleX = scaleX;
+        return this;
     }
 
     public double getScaleY() {
         return scaleY;
     }
 
-    public void setScaleY(double scaleY) {
+    public PanelBuilder setScaleY(double scaleY) {
         if(scaleY > 1 || scaleY < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
         this.scaleY = scaleY;
+        return this;
     }
 
     public int getInsetsX() {
         return insetsX;
     }
 
-    public void setInsetsX(int insetsX) {
+    public PanelBuilder setInsetsX(int insetsX) {
         this.insetsX = insetsX;
+        return this;
     }
 
     public int getInsetsY() {
         return insetsY;
     }
 
-    public void setInsetsY(int insetsY) {
+    public PanelBuilder setInsetsY(int insetsY) {
         this.insetsY = insetsY;
+        return this;
     }
 
     public JPanel build() {
@@ -205,6 +213,26 @@ public class PanelBuilder {
         containerPanel.add(innerContainer, innerPanelGbc);
 
         return containerPanel;
+    }
+
+    @Deprecated
+    public static JPanel build(Component[][] componentGrid, int[][] gridWeights, Alignment alignment, double scaleX, double scaleY){
+        return new PanelBuilder().setComponentGrid(componentGrid)
+                .setGridWeightsX(gridWeights)
+                .setGridWeightsY(gridWeights)
+                .setAlignment(alignment)
+                .setScaleX(scaleX)
+                .setScaleY(scaleY)
+                .build();
+    }
+
+    @Deprecated
+    public static JPanel build(Component[][] componentGrid, Alignment alignment, double scaleX, double scaleY){
+        return new PanelBuilder().setComponentGrid(componentGrid)
+                .setAlignment(alignment)
+                .setScaleX(scaleX)
+                .setScaleY(scaleY)
+                .build();
     }
 
     /**
