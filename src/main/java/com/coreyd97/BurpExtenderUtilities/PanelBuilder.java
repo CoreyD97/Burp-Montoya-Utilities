@@ -290,22 +290,22 @@ public class PanelBuilder {
 
     public static JPasswordField createPreferencePasswordField(Preferences preferences, String preferenceKey) {
         final JPasswordField textComponent = new JPasswordField();
-        char[] defaultValue = String.valueOf(preferences.getSetting(preferenceKey)).toCharArray();
-        textComponent.setText(String.valueOf(defaultValue));
+        String defaultValue = preferences.getSetting(preferenceKey);
+        textComponent.setText(defaultValue);
         textComponent.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, String.valueOf(textComponent.getPassword()), "UI");
+                preferences.setSetting(preferenceKey, new String(textComponent.getPassword()), "UI");
             }
 
             @Override
             public void removeUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, String.valueOf(textComponent.getPassword()), "UI");
+                preferences.setSetting(preferenceKey, new String(textComponent.getPassword()), "UI");
             }
 
             @Override
             public void changedUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, String.valueOf(textComponent.getPassword()), "UI");
+                preferences.setSetting(preferenceKey, new String(textComponent.getPassword()), "UI");
             }
         });
 
