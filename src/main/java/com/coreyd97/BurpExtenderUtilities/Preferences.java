@@ -82,7 +82,9 @@ public class Preferences {
             URL scopeURL = new URL(projectSettingsStore.getHttpService().getProtocol(),
                     projectSettingsStore.getHttpService().getHost(),
                     projectSettingsStore.getHttpService().getPort(), "/" + extensionIdentifierEncoded);
-            callbacks.includeInScope(scopeURL);
+            if(!callbacks.isInScope(scopeURL)){
+                callbacks.includeInScope(scopeURL);
+            }
         } catch (UnsupportedEncodingException | MalformedURLException e) {
             this.projectSettingsStore = null;
             logError("Could not initiate the project setting store. See the below stack trace for more info.");
