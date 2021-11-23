@@ -81,7 +81,7 @@ public class Preferences {
 
             URL scopeURL = new URL(projectSettingsStore.getHttpService().getProtocol(),
                     projectSettingsStore.getHttpService().getHost(),
-                    projectSettingsStore.getHttpService().getPort(), "/" + extensionIdentifierEncoded);
+                    projectSettingsStore.getHttpService().getPort(), "/");
             if(!callbacks.isInScope(scopeURL)){
                 callbacks.includeInScope(scopeURL);
             }
