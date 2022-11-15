@@ -1,6 +1,6 @@
 package com.coreyd97.BurpExtenderUtilities;
 
-import burp.IBurpExtenderCallbacks;
+import burp.api.montoya.MontoyaApi;
 
 public abstract class PreferenceFactory {
 
@@ -8,16 +8,16 @@ public abstract class PreferenceFactory {
     protected IGsonProvider gsonProvider;
     protected ILogProvider logProvider;
 
-    public PreferenceFactory(String extensionIdentifier, IGsonProvider gsonProvider,
-                             ILogProvider logProvider, IBurpExtenderCallbacks callbacks){
+    public PreferenceFactory(MontoyaApi montoyaApi, String extensionIdentifier, IGsonProvider gsonProvider,
+                             ILogProvider logProvider){
         this.gsonProvider = gsonProvider;
         this.logProvider = logProvider;
-        prefs = new Preferences(extensionIdentifier, gsonProvider, logProvider, callbacks);
+        prefs = new Preferences(montoyaApi, extensionIdentifier, gsonProvider, logProvider);
     }
 
-    public PreferenceFactory(String extensionIdentifier, IGsonProvider gsonProvider, IBurpExtenderCallbacks callbacks){
+    public PreferenceFactory(MontoyaApi montoyaApi, String extensionIdentifier, IGsonProvider gsonProvider){
         this.gsonProvider = gsonProvider;
-        prefs = new Preferences(extensionIdentifier, gsonProvider, callbacks);
+        prefs = new Preferences(montoyaApi, extensionIdentifier, gsonProvider);
     }
 
     protected abstract void createDefaults();

@@ -1,10 +1,17 @@
 package com.coreyd97.BurpExtenderUtilities;
 
-import burp.IBurpExtenderCallbacks;
-import burp.IHttpRequestResponse;
-import burp.IHttpService;
+import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.core.Annotations;
+import burp.api.montoya.core.ByteArray;
+import burp.api.montoya.core.Range;
+import burp.api.montoya.http.HttpService;
+import burp.api.montoya.http.message.HttpRequestResponse;
+import burp.api.montoya.http.message.MarkedHttpRequestResponse;
+import burp.api.montoya.http.message.requests.HttpRequest;
+import burp.api.montoya.http.message.responses.HttpResponse;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import lombok.Getter;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -13,46 +20,37 @@ import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
-class ProjectSettingStore implements IHttpRequestResponse {
+class ProjectSettingStore implements HttpRequestResponse {
 
     private final Preferences preferenceController;
-    private final IBurpExtenderCallbacks callbacks;
-    private final IHttpService httpService;
-    private final byte[] requestBytes;
+    private final MontoyaApi montoya;
+    private final HttpService httpService;
+    private final HttpRequest httpRequest;
     private final String extensionIdentifier;
+
+    @Getter
+    private final URL storeUrl;
     private String serializedValue;
     private HashMap<String, Object> preferences;
     private HashMap<String, Type> preferenceTypes;
     private HashMap<String, Object> preferenceDefaults;
 
-    public ProjectSettingStore(Preferences preferenceController, IBurpExtenderCallbacks callbacks,
+    public ProjectSettingStore(Preferences preferenceController, MontoyaApi montoya,
                                String extensionIdentifier) throws MalformedURLException, UnsupportedEncodingException {
         this.preferenceController = preferenceController;
-        this.callbacks = callbacks;
-        this.httpService = callbacks.getHelpers().buildHttpService("PROJECT-EXTENSION-PREFERENCE-STORE-DO-NOT-DELETE", 65535, true);
+        this.montoya = montoya;
+        this.httpService = HttpService.httpService("PROJECT-EXTENSION-PREFERENCE-STORE-DO-NOT-DELETE", 65535, true);
         this.extensionIdentifier = URLEncoder.encode(extensionIdentifier, "UTF-8");
-        this.requestBytes = callbacks.getHelpers().buildHttpRequest(
-                new URL(httpService.getProtocol(), httpService.getHost(), httpService.getPort(), "/" + this.extensionIdentifier));
+        this.storeUrl = new URL("https", httpService.host(), httpService.port(), "/" + this.extensionIdentifier);
+        this.httpRequest = HttpRequest.httpRequest(httpService, Arrays.asList(String.format("GET /%s HTTP/1.1", this.extensionIdentifier)), "");
         this.preferences = new HashMap<>();
         this.preferenceTypes = new HashMap<>();
         this.preferenceDefaults = new HashMap<>();
     }
-
-    public ProjectSettingStore(Preferences preferenceController, IBurpExtenderCallbacks callbacks,
-                               String domain, String extensionIdentifier) throws MalformedURLException, UnsupportedEncodingException {
-        this.preferenceController = preferenceController;
-        this.callbacks = callbacks;
-        this.httpService = callbacks.getHelpers().buildHttpService(domain, 65535, true);
-        this.extensionIdentifier = URLEncoder.encode(extensionIdentifier, "UTF-8");
-        this.requestBytes = callbacks.getHelpers().buildHttpRequest(
-                new URL(httpService.getProtocol(), httpService.getHost(), httpService.getPort(), "/" + this.extensionIdentifier));
-        this.preferences = new HashMap<>();
-        this.preferenceTypes = new HashMap<>();
-        this.preferenceDefaults = new HashMap<>();
-    }
-
 
     public void registerSetting(String settingName, Type type) {
         this.registerSetting(settingName, type, null);
@@ -125,17 +123,16 @@ class ProjectSettingStore implements IHttpRequestResponse {
 
     void loadFromSiteMap(){
         //Load existing from sitemap
-        IHttpRequestResponse[] existingItems = callbacks.getSiteMap(
-                this.httpService.toString() + "/" + extensionIdentifier);
+        List<HttpRequestResponse> existingItems = montoya.siteMap().requestResponses(node -> node.url().equalsIgnoreCase(this.httpRequest().url()));
 
         //If we have an existing item
-        if(existingItems.length != 0){
+        if(existingItems.size() > 0){
             //Pick the first one
-            IHttpRequestResponse existingSettings = existingItems[0];
+            HttpRequestResponse existingSettings = existingItems.get(0);
             //If it has a response body (settings json)
-            if(existingSettings.getResponse() != null){
+            if(existingSettings.httpResponse() != null){
                 //Load it into our current store item.
-                loadSettingsFromJson(new String(existingSettings.getResponse()));
+                loadSettingsFromJson(existingSettings.httpResponse().bodyAsString());
             }
         }
     }
@@ -150,58 +147,60 @@ class ProjectSettingStore implements IHttpRequestResponse {
 
     public void saveToProject(){
         this.serializedValue = this.preferenceController.getGsonProvider().getGson().toJson(this.preferences);
-        this.callbacks.addToSiteMap(this);
+        this.montoya.siteMap().add(this);
     }
-
-    @Override
-    public byte[] getRequest() {
-        return this.requestBytes;
-    }
-
-    @Override
-    public void setRequest(byte[] message) {}
-
-    @Override
-    public byte[] getResponse() {
-        if(serializedValue == null) return "".getBytes();
-        return serializedValue.getBytes();
-    }
-
-    @Override
-    public void setResponse(byte[] message) {
-        if(message == null){
-            this.serializedValue = null;
-        }else {
-            //Parse the value and load the setting elements.
-            loadSettingsFromJson(new String(message));
-        }
-    }
-
-    @Override
-    public String getComment() {
-        return null;
-    }
-
-    @Override
-    public void setComment(String comment) {}
-
-    @Override
-    public String getHighlight() {
-        return null;
-    }
-
-    @Override
-    public void setHighlight(String color) {}
-
-    @Override
-    public IHttpService getHttpService() {
-        return this.httpService;
-    }
-
-    @Override
-    public void setHttpService(IHttpService httpService) {}
 
     public Type getSettingType(String settingName) {
         return this.preferenceTypes.get(settingName);
+    }
+
+    @Override
+    public HttpRequest httpRequest() {
+        return this.httpRequest;
+    }
+
+    @Override
+    public HttpResponse httpResponse() {
+        return HttpResponse.httpResponse(Arrays.asList("HTTP 200 OK"), serializedValue == null ? "" : serializedValue);
+    }
+
+    @Override
+    public Annotations messageAnnotations() {
+        return Annotations.annotations();
+    }
+
+    @Override
+    public HttpRequestResponse withMessageAnnotations(Annotations messageAnnotations) {
+        return this;
+    }
+
+    @Override
+    public MarkedHttpRequestResponse withMarkers(List<Range> requestMarkers, List<Range> responseMarkers) {
+        return withNoMarkers();
+    }
+
+    @Override
+    public MarkedHttpRequestResponse withRequestMarkers(List<Range> requestMarkers) {
+        return withNoMarkers();
+    }
+
+    @Override
+    public MarkedHttpRequestResponse withRequestMarkers(Range... requestMarkers) {
+        return withNoMarkers();
+    }
+
+    @Override
+    public MarkedHttpRequestResponse withResponseMarkers(List<Range> responseMarkers) {
+        return withNoMarkers();
+    }
+
+    @Override
+    public MarkedHttpRequestResponse withResponseMarkers(Range... responseMarkers) {
+        return withNoMarkers();
+    }
+
+    @Override
+    public MarkedHttpRequestResponse withNoMarkers() {
+        return MarkedHttpRequestResponse.markedRequestResponse(httpRequest,httpResponse());
     }
 }

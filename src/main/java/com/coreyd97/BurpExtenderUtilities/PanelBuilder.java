@@ -244,14 +244,14 @@ public class PanelBuilder {
         toggleButton.setAction(new AbstractAction(title) {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                preferences.setSetting(preferenceKey, ((JToggleButton) actionEvent.getSource()).isSelected(), "UI");
+                preferences.setSetting(preferenceKey, ((JToggleButton) actionEvent.getSource()).isSelected(), toggleButton);
             }
         });
 
         boolean isSelected = preferences.getSetting(preferenceKey);
         toggleButton.setSelected(isSelected);
         preferences.addSettingListener((eventSource, settingName, newValue) -> {
-            if (!"UI".equals(eventSource) && settingName.equalsIgnoreCase(preferenceKey)) {
+            if (!toggleButton.equals(eventSource) && settingName.equalsIgnoreCase(preferenceKey)) {
                 toggleButton.setSelected((Boolean) newValue);
             }
         });
@@ -265,22 +265,22 @@ public class PanelBuilder {
         textComponent.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, textComponent.getText(), "UI");
+                preferences.setSetting(preferenceKey, textComponent.getText(), textComponent);
             }
 
             @Override
             public void removeUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, textComponent.getText(), "UI");
+                preferences.setSetting(preferenceKey, textComponent.getText(), textComponent);
             }
 
             @Override
             public void changedUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, textComponent.getText(), "UI");
+                preferences.setSetting(preferenceKey, textComponent.getText(), textComponent);
             }
         });
 
         preferences.addSettingListener((eventSource, settingName, newValue) -> {
-            if (!"UI".equals(eventSource) && settingName.equals(preferenceKey)) {
+            if (!textComponent.equals(eventSource) && settingName.equals(preferenceKey)) {
                 textComponent.setText((String) newValue);
             }
         });
@@ -295,22 +295,22 @@ public class PanelBuilder {
         textComponent.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, new String(textComponent.getPassword()), "UI");
+                preferences.setSetting(preferenceKey, new String(textComponent.getPassword()), textComponent);
             }
 
             @Override
             public void removeUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, new String(textComponent.getPassword()), "UI");
+                preferences.setSetting(preferenceKey, new String(textComponent.getPassword()), textComponent);
             }
 
             @Override
             public void changedUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, new String(textComponent.getPassword()), "UI");
+                preferences.setSetting(preferenceKey, new String(textComponent.getPassword()), textComponent);
             }
         });
 
         preferences.addSettingListener((eventSource, settingName, newValue) ->  {
-            if (!"UI".equals(eventSource) && settingName.equals(preferenceKey)) {
+            if (!textComponent.equals(eventSource) && settingName.equals(preferenceKey)) {
                 textComponent.setText(String.valueOf(newValue));
             }
         });
@@ -325,7 +325,7 @@ public class PanelBuilder {
         spinnerComponent.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent changeEvent) {
-                preferences.setSetting(preferenceKey, spinnerComponent.getValue(), this);
+                preferences.setSetting(preferenceKey, spinnerComponent.getValue(), spinnerComponent);
             }
         });
 
@@ -347,10 +347,10 @@ public class PanelBuilder {
         Boolean value = preferences.getSetting(preferenceKey);
         checkComponent.setSelected(value);
         checkComponent.addActionListener(actionEvent ->
-                preferences.setSetting(preferenceKey, checkComponent.isSelected(), "UI"));
+                preferences.setSetting(preferenceKey, checkComponent.isSelected(), checkComponent));
 
         preferences.addSettingListener((eventSource, changedSettingName, newValue) -> {
-            if (!"UI".equals(eventSource) && changedSettingName.equals(preferenceKey)) {
+            if (!checkComponent.equals(eventSource) && changedSettingName.equals(preferenceKey)) {
                 checkComponent.setSelected((boolean) newValue);
             }
         });
@@ -373,12 +373,12 @@ public class PanelBuilder {
             public void changedUpdate(DocumentEvent documentEvent) { saveChanges(); }
 
             private void saveChanges(){
-                preferences.setSetting(settingName, textArea.getText(), "UI");
+                preferences.setSetting(settingName, textArea.getText(), textArea);
             }
         });
 
         preferences.addSettingListener((eventSource, changedKey, newValue) -> {
-            if (!"UI".equals(eventSource) && changedKey.equals(settingName)) {
+            if (!textArea.equals(eventSource) && changedKey.equals(settingName)) {
                 textArea.setText((String) newValue);
             }
         });

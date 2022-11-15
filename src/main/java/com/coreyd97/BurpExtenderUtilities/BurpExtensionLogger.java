@@ -1,22 +1,19 @@
 package com.coreyd97.BurpExtenderUtilities;
 
-import burp.IBurpExtenderCallbacks;
+import burp.api.montoya.MontoyaApi;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class BurpExtensionLogger implements ILogProvider {
-
-    IBurpExtenderCallbacks callbacks;
-
-    public BurpExtensionLogger(IBurpExtenderCallbacks callbacks){
-        this.callbacks = callbacks;
-    }
+    final MontoyaApi montoyaApi;
 
     @Override
     public void logOutput(String message) {
-        callbacks.printOutput(message);
+        montoyaApi.logging().logToOutput(message);
     }
 
     @Override
     public void logError(String errorMessage) {
-        callbacks.printError(errorMessage);
+        montoyaApi.logging().logToError(errorMessage);
     }
 }

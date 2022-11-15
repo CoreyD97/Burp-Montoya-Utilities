@@ -1,9 +1,6 @@
 package com.coreyd97.BurpExtenderUtilities;
 
-import burp.IBurpExtenderCallbacks;
-import burp.IHttpRequestResponse;
-import burp.IHttpService;
-import burp.IRequestInfo;
+import burp.api.montoya.MontoyaApi;
 import com.coreyd97.BurpExtenderUtilities.TypeAdapter.AtomicIntegerTypeAdapter;
 import com.coreyd97.BurpExtenderUtilities.TypeAdapter.ByteArrayToBase64TypeAdapter;
 
@@ -12,8 +9,6 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
@@ -23,10 +18,10 @@ public class Preferences {
 
     public enum Visibility {GLOBAL, PROJECT, VOLATILE}
 
-    private ILogProvider logProvider;
     private final String extensionIdentifier;
+    private ILogProvider logProvider;
     private final IGsonProvider gsonProvider;
-    private final IBurpExtenderCallbacks callbacks;
+    private final MontoyaApi montoya;
     private final HashMap<String, Object> preferences;
     private final HashMap<String, Object> preferenceDefaults;
     private final HashMap<String, Type> preferenceTypes;
@@ -34,17 +29,16 @@ public class Preferences {
     private final ArrayList<PreferenceListener> preferenceListeners;
     private ProjectSettingStore projectSettingsStore;
 
-    public Preferences(final String extensionIdentifier, final IGsonProvider gsonProvider,
-                       final ILogProvider logProvider, final IBurpExtenderCallbacks callbacks){
-        this(extensionIdentifier, gsonProvider, callbacks);
+    public Preferences(final MontoyaApi montoyaApi, final String extensionIdentifier, final IGsonProvider gsonProvider,
+                       final ILogProvider logProvider){
+        this(montoyaApi, extensionIdentifier, gsonProvider);
         this.logProvider = logProvider;
     }
 
-    public Preferences(final String extensionIdentifier, final IGsonProvider gsonProvider,
-                       final IBurpExtenderCallbacks callbacks){
+    public Preferences(final MontoyaApi montoyaApi, final String extensionIdentifier, final IGsonProvider gsonProvider){
+        this.montoya = montoyaApi;
         this.extensionIdentifier = extensionIdentifier;
         this.gsonProvider = gsonProvider;
-        this.callbacks = callbacks;
         this.preferenceDefaults = new HashMap<>();
         this.preferences = new HashMap<>();
         this.preferenceTypes = new HashMap<>();
@@ -62,29 +56,17 @@ public class Preferences {
     private void setupProjectSettingsStore(){
         try{
             //Create store object.
-            this.projectSettingsStore = new ProjectSettingStore(this, callbacks, extensionIdentifier);
-            String extensionIdentifierEncoded = URLEncoder.encode(extensionIdentifier, "UTF-8");
-
-            ProjectSettingStore backwardCompatStore = new ProjectSettingStore(this, callbacks, "com.coreyd97.burpextenderutilities", extensionIdentifier);
-            backwardCompatStore.loadFromSiteMap();
-            if(backwardCompatStore.getResponse().length > 0){
-                this.projectSettingsStore.loadSettingsFromJson(new String(backwardCompatStore.getResponse()));
-                backwardCompatStore.setResponse(null);
-                callbacks.addToSiteMap(backwardCompatStore);
-                callbacks.excludeFromScope(new URL(backwardCompatStore.getHttpService().toString() + "/" + extensionIdentifierEncoded));
-            }
+            this.projectSettingsStore = new ProjectSettingStore(this, montoya, extensionIdentifier);
 
             projectSettingsStore.loadFromSiteMap();
 
             //Add it to the sitemap
-            callbacks.addToSiteMap(this.projectSettingsStore);
+            montoya.siteMap().add(this.projectSettingsStore);
 
-            URL scopeURL = new URL(projectSettingsStore.getHttpService().getProtocol(),
-                    projectSettingsStore.getHttpService().getHost(),
-                    projectSettingsStore.getHttpService().getPort(), "/");
-            if(!callbacks.isInScope(scopeURL)){
-                callbacks.includeInScope(scopeURL);
+            if(!montoya.scope().isInScope(this.projectSettingsStore.httpRequest().url())){
+                montoya.scope().includeInScope(this.projectSettingsStore.httpRequest().url());
             }
+
         } catch (UnsupportedEncodingException | MalformedURLException e) {
             this.projectSettingsStore = null;
             logError("Could not initiate the project setting store. See the below stack trace for more info.");
@@ -128,7 +110,7 @@ public class Preferences {
                     this.preferences.put(settingName, storedValue);
                 }else{
                     if(defaultValue != null){
-                        setGlobalSetting(settingName, defaultValue, this);
+                        setGlobalSetting(settingName, defaultValue);
                     }else{
                         this.preferences.put(settingName, null);
                     }
@@ -187,7 +169,7 @@ public class Preferences {
         registerSetting(settingName, type, defaultValue, Visibility.VOLATILE);
     }
 
-    private void setGlobalSetting(String settingName, Object value, Object eventSource) {
+    private void setGlobalSetting(String settingName, Object value) {
         Type type = this.preferenceTypes.get(settingName);
         Object currentValue = this.preferences.get(settingName);
         String currentValueJson = gsonProvider.getGson().toJson(currentValue, type);
@@ -197,14 +179,10 @@ public class Preferences {
 
         storeGlobalSetting(settingName, newValueJson);
         this.preferences.put(settingName, value);
-
-        for (PreferenceListener preferenceListener : this.preferenceListeners) {
-            preferenceListener.onPreferenceSet(eventSource, settingName, value);
-        }
     }
 
     private void storeGlobalSetting(String settingName, String jsonValue){
-        this.callbacks.saveExtensionSetting(settingName, jsonValue);
+        this.montoya.persistence().preferences().setString(settingName, jsonValue);
     }
 
     private Object getGlobalSettingFromBurp(String settingName, Type settingType) {
@@ -262,13 +240,13 @@ public class Preferences {
                 break;
             }
             case GLOBAL: {
-                this.setGlobalSetting(settingName, value, eventSource);
+                this.setGlobalSetting(settingName, value);
                 return;
             }
         }
 
         for (PreferenceListener preferenceListener : this.preferenceListeners) {
-            preferenceListener.onPreferenceSet(this, settingName, value);
+            preferenceListener.onPreferenceSet(eventSource, settingName, value);
         }
     }
 
@@ -290,7 +268,7 @@ public class Preferences {
     }
 
     private String getGlobalSettingJson(String settingName) {
-        return this.callbacks.loadExtensionSetting(settingName);
+        return this.montoya.persistence().preferences().getString(settingName);
     }
 
     public void addSettingListener(PreferenceListener preferenceListener){
@@ -307,10 +285,7 @@ public class Preferences {
         switch (visibility){
             case PROJECT: {
                 this.projectSettingsStore.resetSetting(settingName);
-                for (PreferenceListener preferenceListener : this.preferenceListeners) {
-                    preferenceListener.onPreferenceSet(null, settingName, projectSettingsStore.getSetting(settingName));
-                }
-                return;
+                break;
             }
 
             case VOLATILE:
@@ -318,9 +293,13 @@ public class Preferences {
                 Object defaultValue = this.preferenceDefaults.getOrDefault(settingName, null);
                 String jsonDefaultValue = gsonProvider.getGson().toJson(defaultValue);
                 Object newInstance = gsonProvider.getGson().fromJson(jsonDefaultValue, this.preferenceTypes.get(settingName));
-                setGlobalSetting(settingName, newInstance, this);
-                return;
+                setGlobalSetting(settingName, newInstance);
+                break;
             }
+        }
+
+        for (PreferenceListener preferenceListener : this.preferenceListeners) {
+            preferenceListener.onPreferenceSet(this, settingName, getSetting(settingName));
         }
     }
 
