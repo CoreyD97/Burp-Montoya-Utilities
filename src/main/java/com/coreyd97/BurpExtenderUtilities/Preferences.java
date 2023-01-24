@@ -241,7 +241,7 @@ public class Preferences {
             }
             case GLOBAL: {
                 this.setGlobalSetting(settingName, value);
-                return;
+                break;
             }
         }
 
