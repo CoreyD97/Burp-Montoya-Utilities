@@ -5,9 +5,10 @@ import com.google.gson.reflect.TypeToken;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 //Note
@@ -225,4 +226,16 @@ public class TestExtension implements BurpExtension, ILogProvider {
         //return PanelBuilder.build(layout, null, Alignment.CENTER, 0.5, 0.5);
     }
 
+
+    public static void main(String[] args) {
+        try {
+            Method main = Class.forName("burp.StartBurp").getMethod("main", String[].class);
+            ArrayList<String> argList = new ArrayList<>(Arrays.stream(args).toList());
+            argList.add("--developer-extension-class-name=" + TestExtension.class.getName());
+            main.invoke(null, (Object) argList.toArray(new String[]{}));
+        }catch (Exception e){
+            System.err.println("Cannot start burp. Check the burp jar is correctly included in the classpath.");
+            e.printStackTrace();
+        }
+    }
 }

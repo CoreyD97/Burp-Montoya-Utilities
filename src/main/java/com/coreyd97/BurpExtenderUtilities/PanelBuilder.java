@@ -7,18 +7,21 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.util.HashMap;
 
 public class PanelBuilder {
 
-    public PanelBuilder(){}
+    public PanelBuilder() {
+    }
 
     Component[][] componentGrid;
     int[][] gridWeightsX;
     int[][] gridWeightsY;
-    Alignment alignment=Alignment.CENTER;
-    double scaleX=1.0, scaleY=1.0;
-    int insetsX=0,insetsY=0;
+    Alignment alignment = Alignment.CENTER;
+    double scaleX = 1.0, scaleY = 1.0;
+    int insetsX = 0, insetsY = 0;
 
     public Component[][] getComponentGrid() {
         return componentGrid;
@@ -61,7 +64,7 @@ public class PanelBuilder {
     }
 
     public PanelBuilder setScaleX(double scaleX) {
-        if(scaleX > 1 || scaleX < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
+        if (scaleX > 1 || scaleX < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
         this.scaleX = scaleX;
         return this;
     }
@@ -71,7 +74,7 @@ public class PanelBuilder {
     }
 
     public PanelBuilder setScaleY(double scaleY) {
-        if(scaleY > 1 || scaleY < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
+        if (scaleY > 1 || scaleY < 0) throw new IllegalArgumentException("Scale must be between 0 and 1");
         this.scaleY = scaleY;
         return this;
     }
@@ -102,7 +105,7 @@ public class PanelBuilder {
         for (int row = 0; row < componentGrid.length; row++) {
             for (int column = 0; column < componentGrid[row].length; column++) {
                 Component panel = componentGrid[row][column];
-                if(panel != null) {
+                if (panel != null) {
                     int gridx = column + 1;
                     int gridy = row + 1;
 
@@ -117,15 +120,15 @@ public class PanelBuilder {
 
                         constraints.gridwidth = gridx - constraints.gridx + 1;
                         constraints.gridheight = gridy - constraints.gridy + 1;
-                        try{
-                            constraints.weightx = gridWeightsX[gridy-1][gridx-1];
-                        }catch (Exception e){  }
+                        try {
+                            constraints.weightx = gridWeightsX[gridy - 1][gridx - 1];
+                        } catch (Exception e) {
+                        }
 
-                        try{
-                            constraints.weighty = gridWeightsY[gridy-1][gridx-1];
-                        }catch (Exception e){ }
-
-
+                        try {
+                            constraints.weighty = gridWeightsY[gridy - 1][gridx - 1];
+                        } catch (Exception e) {
+                        }
 
 
                     } else {
@@ -133,13 +136,15 @@ public class PanelBuilder {
                         constraints.fill = GridBagConstraints.BOTH;
                         constraints.gridx = gridx;
                         constraints.gridy = gridy;
-                        try{
-                            constraints.weightx = gridWeightsX[gridy-1][gridx-1];
-                        }catch (Exception e){  }
+                        try {
+                            constraints.weightx = gridWeightsX[gridy - 1][gridx - 1];
+                        } catch (Exception e) {
+                        }
 
-                        try{
-                            constraints.weighty = gridWeightsY[gridy-1][gridx-1];
-                        }catch (Exception e){ }
+                        try {
+                            constraints.weighty = gridWeightsY[gridy - 1][gridx - 1];
+                        } catch (Exception e) {
+                        }
                         constraints.insets = new Insets(insetsY, insetsX, insetsY, insetsX);
                         constraintsMap.put(panel, constraints);
                     }
@@ -148,10 +153,10 @@ public class PanelBuilder {
                     if (gridx > maxx) maxx = gridx;
                     if (gridy < miny) miny = gridy;
                     if (gridy > maxy) maxy = gridy;
-                }else{
+                } else {
                     GridBagConstraints constraints = new GridBagConstraints();
-                    constraints.gridx = column+1;
-                    constraints.gridy = row+1;
+                    constraints.gridx = column + 1;
+                    constraints.gridy = row + 1;
                     constraints.fill = GridBagConstraints.BOTH;
                     constraints.weightx = constraints.weighty = 1;
                     JPanel filler = new JPanel();
@@ -170,8 +175,8 @@ public class PanelBuilder {
         GridBagConstraints paddingTopGbc = new GridBagConstraints();
         GridBagConstraints paddingBottomGbc = new GridBagConstraints();
         paddingLeftGbc.fill = paddingRightGbc.fill = paddingTopGbc.fill = paddingBottomGbc.fill = GridBagConstraints.BOTH;
-        paddingLeftGbc.weightx = paddingRightGbc.weightx = (1-scaleX)/2;
-        paddingTopGbc.weighty = paddingBottomGbc.weighty = (1-scaleY)/2;
+        paddingLeftGbc.weightx = paddingRightGbc.weightx = (1 - scaleX) / 2;
+        paddingTopGbc.weighty = paddingBottomGbc.weighty = (1 - scaleY) / 2;
         paddingLeftGbc.gridy = paddingRightGbc.gridy = 2;
         paddingTopGbc.gridx = paddingBottomGbc.gridx = 2;
         paddingLeftGbc.gridx = 1;
@@ -181,26 +186,26 @@ public class PanelBuilder {
 
         JPanel topPanel, leftPanel, bottomPanel, rightPanel;
 
-        if(alignment != Alignment.FILL && alignment != Alignment.TOPLEFT
-                && alignment != Alignment.TOPMIDDLE && alignment != Alignment.TOPRIGHT){
+        if (alignment != Alignment.FILL && alignment != Alignment.TOPLEFT
+                && alignment != Alignment.TOPMIDDLE && alignment != Alignment.TOPRIGHT) {
             containerPanel.add(topPanel = new JPanel(), paddingTopGbc);
 //            topPanel.setBorder(BorderFactory.createLineBorder(Color.BLUE));
         }
 
-        if(alignment != Alignment.FILL && alignment != Alignment.TOPLEFT
-                && alignment != Alignment.MIDDLELEFT && alignment != Alignment.BOTTOMLEFT){
+        if (alignment != Alignment.FILL && alignment != Alignment.TOPLEFT
+                && alignment != Alignment.MIDDLELEFT && alignment != Alignment.BOTTOMLEFT) {
             containerPanel.add(leftPanel = new JPanel(), paddingLeftGbc);
 //            leftPanel.setBorder(BorderFactory.createLineBorder(Color.BLUE));
         }
 
-        if(alignment != Alignment.FILL && alignment != Alignment.TOPRIGHT
-                && alignment != Alignment.MIDDLERIGHT && alignment != Alignment.BOTTOMRIGHT){
+        if (alignment != Alignment.FILL && alignment != Alignment.TOPRIGHT
+                && alignment != Alignment.MIDDLERIGHT && alignment != Alignment.BOTTOMRIGHT) {
             containerPanel.add(rightPanel = new JPanel(), paddingRightGbc);
 //            rightPanel.setBorder(BorderFactory.createLineBorder(Color.BLUE));
         }
 
-        if(alignment != Alignment.FILL && alignment != Alignment.BOTTOMLEFT
-                && alignment != Alignment.BOTTOMMIDDLE && alignment != Alignment.BOTTOMRIGHT){
+        if (alignment != Alignment.FILL && alignment != Alignment.BOTTOMLEFT
+                && alignment != Alignment.BOTTOMMIDDLE && alignment != Alignment.BOTTOMRIGHT) {
             containerPanel.add(bottomPanel = new JPanel(), paddingBottomGbc);
 //            bottomPanel.setBorder(BorderFactory.createLineBorder(Color.ORANGE));
         }
@@ -216,7 +221,7 @@ public class PanelBuilder {
     }
 
     @Deprecated
-    public static JPanel build(Component[][] componentGrid, int[][] gridWeights, Alignment alignment, double scaleX, double scaleY){
+    public static JPanel build(Component[][] componentGrid, int[][] gridWeights, Alignment alignment, double scaleX, double scaleY) {
         return new PanelBuilder().setComponentGrid(componentGrid)
                 .setGridWeightsX(gridWeights)
                 .setGridWeightsY(gridWeights)
@@ -227,7 +232,7 @@ public class PanelBuilder {
     }
 
     @Deprecated
-    public static JPanel build(Component[][] componentGrid, Alignment alignment, double scaleX, double scaleY){
+    public static JPanel build(Component[][] componentGrid, Alignment alignment, double scaleX, double scaleY) {
         return new PanelBuilder().setComponentGrid(componentGrid)
                 .setAlignment(alignment)
                 .setScaleX(scaleX)
@@ -239,7 +244,7 @@ public class PanelBuilder {
      * Preference components
      */
 
-    public static JToggleButton createPreferenceToggleButton(Preferences preferences, String title, String preferenceKey){
+    public static JToggleButton createPreferenceToggleButton(Preferences preferences, String title, String preferenceKey) {
         JToggleButton toggleButton = new JToggleButton(title);
         toggleButton.setAction(new AbstractAction(title) {
             @Override
@@ -309,7 +314,7 @@ public class PanelBuilder {
             }
         });
 
-        preferences.addSettingListener((eventSource, settingName, newValue) ->  {
+        preferences.addSettingListener((eventSource, settingName, newValue) -> {
             if (!textComponent.equals(eventSource) && settingName.equals(preferenceKey)) {
                 textComponent.setText(String.valueOf(newValue));
             }
@@ -318,19 +323,16 @@ public class PanelBuilder {
         return textComponent;
     }
 
-    public static JSpinner createPreferenceSpinner(Preferences preferences, String preferenceKey){
+    public static JSpinner createPreferenceSpinner(Preferences preferences, String preferenceKey) {
         final JSpinner spinnerComponent = new JSpinner();
         Number value = preferences.getSetting(preferenceKey);
         spinnerComponent.setValue(value);
-        spinnerComponent.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent changeEvent) {
-                preferences.setSetting(preferenceKey, spinnerComponent.getValue(), spinnerComponent);
-            }
+        spinnerComponent.addChangeListener(changeEvent -> {
+            preferences.setSetting(preferenceKey, spinnerComponent.getValue(), spinnerComponent);
         });
 
         preferences.addSettingListener((eventSource, settingName, newValue) -> {
-            if(!spinnerComponent.equals(eventSource) && settingName.equals(preferenceKey)){
+            if (!spinnerComponent.equals(eventSource) && settingName.equals(preferenceKey)) {
                 spinnerComponent.setValue(newValue);
             }
         });
@@ -338,11 +340,11 @@ public class PanelBuilder {
         return spinnerComponent;
     }
 
-    public static JCheckBox createPreferenceCheckBox(Preferences preferences, String preferenceKey){
+    public static JCheckBox createPreferenceCheckBox(Preferences preferences, String preferenceKey) {
         return createPreferenceCheckBox(preferences, preferenceKey, null);
     }
 
-    public static JCheckBox createPreferenceCheckBox(Preferences preferences, String preferenceKey, String label){
+    public static JCheckBox createPreferenceCheckBox(Preferences preferences, String preferenceKey, String label) {
         final JCheckBox checkComponent = new JCheckBox(label);
         Boolean value = preferences.getSetting(preferenceKey);
         checkComponent.setSelected(value);
@@ -358,7 +360,7 @@ public class PanelBuilder {
         return checkComponent;
     }
 
-    public static JTextArea createPreferenceTextArea(Preferences preferences, String settingName){
+    public static JTextArea createPreferenceTextArea(Preferences preferences, String settingName) {
         String value = preferences.getSetting(settingName);
 
         JTextArea textArea = new JTextArea();
@@ -366,13 +368,21 @@ public class PanelBuilder {
 
         textArea.getDocument().addDocumentListener(new DocumentListener() {
             @Override
-            public void insertUpdate(DocumentEvent documentEvent) { saveChanges(); }
-            @Override
-            public void removeUpdate(DocumentEvent documentEvent) { saveChanges(); }
-            @Override
-            public void changedUpdate(DocumentEvent documentEvent) { saveChanges(); }
+            public void insertUpdate(DocumentEvent documentEvent) {
+                saveChanges();
+            }
 
-            private void saveChanges(){
+            @Override
+            public void removeUpdate(DocumentEvent documentEvent) {
+                saveChanges();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent documentEvent) {
+                saveChanges();
+            }
+
+            private void saveChanges() {
                 preferences.setSetting(settingName, textArea.getText(), textArea);
             }
         });

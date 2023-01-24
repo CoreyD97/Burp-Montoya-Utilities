@@ -5,6 +5,7 @@ import burp.api.montoya.core.Annotations;
 import burp.api.montoya.core.Marker;
 import burp.api.montoya.http.HttpService;
 import burp.api.montoya.http.message.ContentType;
+import burp.api.montoya.http.message.HttpHeader;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.http.message.responses.HttpResponse;
@@ -19,11 +20,15 @@ import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
 class ProjectSettingStore implements HttpRequestResponse {
+
+    private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
     private final Preferences preferenceController;
     private final MontoyaApi montoya;
@@ -45,7 +50,7 @@ class ProjectSettingStore implements HttpRequestResponse {
         this.httpService = HttpService.httpService("PROJECT-EXTENSION-PREFERENCE-STORE-DO-NOT-DELETE", 65535, true);
         this.extensionIdentifier = URLEncoder.encode(extensionIdentifier, "UTF-8");
         this.url = new URL("https", httpService.host(), httpService.port(), "/" + this.extensionIdentifier);
-        this.httpRequest = HttpRequest.httpRequest(httpService, "");
+        this.httpRequest = HttpRequest.httpRequestFromUrl(this.url.toExternalForm());
         this.preferences = new HashMap<>();
         this.preferenceTypes = new HashMap<>();
         this.preferenceDefaults = new HashMap<>();
@@ -122,7 +127,7 @@ class ProjectSettingStore implements HttpRequestResponse {
 
     void loadFromSiteMap(){
         //Load existing from sitemap
-        List<HttpRequestResponse> existingItems = montoya.siteMap().requestResponses(node -> node.url().equalsIgnoreCase(this.request().url()));
+        List<HttpRequestResponse> existingItems = montoya.siteMap().requestResponses(node -> node.url().equalsIgnoreCase(this.url()));
 
         //If we have an existing item
         if(existingItems.size() > 0){
@@ -145,6 +150,7 @@ class ProjectSettingStore implements HttpRequestResponse {
     }
 
     public void saveToProject(){
+        //TODO Investigate why Burp doesn't always update the sitemap entry, especially when changing integer preference values
         this.serializedValue = this.preferenceController.getGsonProvider().getGson().toJson(this.preferences);
         this.montoya.siteMap().add(this);
     }
@@ -160,7 +166,9 @@ class ProjectSettingStore implements HttpRequestResponse {
 
     @Override
     public HttpResponse response() {
-        return HttpResponse.httpResponse(serializedValue == null ? "" : serializedValue);
+        return HttpResponse.httpResponse("HTTP/1.1 200 OK\nContent-Type: application/json\nDate: " + dateFormat.format(new Date()) + "\n\n")
+//                .withAddedHeader(HttpHeader.httpHeader("Content-Type", "application/json"))
+                .withBody(serializedValue != null ? serializedValue : "");
     }
 
     @Override
