@@ -2,11 +2,10 @@ package com.coreyd97.BurpExtenderUtilities;
 
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.core.Annotations;
-import burp.api.montoya.core.ByteArray;
-import burp.api.montoya.core.Range;
+import burp.api.montoya.core.Marker;
 import burp.api.montoya.http.HttpService;
+import burp.api.montoya.http.message.ContentType;
 import burp.api.montoya.http.message.HttpRequestResponse;
-import burp.api.montoya.http.message.MarkedHttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.http.message.responses.HttpResponse;
 import com.google.gson.Gson;
@@ -20,7 +19,7 @@ import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -33,7 +32,7 @@ class ProjectSettingStore implements HttpRequestResponse {
     private final String extensionIdentifier;
 
     @Getter
-    private final URL storeUrl;
+    private final URL url;
     private String serializedValue;
     private HashMap<String, Object> preferences;
     private HashMap<String, Type> preferenceTypes;
@@ -45,8 +44,8 @@ class ProjectSettingStore implements HttpRequestResponse {
         this.montoya = montoya;
         this.httpService = HttpService.httpService("PROJECT-EXTENSION-PREFERENCE-STORE-DO-NOT-DELETE", 65535, true);
         this.extensionIdentifier = URLEncoder.encode(extensionIdentifier, "UTF-8");
-        this.storeUrl = new URL("https", httpService.host(), httpService.port(), "/" + this.extensionIdentifier);
-        this.httpRequest = HttpRequest.httpRequest(httpService, Arrays.asList(String.format("GET /%s HTTP/1.1", this.extensionIdentifier)), "");
+        this.url = new URL("https", httpService.host(), httpService.port(), "/" + this.extensionIdentifier);
+        this.httpRequest = HttpRequest.httpRequest(httpService, "");
         this.preferences = new HashMap<>();
         this.preferenceTypes = new HashMap<>();
         this.preferenceDefaults = new HashMap<>();
@@ -123,16 +122,16 @@ class ProjectSettingStore implements HttpRequestResponse {
 
     void loadFromSiteMap(){
         //Load existing from sitemap
-        List<HttpRequestResponse> existingItems = montoya.siteMap().requestResponses(node -> node.url().equalsIgnoreCase(this.httpRequest().url()));
+        List<HttpRequestResponse> existingItems = montoya.siteMap().requestResponses(node -> node.url().equalsIgnoreCase(this.request().url()));
 
         //If we have an existing item
         if(existingItems.size() > 0){
             //Pick the first one
             HttpRequestResponse existingSettings = existingItems.get(0);
             //If it has a response body (settings json)
-            if(existingSettings.httpResponse() != null){
+            if(existingSettings.response() != null){
                 //Load it into our current store item.
-                loadSettingsFromJson(existingSettings.httpResponse().bodyAsString());
+                loadSettingsFromJson(existingSettings.response().bodyToString());
             }
         }
     }
@@ -155,52 +154,78 @@ class ProjectSettingStore implements HttpRequestResponse {
     }
 
     @Override
-    public HttpRequest httpRequest() {
+    public HttpRequest request() {
         return this.httpRequest;
     }
 
     @Override
-    public HttpResponse httpResponse() {
-        return HttpResponse.httpResponse(Arrays.asList("HTTP 200 OK"), serializedValue == null ? "" : serializedValue);
+    public HttpResponse response() {
+        return HttpResponse.httpResponse(serializedValue == null ? "" : serializedValue);
     }
 
     @Override
-    public Annotations messageAnnotations() {
+    public String url() {
+        return this.url.toExternalForm();
+    }
+
+    @Override
+    public HttpService httpService() {
+        return this.httpService;
+    }
+
+    @Override
+    public ContentType contentType() {
+        return ContentType.JSON;
+    }
+
+    @Override
+    public short statusCode() {
+        return 200;
+    }
+
+    @Override
+    public List<Marker> requestMarkers() {
+        return Collections.EMPTY_LIST;
+    }
+
+    @Override
+    public List<Marker> responseMarkers() {
+        return Collections.EMPTY_LIST;
+    }
+
+    @Override
+    public HttpRequestResponse copyToTempFile() {
+        return null;
+    }
+
+    @Override
+    public Annotations annotations() {
         return Annotations.annotations();
     }
 
     @Override
-    public HttpRequestResponse withMessageAnnotations(Annotations messageAnnotations) {
+    public HttpRequestResponse withAnnotations(Annotations messageAnnotations) {
         return this;
     }
 
     @Override
-    public MarkedHttpRequestResponse withMarkers(List<Range> requestMarkers, List<Range> responseMarkers) {
-        return withNoMarkers();
+    public HttpRequestResponse withRequestMarkers(List<Marker> requestMarkers) {
+        return this;
     }
 
     @Override
-    public MarkedHttpRequestResponse withRequestMarkers(List<Range> requestMarkers) {
-        return withNoMarkers();
+    public HttpRequestResponse withRequestMarkers(Marker... requestMarkers) {
+        return this;
     }
 
     @Override
-    public MarkedHttpRequestResponse withRequestMarkers(Range... requestMarkers) {
-        return withNoMarkers();
+    public HttpRequestResponse withResponseMarkers(List<Marker> responseMarkers) {
+        return this;
     }
 
     @Override
-    public MarkedHttpRequestResponse withResponseMarkers(List<Range> responseMarkers) {
-        return withNoMarkers();
+    public HttpRequestResponse withResponseMarkers(Marker... responseMarkers) {
+        return this;
     }
 
-    @Override
-    public MarkedHttpRequestResponse withResponseMarkers(Range... responseMarkers) {
-        return withNoMarkers();
-    }
-
-    @Override
-    public MarkedHttpRequestResponse withNoMarkers() {
-        return MarkedHttpRequestResponse.markedRequestResponse(httpRequest,httpResponse());
-    }
 }

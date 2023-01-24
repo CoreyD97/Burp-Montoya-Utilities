@@ -63,8 +63,8 @@ public class Preferences {
             //Add it to the sitemap
             montoya.siteMap().add(this.projectSettingsStore);
 
-            if(!montoya.scope().isInScope(this.projectSettingsStore.httpRequest().url())){
-                montoya.scope().includeInScope(this.projectSettingsStore.httpRequest().url());
+            if(!montoya.scope().isInScope(this.projectSettingsStore.url())){
+                montoya.scope().includeInScope(this.projectSettingsStore.url());
             }
 
         } catch (UnsupportedEncodingException | MalformedURLException e) {
