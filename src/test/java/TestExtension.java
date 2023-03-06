@@ -58,7 +58,7 @@ public class TestExtension implements BurpExtension, ILogProvider {
 
         //Now we have a way to serialize our preferences. We can initialize the preference store.
         //I've made this static so we can access it in any class very easily!
-        TestExtension.preferences = new Preferences(montoya, "PreferenceTest", gsonProvider, this);
+        TestExtension.preferences = new Preferences(montoya, gsonProvider, this);
         //The logProvider parameter is optional,
         // as an example this class implements iLogProvider and simply logs the preferences logs to stdout.
         // or you could not supply a logProvider at all and it simply won't log preference logs.

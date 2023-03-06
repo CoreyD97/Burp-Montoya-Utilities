@@ -8,16 +8,16 @@ public abstract class PreferenceFactory {
     protected IGsonProvider gsonProvider;
     protected ILogProvider logProvider;
 
-    public PreferenceFactory(MontoyaApi montoyaApi, String extensionIdentifier, IGsonProvider gsonProvider,
+    public PreferenceFactory(MontoyaApi montoyaApi, IGsonProvider gsonProvider,
                              ILogProvider logProvider){
         this.gsonProvider = gsonProvider;
         this.logProvider = logProvider;
-        prefs = new Preferences(montoyaApi, extensionIdentifier, gsonProvider, logProvider);
+        prefs = new Preferences(montoyaApi, gsonProvider, logProvider);
     }
 
-    public PreferenceFactory(MontoyaApi montoyaApi, String extensionIdentifier, IGsonProvider gsonProvider){
+    public PreferenceFactory(MontoyaApi montoyaApi, IGsonProvider gsonProvider){
         this.gsonProvider = gsonProvider;
-        prefs = new Preferences(montoyaApi, extensionIdentifier, gsonProvider);
+        prefs = new Preferences(montoyaApi, gsonProvider);
     }
 
     protected abstract void createDefaults();
