@@ -19,7 +19,7 @@ public class PopOutPanel extends JPanel {
     private JFrame popoutFrame;
     private JMenuItem popoutMenuItem;
 
-    private PopOutPanel(){
+    public PopOutPanel(MontoyaApi montoyaApi){
         this.setLayout(new BorderLayout());
         this.componentWrapper = new JPanel(new BorderLayout());
         this.add(componentWrapper, BorderLayout.CENTER);
@@ -39,18 +39,19 @@ public class PopOutPanel extends JPanel {
                 });
             }
         }), gbc);
-    }
 
-    public PopOutPanel(MontoyaApi montoyaApi, Component component, String title){
-        this();
-        this.component = component;
-        this.title = title;
-        this.placeholder.setText(title + " is popped out.");
-        this.componentWrapper.add(component, BorderLayout.CENTER);
         montoyaApi.extension().registerUnloadingHandler(() -> {
             if (this.popoutFrame == null) return;
             popoutFrame.dispose();
         });
+    }
+
+    public PopOutPanel(MontoyaApi montoyaApi, Component component, String title){
+        this(montoyaApi);
+        this.component = component;
+        this.title = title;
+        this.placeholder.setText(title + " is popped out.");
+        this.componentWrapper.add(component, BorderLayout.CENTER);
     }
 
     public void setComponent(Component component) {
