@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ public class TestExtension implements BurpExtension, ILogProvider {
     private DefaultGsonProvider gsonProvider;
 
     //UX
+    private PopOutPanel popOutPanel;
     private JPanel extensionPanel;
     private JPanel extensionMainPanel;
     private JPanel extensionPreferencesPanel;
@@ -113,7 +115,16 @@ public class TestExtension implements BurpExtension, ILogProvider {
             @Override
             public void run() {
                 TestExtension.this.extensionPanel = buildUI();
-                montoya.userInterface().registerSuiteTab("Extender Utils Test", extensionPanel);
+                TestExtension.this.popOutPanel = new PopOutPanel(montoya, extensionPanel, "Extension Test");
+                JMenu menu = new JMenu("Extension Test");
+                menu.add(new JMenuItem(new AbstractAction("Pop In/Out") {
+                    @Override
+                    public void actionPerformed(ActionEvent actionEvent) {
+                        popOutPanel.popOut();
+                    }
+                }));
+                montoya.userInterface().menuBar().registerMenu(menu);
+                montoya.userInterface().registerSuiteTab("Extender Utils Test", popOutPanel);
             }
         });
     }
