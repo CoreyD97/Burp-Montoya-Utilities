@@ -1,6 +1,7 @@
 package com.coreyd97.BurpExtenderUtilities;
 
 import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.persistence.PersistedObject;
 import com.coreyd97.BurpExtenderUtilities.TypeAdapter.AtomicIntegerTypeAdapter;
 import com.coreyd97.BurpExtenderUtilities.TypeAdapter.ByteArrayToBase64TypeAdapter;
 
@@ -60,6 +61,7 @@ public class Preferences {
         throwExceptionIfAlreadyRegistered(settingName);
         this.preferenceVisibilities.put(settingName, visibility);
         this.preferenceTypes.put(settingName, type);
+        this.preferenceDefaults.put(settingName, defaultValue);
 
         Object previousValue;
         switch(visibility){
@@ -129,7 +131,6 @@ public class Preferences {
         String newValueJson = gsonProvider.getGson().toJson(value, type);
         //Temporarily removed. Not saving preferences for instance variables.
 //        if(newValueJson != null && newValueJson.equals(currentValueJson)) return;
-
         this.montoya.persistence().extensionData().setString(settingName, newValueJson);
         this.preferences.put(settingName, value);
     }
