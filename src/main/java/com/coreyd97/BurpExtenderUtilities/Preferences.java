@@ -143,8 +143,9 @@ public class Preferences {
         try {
             return gsonProvider.getGson().fromJson(storedValue, settingType);
         }catch (Exception e){
-            logError("Could not load stored setting \"" + settingName
+            logError("Could not deserialize stored setting \"" + settingName
                     + "\". This may be due to a change in stored types. Falling back to default.");
+            logError("Value: " + storedValue);
             return null;
         }
     }
@@ -156,8 +157,9 @@ public class Preferences {
         try {
             return gsonProvider.getGson().fromJson(storedValue, settingType);
         }catch (Exception e){
-            logError("Could not load stored setting \"" + settingName
+            logError("Could not deserialize stored setting \"" + settingName
                     + "\". This may be due to a change in stored types. Falling back to default.");
+            logError("Value: " + storedValue);
             return null;
         }
     }
