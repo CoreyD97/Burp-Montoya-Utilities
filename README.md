@@ -173,7 +173,7 @@ JPanel userInterface = pb.build();
 ```
 
 </td>
-<td>
+<td width="50%">
 
 ![img.png](img/left-no-weight.png)
 </td>
@@ -195,7 +195,7 @@ JPanel userInterface = pb.build();
 ```
 
 </td>
-<td>
+<td width="50%">
 
 ![img.png](img/actual-weights.png)
 </td>
@@ -228,7 +228,7 @@ JPanel userInterface = pb.build();
 ```
 
 </td>
-<td>
+<td width="50%">
 
 ![img.png](img/grid-weights.png)
 </td>
@@ -253,7 +253,8 @@ Available alignment options:
 <td>
 
 ```java
-PanelBuilder pb = new PanelBuilder().setComponentGrid(new Component[][]{
+PanelBuilder pb = new PanelBuilder()
+    .setComponentGrid(new Component[][]{
         new Component[]{top, top },
         new Component[]{left, right },
         new Component[]{left, right }
@@ -275,7 +276,7 @@ JPanel userInterface = pb.build();
 ```
 
 </td>
-<td>
+<td width="50%">
 
 ![img.png](img/alignment-and-scale.png)
 </td>
@@ -316,7 +317,7 @@ PanelBuilder pb = new PanelBuilder()
 JPanel userInterface = pb.build();
 ```
 </td>
-<td>
+<td width="50%">
 
 ![img.png](img/componentgroup.png)
 </td>
