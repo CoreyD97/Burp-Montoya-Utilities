@@ -165,6 +165,16 @@ Though, since we haven't defined any weight for the left panel, it will only tak
 <td>
 
 ```java
+JPanel top = new JPanel();
+JPanel left = new JPanel();
+JPanel right = new JPanel();
+
+Component[][] layout = new Component[][]{
+    new Component[]{top, top },
+    new Component[]{left, right },
+    new Component[]{left, right }
+};
+
 PanelBuilder pb = new PanelBuilder()
 .setComponentGrid(layout)
 .setWeightX(right, 0.6)
@@ -186,6 +196,16 @@ By adding some weights for the left panel, we can force the content to take a ce
 <td>
 
 ```java
+JPanel top = new JPanel();
+JPanel left = new JPanel();
+JPanel right = new JPanel();
+
+Component[][] layout = new Component[][]{
+    new Component[]{top, top },
+    new Component[]{left, right },
+    new Component[]{left, right }
+};
+
 PanelBuilder pb = new PanelBuilder()
 .setComponentGrid(layout)
 .setWeightX(right, 0.6)
@@ -212,6 +232,16 @@ The grid includes repeated values for each cell of a component. Only the first v
 <td>
 
 ```java
+JPanel top = new JPanel();
+JPanel left = new JPanel();
+JPanel right = new JPanel();
+
+Component[][] layout = new Component[][]{
+    new Component[]{top, top },
+    new Component[]{left, right },
+    new Component[]{left, right }
+};
+
 PanelBuilder pb = new PanelBuilder()
 .setComponentGrid(layout)
 .setGridWeightsX(new int[][]{
