@@ -4,6 +4,8 @@ import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.persistence.PersistedObject;
 import com.coreyd97.BurpExtenderUtilities.TypeAdapter.AtomicIntegerTypeAdapter;
 import com.coreyd97.BurpExtenderUtilities.TypeAdapter.ByteArrayToBase64TypeAdapter;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -15,7 +17,11 @@ public class Preferences {
 
     public enum Visibility {GLOBAL, PROJECT, VOLATILE}
 
+    @Getter
+    @Setter
     private ILogProvider logProvider;
+
+    @Getter
     private final IGsonProvider gsonProvider;
     private final MontoyaApi montoya;
     private final HashMap<String, Object> preferences;
@@ -45,19 +51,51 @@ public class Preferences {
         this.gsonProvider.registerTypeAdapter(byte[].class, new ByteArrayToBase64TypeAdapter());
     }
 
+    /**
+    * @deprecated use {@link #register} instead.
+    */
+    @Deprecated
     public void registerSetting(String settingName, Type type){
         registerSetting(settingName, type, null, Visibility.GLOBAL);
     }
 
+    /**
+     * @deprecated use {@link #register} instead.
+     */
+    @Deprecated
     public void registerSetting(String settingName, Type type, Object defaultValue){
         registerSetting(settingName, type, defaultValue, Visibility.GLOBAL);
     }
 
+    /**
+     * @deprecated use {@link #register} instead.
+     */
+    @Deprecated
     public void registerSetting(String settingName, Type type, Visibility visibility){
         registerSetting(settingName, type, null, visibility);
     }
 
-    public void registerSetting(String settingName, Type type, Object defaultValue, Visibility visibility){
+    /**
+     * @deprecated use {@link #register} instead.
+     */
+    @Deprecated
+    public void registerSetting(String settingName, Type type, Object defaultValue, Visibility visibility) {
+        register(settingName, type, defaultValue, visibility);
+    }
+
+    public void register(String settingName, Type type){
+        register(settingName, type, null, Visibility.GLOBAL);
+    }
+
+    public void register(String settingName, Type type, Object defaultValue){
+        register(settingName, type, defaultValue, Visibility.GLOBAL);
+    }
+
+    public void register(String settingName, Type type, Visibility visibility){
+        register(settingName, type, null, visibility);
+    }
+
+    public void register(String settingName, Type type, Object defaultValue, Visibility visibility) {
         throwExceptionIfAlreadyRegistered(settingName);
         this.preferenceVisibilities.put(settingName, visibility);
         this.preferenceTypes.put(settingName, type);
@@ -79,37 +117,6 @@ public class Preferences {
         logOutput(String.format("Registered setting: [Key=%s, Scope=%s, Type=%s, Default=%s, Value=%s]",
                 settingName, visibility, type, defaultValue, this.preferences.get(settingName)));
 
-    }
-
-    @Deprecated
-    public void registerGlobalSetting(String settingName, Type type){
-        registerSetting(settingName, type, Visibility.GLOBAL);
-    }
-
-    @Deprecated
-    public void registerGlobalSetting(String settingName, Type type, Object defaultValue){
-        registerSetting(settingName, type, defaultValue, Visibility.GLOBAL);
-    }
-
-    @Deprecated
-    public void registerProjectSetting(String settingName, Type type) {
-        registerSetting(settingName, type, Visibility.PROJECT);
-    }
-
-    @Deprecated
-    public void registerProjectSetting(String settingName, Type type, Object defaultValue) {
-        registerSetting(settingName, type, defaultValue, Visibility.PROJECT);
-    }
-
-
-    @Deprecated
-    public void registerVolatileSetting(String settingName, Type type){
-        registerSetting(settingName, type, Visibility.VOLATILE);
-    }
-
-    @Deprecated
-    public void registerVolatileSetting(String settingName, Type type, Object defaultValue){
-        registerSetting(settingName, type, defaultValue, Visibility.VOLATILE);
     }
 
     private void setGlobalSetting(String settingName, Object value) {
@@ -168,7 +175,15 @@ public class Preferences {
         return this.preferenceVisibilities;
     }
 
-    public <T> T getSetting(String settingName){
+    /**
+     * @deprecated use {@link #get} instead.
+     */
+    @Deprecated
+    public <T> T getSetting(String settingName) {
+        return get(settingName);
+    }
+
+    public <T> T get(String settingName){
         Visibility visibility = this.preferenceVisibilities.get(settingName);
         if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
 
@@ -177,11 +192,27 @@ public class Preferences {
         return (T) value;
     }
 
+    /**
+     * @deprecated use {@link #set} instead.
+     */
+    @Deprecated
     public void setSetting(String settingName, Object value){
-        setSetting(settingName, value, this);
+        set(settingName, value, this);
     }
 
+    /**
+     * @deprecated use {@link #set} instead.
+     */
+    @Deprecated
     public void setSetting(String settingName, Object value, Object eventSource){
+        set(settingName, value, eventSource);
+    }
+
+    public void set(String settingName, Object value){
+        set(settingName, value, this);
+    }
+
+    public void set(String settingName, Object value, Object eventSource){
         Visibility visibility = this.preferenceVisibilities.get(settingName);
         if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
         switch (visibility) {
@@ -204,7 +235,15 @@ public class Preferences {
         }
     }
 
+    /**
+     * @deprecated use {@link #getType} instead.
+     */
+    @Deprecated
     public Type getSettingType(String settingName) {
+        return getType(settingName);
+    }
+
+    public Type getType(String settingName) {
         Visibility visibility = this.preferenceVisibilities.get(settingName);
         if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
 
@@ -227,7 +266,15 @@ public class Preferences {
         this.preferenceListeners.remove(preferenceListener);
     }
 
-    public void resetSetting(String settingName){
+    /**
+     * @deprecated use {@link #reset} instead.
+     */
+    @Deprecated
+    public void resetSetting(String settingName) {
+        reset(settingName);
+    }
+
+    public void reset(String settingName){
         Visibility visibility = this.preferenceVisibilities.get(settingName);
         if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
 
@@ -242,19 +289,31 @@ public class Preferences {
         }
     }
 
+    /**
+     * @deprecated use {@link #reset} instead.
+     */
+    @Deprecated
     public void resetSettings(Set<String> keys){
+        reset(keys);
+    }
+
+    public void reset(Set<String> keys){
         for (String key : keys) {
             resetSetting(key);
         }
     }
-    
+
+    /**
+     * @deprecated use {@link #resetAll()} instead.
+     */
+    @Deprecated
     public void resetAllSettings(){
-        HashMap<String, Preferences.Visibility> registeredSettings = getRegisteredSettings();
-        resetSettings(registeredSettings.keySet());
+        resetAll();
     }
 
-    IGsonProvider getGsonProvider() {
-        return gsonProvider;
+    public void resetAll(){
+        HashMap<String, Preferences.Visibility> registeredSettings = getRegisteredSettings();
+        resetSettings(registeredSettings.keySet());
     }
 
     void logOutput(String message){

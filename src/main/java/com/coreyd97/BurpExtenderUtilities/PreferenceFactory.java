@@ -20,6 +20,16 @@ public abstract class PreferenceFactory {
         prefs = new Preferences(montoyaApi, gsonProvider);
     }
 
+    public PreferenceFactory(MontoyaApi montoyaApi){
+        this.gsonProvider = new DefaultGsonProvider();
+        prefs = new Preferences(montoyaApi, gsonProvider);
+    }
+
+    public PreferenceFactory(MontoyaApi montoyaApi, ILogProvider logProvider){
+        this.gsonProvider = new DefaultGsonProvider();
+        prefs = new Preferences(montoyaApi, gsonProvider, logProvider);
+    }
+
     protected abstract void createDefaults();
 
     protected abstract void registerTypeAdapters();

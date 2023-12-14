@@ -16,6 +16,7 @@ public class PopOutPanel extends JPanel {
     private Component component;
     private String title;
     private boolean isPoppedOut;
+    private boolean showPlaceholder;
     private JFrame popoutFrame;
     private JMenuItem popoutMenuItem;
 
@@ -46,17 +47,33 @@ public class PopOutPanel extends JPanel {
         });
     }
 
+    /**
+     * @param montoyaApi Burp's Montoya API
+     * @param component The component to display
+     * @param title The title for the popout window
+     */
     public PopOutPanel(MontoyaApi montoyaApi, Component component, String title){
+        this(montoyaApi, component, title, true);
+    }
+
+    /**
+     * @param montoyaApi Burp's Montoya API
+     * @param component The component to display
+     * @param title The title for the popout window
+     * @param showPlaceholder Display a placeholder in place of the component when popped out.
+     */
+    public PopOutPanel(MontoyaApi montoyaApi, Component component, String title, boolean showPlaceholder){
         this(montoyaApi);
         this.component = component;
         this.title = title;
+        this.showPlaceholder = showPlaceholder;
         this.placeholder.setText(title + " is popped out.");
         this.componentWrapper.add(component, BorderLayout.CENTER);
     }
 
     public void setComponent(Component component) {
         this.component = component;
-        this.componentWrapper.add(component);
+        this.componentWrapper.add(component, BorderLayout.CENTER);
     }
 
     public void setTitle(String title) {
@@ -87,7 +104,11 @@ public class PopOutPanel extends JPanel {
             public void windowOpened(WindowEvent windowEvent) {
                 popoutFrame.add(componentWrapper);
                 isPoppedOut = true;
-                PopOutPanel.this.add(poppedOutNoticePanel, BorderLayout.CENTER);
+                PopOutPanel.this.remove(componentWrapper);
+                if(showPlaceholder) {
+                    PopOutPanel.this.add(poppedOutNoticePanel, BorderLayout.CENTER);
+                }else{
+                }
                 PopOutPanel.this.revalidate();
                 PopOutPanel.this.repaint();
                 popoutFrame.pack();

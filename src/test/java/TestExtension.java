@@ -1,11 +1,14 @@
 import burp.api.montoya.BurpExtension;
 import burp.api.montoya.MontoyaApi;
 import com.coreyd97.BurpExtenderUtilities.*;
+import com.coreyd97.BurpExtenderUtilities.ComponentGroup.Orientation;
 import com.google.gson.reflect.TypeToken;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -67,33 +70,32 @@ public class TestExtension implements BurpExtension, ILogProvider {
 
 
         //Here we register settings which will persist over the current project.
-        //registerProjectSetting(settingName, Type, defaultValue)
-        TestExtension.preferences.registerSetting("Alpha", String.class, "Project Alpha", Preferences.Visibility.PROJECT);
-        TestExtension.preferences.registerSetting("Beta", String.class, "Project Beta", Preferences.Visibility.PROJECT);
-        TestExtension.preferences.registerSetting("Charlie", String.class, "Project Charlie", Preferences.Visibility.PROJECT);
+        TestExtension.preferences.register("Alpha", String.class, "Project Alpha", Preferences.Visibility.PROJECT);
+        TestExtension.preferences.register("Beta", String.class, "Project Beta", Preferences.Visibility.PROJECT);
+        TestExtension.preferences.register("Charlie", String.class, "Project Charlie", Preferences.Visibility.PROJECT);
 
         //Defining global settings works in the same way.
-        TestExtension.preferences.registerSetting("TextArea", String.class, "Hello World!", Preferences.Visibility.GLOBAL);
-        TestExtension.preferences.registerSetting("LongTest", Long.class, 0, Preferences.Visibility.GLOBAL);
+        TestExtension.preferences.register("TextArea", String.class, "Hello World!", Preferences.Visibility.GLOBAL);
+        TestExtension.preferences.register("LongTest", Long.class, 0, Preferences.Visibility.GLOBAL);
 
 
-        TestExtension.preferences.registerSetting("ProjectString", String.class, "Example String 1", Preferences.Visibility.PROJECT);
-        TestExtension.preferences.registerSetting("ProjectInteger", Integer.class, 1024, Preferences.Visibility.PROJECT);
-        TestExtension.preferences.registerSetting("ProjectBoolean", Boolean.class, true, Preferences.Visibility.PROJECT);
+        TestExtension.preferences.register("ProjectString", String.class, "Example String 1", Preferences.Visibility.PROJECT);
+        TestExtension.preferences.register("ProjectInteger", Integer.class, 1024, Preferences.Visibility.PROJECT);
+        TestExtension.preferences.register("ProjectBoolean", Boolean.class, true, Preferences.Visibility.PROJECT);
 
-        TestExtension.preferences.registerSetting("GlobalString", String.class, "Example String 2", Preferences.Visibility.GLOBAL);
-        TestExtension.preferences.registerSetting("GlobalInteger", Integer.class, 2048, Preferences.Visibility.GLOBAL);
-        TestExtension.preferences.registerSetting("GlobalBoolean", Boolean.class, false, Preferences.Visibility.GLOBAL);
+        TestExtension.preferences.register("GlobalString", String.class, "Example String 2", Preferences.Visibility.GLOBAL);
+        TestExtension.preferences.register("GlobalInteger", Integer.class, 2048, Preferences.Visibility.GLOBAL);
+        TestExtension.preferences.register("GlobalBoolean", Boolean.class, false, Preferences.Visibility.GLOBAL);
 
         //If you have a more complex type such as an arraylist or hash map, use the format below for the type parameter.
         //new TypeToken<YOURTYPEHERE>(){}.getType()
-        TestExtension.preferences.registerSetting("TypeTest", new TypeToken<HashMap<String, String>>(){}.getType(), new HashMap<String, String>());
+        TestExtension.preferences.register("TypeTest", new TypeToken<HashMap<String, String>>(){}.getType(), new HashMap<String, String>());
 
         //You can also create volatile preferences, which will only exist until burp is closed!
-        TestExtension.preferences.registerSetting("Volatile", String.class, "Default", Preferences.Visibility.VOLATILE);
+        TestExtension.preferences.register("Volatile", String.class, "Default", Preferences.Visibility.VOLATILE);
 
         //You want to get a value?
-        String example = TestExtension.preferences.getSetting("GlobalString");
+        String example = TestExtension.preferences.get("GlobalString");
         //Note, this will automatically attempt to cast the value to whatever type you're saying you want.
         //So the below will attempt to cast the value to a boolean (but will fail during runtime!)
         //Boolean exampleWillFail = TestExtension.preferences.getSetting("GlobalString");
@@ -101,11 +103,11 @@ public class TestExtension implements BurpExtension, ILogProvider {
 
 
         //This can be used to get the registered type of a setting.
-        Type examplesRegisteredType = TestExtension.preferences.getSettingType("GlobalString");
+        Type examplesRegisteredType = TestExtension.preferences.getType("GlobalString");
 
 
         //Want to set a value?
-        TestExtension.preferences.setSetting("GlobalString", "A new value");
+        TestExtension.preferences.set("GlobalString", "A new value");
         //You do not need to worry about if the setting was registered as global/project/volatile.
         // The lib will handle it for you.
 
@@ -115,7 +117,8 @@ public class TestExtension implements BurpExtension, ILogProvider {
             @Override
             public void run() {
                 TestExtension.this.extensionPanel = buildUI();
-                TestExtension.this.popOutPanel = new PopOutPanel(montoya, extensionPanel, "Extension Test");
+//                extensionPanel.setBorder(BorderFactory.createLineBorder(Color.orange));
+                TestExtension.this.popOutPanel = new PopOutPanel(montoya, extensionPanel, "Extension Test", false);
                 JMenu menu = new JMenu("Extension Test");
                 menu.add(new JMenuItem(new AbstractAction("Pop In/Out") {
                     @Override
@@ -147,12 +150,12 @@ public class TestExtension implements BurpExtension, ILogProvider {
         //Note: The title parameter is optional and will add a border with the title if provided
         //These component groups are simply standard JPanels with some added preference adding methods
         //And can be added directly to your panel. Or use the panel builder as described further on here.
-        ComponentGroup group1 = new ComponentGroup(ComponentGroup.Orientation.HORIZONTAL, "Group 1");
-        ComponentGroup group2 = new ComponentGroup(ComponentGroup.Orientation.HORIZONTAL, "Group 2");
-        ComponentGroup group3 = new ComponentGroup(ComponentGroup.Orientation.HORIZONTAL, "Group 3");
-        ComponentGroup group4 = new ComponentGroup(ComponentGroup.Orientation.HORIZONTAL, "Group 4");
-        ComponentGroup group5 = new ComponentGroup(ComponentGroup.Orientation.VERTICAL, "Group 5");
-        ComponentGroup group6 = new ComponentGroup(ComponentGroup.Orientation.HORIZONTAL, "Group 6");
+        ComponentGroup group1 = new ComponentGroup(Orientation.HORIZONTAL, "Group 1");
+        ComponentGroup group2 = new ComponentGroup(Orientation.HORIZONTAL, "Group 2");
+        ComponentGroup group3 = new ComponentGroup(Orientation.HORIZONTAL, "Group 3");
+        ComponentGroup group4 = new ComponentGroup(Orientation.HORIZONTAL, "Group 4");
+        ComponentGroup group5 = new ComponentGroup(Orientation.VERTICAL, "Group 5");
+        ComponentGroup group6 = new ComponentGroup(Orientation.HORIZONTAL, "Group 6");
 
         //We can now add components to their panels to manage the preferences.
         //For example, we want to add some components to "Group 5"
@@ -231,7 +234,19 @@ public class TestExtension implements BurpExtension, ILogProvider {
         //Now to actually build the panel.
         //Use the panelbuilder and specify your layout, alignment and the x and y scales.
         //The Alignment value will pad the panel as required to shift your panel to a specific location.
-        return PanelBuilder.build(layout, weights, Alignment.CENTER, 0.5, 0.5);
+//        return PanelBuilder.build(layout, weights, Alignment.CENTER, 0.5, 0.5);
+        VariableViewPanel variable = new VariableViewPanel(new JLabel("Some Content"), "Left", new JLabel("Different Content"), "Right", VariableViewPanel.View.HORIZONTAL);
+
+        return new PanelBuilder().setComponentGrid(new Component[][]{
+                        new Component[]{variable},
+                        new Component[]{variable},
+                })
+                .setWeightX(variable, 1)
+                .setWeightY(variable, 1)
+                .setScaleX(1)
+                .setScaleY(1)
+                .setAlignment(Alignment.CENTER)
+                .build();
 
         //If weights is null, all components will be autosized :)
         //return PanelBuilder.build(layout, null, Alignment.CENTER, 0.5, 0.5);

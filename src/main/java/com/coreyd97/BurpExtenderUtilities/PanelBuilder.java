@@ -19,8 +19,10 @@ public class PanelBuilder {
     Component[][] componentGrid;
     int[][] gridWeightsX;
     int[][] gridWeightsY;
+    HashMap<Component, Double> weightsX = new HashMap<>();
+    HashMap<Component, Double> weightsY = new HashMap<>();
     Alignment alignment = Alignment.CENTER;
-    double scaleX = 1.0, scaleY = 1.0;
+    double scaleX = 1, scaleY = 1;
     int insetsX = 0, insetsY = 0;
 
     public Component[][] getComponentGrid() {
@@ -38,6 +40,16 @@ public class PanelBuilder {
 
     public PanelBuilder setGridWeightsX(int[][] gridWeightsX) {
         this.gridWeightsX = gridWeightsX;
+        return this;
+    }
+
+    public PanelBuilder setWeightX(Component component, double weight){
+        weightsX.put(component, weight);
+        return this;
+    }
+
+    public PanelBuilder setWeightY(Component component, double weight){
+        weightsY.put(component, weight);
         return this;
     }
 
@@ -121,12 +133,12 @@ public class PanelBuilder {
                         constraints.gridwidth = gridx - constraints.gridx + 1;
                         constraints.gridheight = gridy - constraints.gridy + 1;
                         try {
-                            constraints.weightx = gridWeightsX[gridy - 1][gridx - 1];
+                            constraints.weightx = gridWeightsX[gridy - 1][gridx - 1] / 10F;
                         } catch (Exception e) {
                         }
 
                         try {
-                            constraints.weighty = gridWeightsY[gridy - 1][gridx - 1];
+                            constraints.weighty = gridWeightsY[gridy - 1][gridx - 1] / 10F;
                         } catch (Exception e) {
                         }
 
@@ -136,14 +148,21 @@ public class PanelBuilder {
                         constraints.fill = GridBagConstraints.BOTH;
                         constraints.gridx = gridx;
                         constraints.gridy = gridy;
-                        try {
-                            constraints.weightx = gridWeightsX[gridy - 1][gridx - 1];
-                        } catch (Exception e) {
+                        if(weightsX.containsKey(panel)){
+                            constraints.weightx = weightsX.get(panel);
+                        }else {
+                            try {
+                                constraints.weightx = gridWeightsX[gridy - 1][gridx - 1];
+                            } catch (Exception e) { }
                         }
 
-                        try {
-                            constraints.weighty = gridWeightsY[gridy - 1][gridx - 1];
-                        } catch (Exception e) {
+                        if(weightsY.containsKey(panel)) {
+                            constraints.weighty = weightsY.get(panel);
+                        }else{
+                            try {
+                                constraints.weighty = gridWeightsY[gridy - 1][gridx - 1];
+                            } catch (Exception e) {
+                            }
                         }
                         constraints.insets = new Insets(insetsY, insetsX, insetsY, insetsX);
                         constraintsMap.put(panel, constraints);
@@ -195,13 +214,13 @@ public class PanelBuilder {
         if (alignment != Alignment.FILL && alignment != Alignment.TOPLEFT
                 && alignment != Alignment.MIDDLELEFT && alignment != Alignment.BOTTOMLEFT) {
             containerPanel.add(leftPanel = new JPanel(), paddingLeftGbc);
-//            leftPanel.setBorder(BorderFactory.createLineBorder(Color.BLUE));
+//            leftPanel.setBorder(BorderFactory.createLineBorder(Color.PINK));
         }
 
         if (alignment != Alignment.FILL && alignment != Alignment.TOPRIGHT
                 && alignment != Alignment.MIDDLERIGHT && alignment != Alignment.BOTTOMRIGHT) {
             containerPanel.add(rightPanel = new JPanel(), paddingRightGbc);
-//            rightPanel.setBorder(BorderFactory.createLineBorder(Color.BLUE));
+//            rightPanel.setBorder(BorderFactory.createLineBorder(Color.GREEN));
         }
 
         if (alignment != Alignment.FILL && alignment != Alignment.BOTTOMLEFT
@@ -270,17 +289,17 @@ public class PanelBuilder {
         textComponent.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, textComponent.getText(), textComponent);
+                preferences.set(preferenceKey, textComponent.getText(), textComponent);
             }
 
             @Override
             public void removeUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, textComponent.getText(), textComponent);
+                preferences.set(preferenceKey, textComponent.getText(), textComponent);
             }
 
             @Override
             public void changedUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, textComponent.getText(), textComponent);
+                preferences.set(preferenceKey, textComponent.getText(), textComponent);
             }
         });
 
@@ -295,22 +314,22 @@ public class PanelBuilder {
 
     public static JPasswordField createPreferencePasswordField(Preferences preferences, String preferenceKey) {
         final JPasswordField textComponent = new JPasswordField();
-        String defaultValue = preferences.getSetting(preferenceKey);
+        String defaultValue = preferences.get(preferenceKey);
         textComponent.setText(defaultValue);
         textComponent.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, new String(textComponent.getPassword()), textComponent);
+                preferences.set(preferenceKey, new String(textComponent.getPassword()), textComponent);
             }
 
             @Override
             public void removeUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, new String(textComponent.getPassword()), textComponent);
+                preferences.set(preferenceKey, new String(textComponent.getPassword()), textComponent);
             }
 
             @Override
             public void changedUpdate(DocumentEvent documentEvent) {
-                preferences.setSetting(preferenceKey, new String(textComponent.getPassword()), textComponent);
+                preferences.set(preferenceKey, new String(textComponent.getPassword()), textComponent);
             }
         });
 
@@ -325,10 +344,10 @@ public class PanelBuilder {
 
     public static JSpinner createPreferenceSpinner(Preferences preferences, String preferenceKey) {
         final JSpinner spinnerComponent = new JSpinner();
-        Number value = preferences.getSetting(preferenceKey);
+        Number value = preferences.get(preferenceKey);
         spinnerComponent.setValue(value);
         spinnerComponent.addChangeListener(changeEvent -> {
-            preferences.setSetting(preferenceKey, spinnerComponent.getValue(), spinnerComponent);
+            preferences.set(preferenceKey, spinnerComponent.getValue(), spinnerComponent);
         });
 
         preferences.addSettingListener((eventSource, settingName, newValue) -> {
@@ -346,10 +365,10 @@ public class PanelBuilder {
 
     public static JCheckBox createPreferenceCheckBox(Preferences preferences, String preferenceKey, String label) {
         final JCheckBox checkComponent = new JCheckBox(label);
-        Boolean value = preferences.getSetting(preferenceKey);
+        Boolean value = preferences.get(preferenceKey);
         checkComponent.setSelected(value);
         checkComponent.addActionListener(actionEvent ->
-                preferences.setSetting(preferenceKey, checkComponent.isSelected(), checkComponent));
+                preferences.set(preferenceKey, checkComponent.isSelected(), checkComponent));
 
         preferences.addSettingListener((eventSource, changedSettingName, newValue) -> {
             if (!checkComponent.equals(eventSource) && changedSettingName.equals(preferenceKey)) {
@@ -361,7 +380,7 @@ public class PanelBuilder {
     }
 
     public static JTextArea createPreferenceTextArea(Preferences preferences, String settingName) {
-        String value = preferences.getSetting(settingName);
+        String value = preferences.get(settingName);
 
         JTextArea textArea = new JTextArea();
         textArea.setText(value);
@@ -383,7 +402,7 @@ public class PanelBuilder {
             }
 
             private void saveChanges() {
-                preferences.setSetting(settingName, textArea.getText(), textArea);
+                preferences.set(settingName, textArea.getText(), textArea);
             }
         });
 
