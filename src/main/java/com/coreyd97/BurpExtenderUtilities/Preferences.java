@@ -111,7 +111,7 @@ public class Preferences {
         if(previousValue != null){
             this.preferences.put(settingName, previousValue);
         }else{
-            this.preferences.put(settingName, defaultValue);
+            reset(settingName);
         }
 
         logOutput(String.format("Registered setting: [Key=%s, Scope=%s, Type=%s, Default=%s, Value=%s]",
