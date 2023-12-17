@@ -95,7 +95,11 @@ public class Preferences {
         register(settingName, type, null, visibility);
     }
 
-    public void register(String settingName, Type type, Object defaultValue, Visibility visibility) {
+    public void register(String settingName, Type type, Object defaultValue, Visibility visibility){
+        register(settingName, type, defaultValue, visibility, true);
+    }
+
+    public void register(String settingName, Type type, Object defaultValue, Visibility visibility, Boolean persistDefault) {
         throwExceptionIfAlreadyRegistered(settingName);
         this.preferenceVisibilities.put(settingName, visibility);
         this.preferenceTypes.put(settingName, type);
@@ -111,11 +115,12 @@ public class Preferences {
         if(previousValue != null){
             this.preferences.put(settingName, previousValue);
         }else{
-            reset(settingName);
+            if(persistDefault) reset(settingName);
+            else               this.preferences.put(settingName, defaultValue);
         }
 
-        logOutput(String.format("Registered setting: [Key=%s, Scope=%s, Type=%s, Default=%s, Value=%s]",
-                settingName, visibility, type, defaultValue, this.preferences.get(settingName)));
+        logOutput(String.format("Registered setting: [Key=%s, Scope=%s, Type=%s, Default=%s, Value=%s, Persisted=%s]",
+                settingName, visibility, type, defaultValue, this.preferences.get(settingName), persistDefault));
 
     }
 
