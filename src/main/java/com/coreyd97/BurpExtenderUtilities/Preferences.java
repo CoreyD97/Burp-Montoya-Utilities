@@ -119,6 +119,10 @@ public class Preferences {
 
     }
 
+    public void setDefault(String settingName, Object newDefaultValue){
+        this.preferenceDefaults.put(settingName, newDefaultValue);
+    }
+
     private void setGlobalSetting(String settingName, Object value) {
         Type type = this.preferenceTypes.get(settingName);
         Object currentValue = this.preferences.get(settingName);
