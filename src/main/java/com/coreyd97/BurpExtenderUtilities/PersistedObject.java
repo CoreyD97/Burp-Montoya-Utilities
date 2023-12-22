@@ -2,8 +2,12 @@ package com.coreyd97.BurpExtenderUtilities;
 
 import burp.api.montoya.MontoyaApi;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 
+//Extending class MUST implement a reflection-accessible no-arg constructor
+//  that returns an instance with desired default values set
 public abstract class PersistedObject{
   public PersistedObject(
     MontoyaApi api,
@@ -39,7 +43,16 @@ public abstract class PersistedObject{
   protected transient final Preferences _prefs;
 
   protected void register(){
-    this.register(this.getClass(), this);
+    try{
+      Class<?> thisClazz = this.getClass();
+      Constructor<?> constr = thisClazz.getDeclaredConstructor();
+      constr.setAccessible(true);
+      this.register(thisClazz, constr.newInstance());
+    }
+    catch(NoSuchMethodException | InvocationTargetException |
+      InstantiationException | IllegalAccessException e){
+      throw new RuntimeException(e);
+    }
   }
 
   protected void register(Type persistedType, Object defaultValue){
