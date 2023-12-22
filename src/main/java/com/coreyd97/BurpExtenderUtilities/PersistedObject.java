@@ -38,6 +38,13 @@ public abstract class PersistedObject{
 
   public void save(){ _prefs.set(_PERSISTED_NAME, this); }
 
+  /////////////////////
+  // PREFERENCES API //
+  /////////////////////
+  public void reset(){
+    _prefs.reset(_PERSISTED_NAME);
+  }
+
   protected transient final String      _PERSISTED_NAME;
   protected transient final Preferences _prefs;
 

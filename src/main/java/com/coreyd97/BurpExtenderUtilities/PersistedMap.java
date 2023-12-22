@@ -73,6 +73,19 @@ public class PersistedMap<K,V, MapT extends Map<K,V>> implements Map<K,V>{
 
   public void save(){ _prefs.set(_PERSISTED_NAME, this); }
 
+  /////////////////////
+  // PREFERENCES API //
+  /////////////////////
+  public void set(MapT newMap){
+    _internalMap = newMap;
+    save();
+  }
+
+  public void reset(){
+    _prefs.reset(_PERSISTED_NAME);
+    _internalMap = _prefs.get(_PERSISTED_NAME);
+  }
+
   /////////////
   // MAP API //
   /////////////
@@ -1088,7 +1101,7 @@ public class PersistedMap<K,V, MapT extends Map<K,V>> implements Map<K,V>{
     private Iterator<Entry<K,V>> _internalEntryIterator;
   }
 
-  protected final MapT _internalMap;
+  protected MapT _internalMap;
   protected transient final String      _PERSISTED_NAME;
   protected transient final Preferences _prefs;
 }
