@@ -10,22 +10,12 @@ public abstract class PersistedObject{
     String name,
     Preferences.Visibility vis
   ){
-    this(api, name, null, vis);
-  }
-
-  public PersistedObject(
-    MontoyaApi api,
-    String name,
-    Object defaultObject,
-    Preferences.Visibility vis
-  ){
-    this(api, new DefaultGsonProvider(), name, defaultObject, vis);
+    this(api, new DefaultGsonProvider(), name, vis);
   }
 
   public PersistedObject(
     MontoyaApi api, IGsonProvider gsonProvider,
     String name,
-    Object defaultObject,
     Preferences.Visibility vis
   ){
     _api = api;
