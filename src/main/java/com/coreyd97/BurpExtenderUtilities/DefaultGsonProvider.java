@@ -8,8 +8,8 @@ import java.lang.reflect.Type;
 
 public class DefaultGsonProvider implements IGsonProvider {
 
-    private final GsonBuilder gsonBuilder;
-    private Gson gson;
+    protected final GsonBuilder gsonBuilder;
+    protected Gson gson;
 
     public DefaultGsonProvider(){
         this.gsonBuilder = new GsonBuilder();
