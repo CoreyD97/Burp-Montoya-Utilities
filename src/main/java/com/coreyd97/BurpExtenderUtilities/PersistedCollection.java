@@ -69,6 +69,19 @@ public class PersistedCollection<E, CollectionT extends Collection<E>> implement
 
   public void save(){ _prefs.set(_PERSISTED_NAME, this); }
 
+  /////////////////////
+  // PREFERENCES API //
+  /////////////////////
+  public void set(CollectionT newCollection){
+    _internalCollection = newCollection;
+    save();
+  }
+
+  public void reset(){
+    _prefs.reset(_PERSISTED_NAME);
+    _internalCollection = _prefs.get(_PERSISTED_NAME);
+  }
+
   ////////////////////
   // COLLECTION API //
   ////////////////////
@@ -547,7 +560,7 @@ public class PersistedCollection<E, CollectionT extends Collection<E>> implement
     return _internalCollection.parallelStream();
   }
 
-  protected final CollectionT _internalCollection;
+  protected CollectionT _internalCollection;
   protected transient final String      _PERSISTED_NAME;
   protected transient final Preferences _prefs;
 }
