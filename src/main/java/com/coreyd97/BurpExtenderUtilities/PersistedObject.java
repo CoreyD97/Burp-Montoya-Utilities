@@ -33,7 +33,7 @@ extends PersistedContainer{
   //only resets the internal _prefs object
   //resetting values of data members of child classes
   //  needs to be handled by the child class
-  public void reset(){ _prefs.reset(_PERSISTED_NAME); }
+  protected void reset(){ _prefs.reset(_PERSISTED_NAME); }
 
   //calls child class no-arg constructor
   //  to get the default value of the object
