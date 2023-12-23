@@ -8,7 +8,8 @@ import java.lang.reflect.Type;
 
 //Extending class MUST implement a reflection-accessible no-arg constructor
 //  that returns an instance with desired default values set
-public abstract class PersistedObject{
+public abstract class PersistedObject
+extends PersistedContainer{
   public PersistedObject(
     MontoyaApi api,
     String name,
@@ -22,26 +23,20 @@ public abstract class PersistedObject{
     String name,
     Preferences.Visibility vis
   ){
-    _api = api;
-    _gsonProvider = gsonProvider;
-    _PERSISTED_NAME = name;
+    super(api, gsonProvider, name);
     _vis = vis;
-
-    _prefs = new Preferences(_api, _gsonProvider);
   }
-
-  public void save(){ _prefs.set(_PERSISTED_NAME, this); }
 
   /////////////////////
   // PREFERENCES API //
   /////////////////////
-  public void reset(){
-    _prefs.reset(_PERSISTED_NAME);
-  }
+  //only resets the internal _prefs object
+  //resetting values of data members of child classes
+  //  needs to be handled by the child class
+  public void reset(){ _prefs.reset(_PERSISTED_NAME); }
 
-  protected transient final String      _PERSISTED_NAME;
-  protected transient final Preferences _prefs;
-
+  //calls child class no-arg constructor
+  //  to get the default value of the object
   protected void register(){
     try{
       Class<?> thisClazz = this.getClass();
@@ -59,17 +54,12 @@ public abstract class PersistedObject{
     _prefs.register(_PERSISTED_NAME, persistedType, defaultValue, _vis);
   }
 
-  private final transient MontoyaApi             _api;
-  private final transient IGsonProvider          _gsonProvider;
   private final transient Preferences.Visibility _vis;
 
   //DO NOT USE!
   //disabled no-arg constructor
-  private PersistedObject(MontoyaApi api){
-    _PERSISTED_NAME = null;
-    _prefs          = null;
-    _api            = null;
-    _gsonProvider   = null;
-    _vis            = null;
+  private PersistedObject(){
+    super(null, null, null);
+    _vis = null;
   }
 }
