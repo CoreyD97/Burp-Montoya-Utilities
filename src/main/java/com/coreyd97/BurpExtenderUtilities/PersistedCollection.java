@@ -12,7 +12,8 @@ import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public class PersistedCollection<E, CollectionT extends Collection<E>> implements Collection<E>{
+public class PersistedCollection<E, CollectionT extends Collection<E>>
+extends PersistedContainer implements Collection<E>{
   public PersistedCollection(
     MontoyaApi api,
     String name,
@@ -59,15 +60,10 @@ public class PersistedCollection<E, CollectionT extends Collection<E>> implement
     TypeToken<? extends CollectionT> collectionType, CollectionT defaultCollection,
     Preferences.Visibility vis
   ){
-    _PERSISTED_NAME     = name;
-
-    _prefs = new Preferences(api, gsonProvider);
+    super(api, gsonProvider, name);
     _prefs.register(name, collectionType.getType(), defaultCollection, vis);
-
     _internalCollection = _prefs.get(name);
   }
-
-  public void save(){ _prefs.set(_PERSISTED_NAME, this); }
 
   /////////////////////
   // PREFERENCES API //
@@ -561,6 +557,4 @@ public class PersistedCollection<E, CollectionT extends Collection<E>> implement
   }
 
   protected CollectionT _internalCollection;
-  protected transient final String      _PERSISTED_NAME;
-  protected transient final Preferences _prefs;
 }

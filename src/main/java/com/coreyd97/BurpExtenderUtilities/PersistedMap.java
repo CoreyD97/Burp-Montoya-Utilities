@@ -16,7 +16,8 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class PersistedMap<K,V, MapT extends Map<K,V>> implements Map<K,V>{
+public class PersistedMap<K,V, MapT extends Map<K,V>>
+extends PersistedContainer implements Map<K,V>{
   public PersistedMap(
     MontoyaApi api,
     String name,
@@ -63,15 +64,10 @@ public class PersistedMap<K,V, MapT extends Map<K,V>> implements Map<K,V>{
     TypeToken<? extends MapT> mapType, MapT defaultMap,
     Preferences.Visibility vis
   ){
-    _PERSISTED_NAME = name;
-
-    _prefs = new Preferences(api, gsonProvider);
+    super(api, gsonProvider, name);
     _prefs.register(name, mapType.getType(), defaultMap, vis);
-
     _internalMap = _prefs.get(name);
   }
-
-  public void save(){ _prefs.set(_PERSISTED_NAME, this); }
 
   /////////////////////
   // PREFERENCES API //
@@ -1102,6 +1098,4 @@ public class PersistedMap<K,V, MapT extends Map<K,V>> implements Map<K,V>{
   }
 
   protected MapT _internalMap;
-  protected transient final String      _PERSISTED_NAME;
-  protected transient final Preferences _prefs;
 }
