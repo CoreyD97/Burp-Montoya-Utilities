@@ -119,6 +119,21 @@ public class Preferences {
 
     }
 
+    public void unregister(String settingName) {
+        this.preferenceTypes   .remove(settingName);
+        this.preferenceDefaults.remove(settingName);
+
+        Visibility visibility = this.preferenceVisibilities.remove(settingName);
+        switch(visibility){
+            case PROJECT -> delProjectSettingFromBurp(settingName);
+            case GLOBAL  -> delGlobalSettingFromBurp(settingName);
+            default      -> this.preferences.remove(settingName);
+        }
+
+        logOutput(String.format("Unregistered setting: [Key=%s]",
+          settingName));
+    }
+
     private void setGlobalSetting(String settingName, Object value) {
         Type type = this.preferenceTypes.get(settingName);
         Object currentValue = this.preferences.get(settingName);
@@ -169,6 +184,14 @@ public class Preferences {
             logError("Value: " + storedValue);
             return null;
         }
+    }
+
+    private void delProjectSettingFromBurp(String settingName){
+        montoya.persistence().extensionData().deleteString(settingName);
+    }
+
+    private void delGlobalSettingFromBurp(String settingName){
+        montoya.persistence().preferences().deleteString(settingName);
     }
 
     public HashMap<String, Visibility> getRegisteredSettings(){
