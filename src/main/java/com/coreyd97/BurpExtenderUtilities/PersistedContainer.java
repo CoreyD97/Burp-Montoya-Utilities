@@ -14,6 +14,8 @@ public abstract class PersistedContainer{
 
   public void save(){ _prefs.set(_PERSISTED_NAME, this); }
 
+  public void unregister(){ _prefs.unregister(_PERSISTED_NAME); }
+
   protected transient final String      _PERSISTED_NAME;
   protected transient final Preferences _prefs;
 }
