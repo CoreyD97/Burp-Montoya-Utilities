@@ -125,18 +125,26 @@ public class Preferences {
     }
 
     public void unregister(String settingName) {
-        this.preferenceTypes   .remove(settingName);
-        this.preferenceDefaults.remove(settingName);
+        throwExceptionIfNotPreviouslyRegistered(settingName);
 
-        Visibility visibility = this.preferenceVisibilities.remove(settingName);
+        Visibility visibility = this.preferenceVisibilities.get(settingName);
         switch(visibility){
             case PROJECT -> delProjectSettingFromBurp(settingName);
             case GLOBAL  -> delGlobalSettingFromBurp(settingName);
-            default      -> this.preferences.remove(settingName);
         }
 
         logOutput(String.format("Unregistered setting: [Key=%s]",
           settingName));
+    }
+
+    public void reregister(String settingName){
+        throwExceptionIfNotPreviouslyRegistered(settingName);
+
+        Object previousValue = this.preferences.get(settingName);
+        this.set(settingName, previousValue);
+
+        logOutput(String.format("Reregistered setting: [Key=%s, Value=%s]",
+          settingName, this.preferences.get(settingName)));
     }
 
     public void setDefault(String settingName, Object newDefaultValue){
@@ -362,5 +370,10 @@ public class Preferences {
         if(this.preferenceVisibilities.get(settingName) != null)
             throw new RuntimeException("Setting " + settingName + " has already been registered with " +
                     this.preferenceVisibilities.get(settingName) + " visibility.");
+    }
+
+    private void throwExceptionIfNotPreviouslyRegistered(String settingName){
+        if(this.preferenceVisibilities.get(settingName) == null)
+            throw new RuntimeException("Setting " + settingName + " has not been previously registered.");
     }
 }
