@@ -116,7 +116,7 @@ public class Preferences {
             this.preferences.put(settingName, previousValue);
         }else{
             if(persistDefault) reset(settingName);
-            else               this.preferences.put(settingName, clone(defaultValue, type));
+            else               this.preferences.put(settingName, cloneDefault(settingName));
         }
 
         logOutput(String.format("Registered setting: [Key=%s, Scope=%s, Type=%s, Default=%s, Value=%s, Persisted=%s]",
@@ -318,8 +318,7 @@ public class Preferences {
         Visibility visibility = this.preferenceVisibilities.get(settingName);
         if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
 
-        Object defaultValue = this.preferenceDefaults.getOrDefault(settingName, null);
-        Object newInstance = clone(defaultValue, this.preferenceTypes.get(settingName));
+        Object newInstance = cloneDefault(settingName);
 
         this.setSetting(settingName, newInstance);
 
@@ -365,9 +364,20 @@ public class Preferences {
             logProvider.logError(errorMessage);
     }
 
-    private Object clone(Object original, Type type){
-        String jsonDefaultValue = gsonProvider.getGson().toJson(original);
-        return gsonProvider.getGson().fromJson(jsonDefaultValue, type);
+    private Object cloneSetting(String settingName){
+        throwExceptionIfNotPreviouslyRegistered(settingName);
+        Type type  = preferenceTypes.get(settingName);
+        Object src = preferences.get(settingName);
+
+        return GsonUtilities.clone(src, type, gsonProvider.getGson());
+    }
+
+    private Object cloneDefault(String settingName){
+        throwExceptionIfNotPreviouslyRegistered(settingName);
+        Type type  = preferenceTypes.get(settingName);
+        Object src = preferenceDefaults.get(settingName);
+
+        return GsonUtilities.clone(src, type, gsonProvider.getGson());
     }
 
     private void throwExceptionIfAlreadyRegistered(String settingName){
