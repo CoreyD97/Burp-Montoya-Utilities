@@ -95,7 +95,11 @@ public class Preferences {
         register(settingName, type, null, visibility);
     }
 
-    public void register(String settingName, Type type, Object defaultValue, Visibility visibility) {
+    public void register(String settingName, Type type, Object defaultValue, Visibility visibility){
+        register(settingName, type, defaultValue, visibility, true);
+    }
+
+    public void register(String settingName, Type type, Object defaultValue, Visibility visibility, Boolean persistDefault) {
         throwExceptionIfAlreadyRegistered(settingName);
         this.preferenceVisibilities.put(settingName, visibility);
         this.preferenceTypes.put(settingName, type);
@@ -111,27 +115,40 @@ public class Preferences {
         if(previousValue != null){
             this.preferences.put(settingName, previousValue);
         }else{
-            this.preferences.put(settingName, defaultValue);
+            if(persistDefault) reset(settingName);
+            else               this.preferences.put(settingName, defaultValue);
         }
 
-        logOutput(String.format("Registered setting: [Key=%s, Scope=%s, Type=%s, Default=%s, Value=%s]",
-                settingName, visibility, type, defaultValue, this.preferences.get(settingName)));
+        logOutput(String.format("Registered setting: [Key=%s, Scope=%s, Type=%s, Default=%s, Value=%s, Persisted=%s]",
+                settingName, visibility, type, defaultValue, this.preferences.get(settingName), persistDefault));
 
     }
 
     public void unregister(String settingName) {
-        this.preferenceTypes   .remove(settingName);
-        this.preferenceDefaults.remove(settingName);
+        throwExceptionIfNotPreviouslyRegistered(settingName);
 
-        Visibility visibility = this.preferenceVisibilities.remove(settingName);
+        Visibility visibility = this.preferenceVisibilities.get(settingName);
         switch(visibility){
             case PROJECT -> delProjectSettingFromBurp(settingName);
             case GLOBAL  -> delGlobalSettingFromBurp(settingName);
-            default      -> this.preferences.remove(settingName);
         }
 
         logOutput(String.format("Unregistered setting: [Key=%s]",
           settingName));
+    }
+
+    public void reregister(String settingName){
+        throwExceptionIfNotPreviouslyRegistered(settingName);
+
+        Object previousValue = this.preferences.get(settingName);
+        this.set(settingName, previousValue);
+
+        logOutput(String.format("Reregistered setting: [Key=%s, Value=%s]",
+          settingName, this.preferences.get(settingName)));
+    }
+
+    public void setDefault(String settingName, Object newDefaultValue){
+        this.preferenceDefaults.put(settingName, newDefaultValue);
     }
 
     private void setGlobalSetting(String settingName, Object value) {
@@ -353,5 +370,10 @@ public class Preferences {
         if(this.preferenceVisibilities.get(settingName) != null)
             throw new RuntimeException("Setting " + settingName + " has already been registered with " +
                     this.preferenceVisibilities.get(settingName) + " visibility.");
+    }
+
+    private void throwExceptionIfNotPreviouslyRegistered(String settingName){
+        if(this.preferenceVisibilities.get(settingName) == null)
+            throw new RuntimeException("Setting " + settingName + " has not been previously registered.");
     }
 }
