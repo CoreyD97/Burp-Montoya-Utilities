@@ -35,19 +35,13 @@ extends PersistedContainer{
   //  needs to be handled by the child class
   protected void reset(){ _prefs.reset(_PERSISTED_NAME); }
 
-  //calls child class no-arg constructor
-  //  to get the default value of the object
   protected void register(){
-    try{
-      Class<?> thisClazz = this.getClass();
-      Constructor<?> constr = thisClazz.getDeclaredConstructor();
-      constr.setAccessible(true);
-      this.register(thisClazz, constr.newInstance());
-    }
-    catch(NoSuchMethodException | InvocationTargetException |
-      InstantiationException | IllegalAccessException e){
-      throw new RuntimeException(e);
-    }
+    Class<?> thisClazz = this.getClass();
+    PersistedObject thisDefaultClone = GsonUtilities.clone(
+      this, thisClazz, _prefs.getGsonProvider().getGson()
+    );
+
+    this.register(thisClazz, thisDefaultClone);
   }
 
   protected void register(Type persistedType, Object defaultValue){
@@ -55,11 +49,4 @@ extends PersistedContainer{
   }
 
   private final transient Preferences.Visibility _vis;
-
-  //DO NOT USE!
-  //disabled no-arg constructor
-  private PersistedObject(){
-    super(null, null, null);
-    _vis = null;
-  }
 }
