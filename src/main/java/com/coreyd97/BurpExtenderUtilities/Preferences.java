@@ -158,7 +158,11 @@ public class Preferences {
         assertThisManages(settingName);
 
         Object previousValue = this.preferences.get(settingName);
-        this.set(settingName, previousValue);
+        Visibility visibility = this.preferenceVisibilities.get(settingName);
+        switch(visibility){
+        case PROJECT -> setProjectSetting(settingName, previousValue);
+        case GLOBAL  -> setGlobalSetting(settingName, previousValue);
+        }
 
         logOutput(String.format("Repersisted setting: [Key=%s, Value=%s]",
           settingName, this.preferences.get(settingName)));
