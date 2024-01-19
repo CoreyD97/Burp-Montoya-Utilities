@@ -18,6 +18,6 @@ public abstract class PersistedContainer{
 
   public void reregister(){ _prefs.reregister(_PERSISTED_NAME); }
 
-  protected transient final String        _PERSISTED_NAME;
-  protected transient final Preferences   _prefs;
+  protected transient final String      _PERSISTED_NAME;
+  protected transient final Preferences _prefs;
 }
