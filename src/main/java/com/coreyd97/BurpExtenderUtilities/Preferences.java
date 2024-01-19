@@ -78,7 +78,7 @@ public class Preferences {
      * @deprecated use {@link #register} instead.
      */
     @Deprecated
-    public void registerSetting(String settingName, Type type, Object defaultValue, Visibility visibility) {
+    public void registerSetting(String settingName, Type type, Object defaultValue, Visibility visibility){
         register(settingName, type, defaultValue, visibility);
     }
 
@@ -121,10 +121,9 @@ public class Preferences {
 
         logOutput(String.format("Registered setting: [Key=%s, Scope=%s, Type=%s, Default=%s, Value=%s, Persisted=%s]",
                 settingName, visibility, type, defaultValue, this.preferences.get(settingName), persistDefault));
-
     }
 
-    public void unregister(String settingName) {
+    public void unregister(String settingName){
         assertThisManages(settingName);
 
         unpersist(settingName);
@@ -172,7 +171,7 @@ public class Preferences {
     private void setGlobalSetting(String settingName, Object value) {
         Type type = this.preferenceTypes.get(settingName);
         Object currentValue = this.preferences.get(settingName);
-        String currentValueJson = gsonProvider.getGson().toJson(currentValue, type);
+        //String currentValueJson = gsonProvider.getGson().toJson(currentValue, type);
         String newValueJson = gsonProvider.getGson().toJson(value, type);
         //Temporarily removed. Not saving preferences for instance variables.
 //        if(newValueJson != null && newValueJson.equals(currentValueJson)) return;
@@ -184,7 +183,7 @@ public class Preferences {
     private void setProjectSetting(String settingName, Object value) {
         Type type = this.preferenceTypes.get(settingName);
         Object currentValue = this.preferences.get(settingName);
-        String currentValueJson = gsonProvider.getGson().toJson(currentValue, type);
+        //String currentValueJson = gsonProvider.getGson().toJson(currentValue, type);
         String newValueJson = gsonProvider.getGson().toJson(value, type);
         //Temporarily removed. Not saving preferences for instance variables.
 //        if(newValueJson != null && newValueJson.equals(currentValueJson)) return;
@@ -332,7 +331,6 @@ public class Preferences {
         assertThisManages(settingName);
 
         Object newInstance = cloneDefault(settingName);
-
         this.setSetting(settingName, newInstance);
 
         for (PreferenceListener preferenceListener : this.preferenceListeners) {

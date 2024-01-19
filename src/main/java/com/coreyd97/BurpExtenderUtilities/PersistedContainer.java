@@ -20,6 +20,6 @@ public abstract class PersistedContainer{
 
   public void repersist(){ _prefs.repersist(_PERSISTED_NAME); }
 
-  protected transient final String        _PERSISTED_NAME;
-  protected transient final Preferences   _prefs;
+  protected transient final String      _PERSISTED_NAME;
+  protected transient final Preferences _prefs;
 }
