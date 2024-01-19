@@ -66,7 +66,7 @@ public class Preferences {
         this.montoya = montoyaApi;
         this.gsonProvider = gsonProvider;
         this.logProvider = logProvider;
-        this.namespacePrefix = namespace + ".";
+        this.namespacePrefix = (namespace.isEmpty()) ? namespace : namespace + ".";
         this.preferenceDefaults = new HashMap<>();
         this.preferences = new HashMap<>();
         this.preferenceTypes = new HashMap<>();
@@ -267,10 +267,14 @@ public class Preferences {
 
     public <T> T get(String settingName){
         settingName = namespacePrefix + settingName;
-        Visibility visibility = this.preferenceVisibilities.get(settingName);
-        if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
+        return getRaw(settingName);
+    }
 
-        Object value = this.preferences.get(settingName);
+    private <T> T getRaw(String fullSettingName){
+        Visibility visibility = this.preferenceVisibilities.get(fullSettingName);
+        if(visibility == null) throw new RuntimeException("Setting " + fullSettingName + " has not been registered!");
+
+        Object value = this.preferences.get(fullSettingName);
 
         return (T) value;
     }
