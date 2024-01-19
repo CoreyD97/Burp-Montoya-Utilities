@@ -128,23 +128,40 @@ public class Preferences {
     public void unregister(String settingName) {
         assertThisManages(settingName);
 
+        unpersist(settingName);
+
+        preferences.remove(settingName);
+        preferenceDefaults.remove(settingName);
+        preferenceVisibilities.remove(settingName);
+        preferenceTypes.remove(settingName);
+
+        NameManager.release(settingName);
+
+        for (PreferenceListener preferenceListener : this.preferenceListeners) {
+            preferenceListener.onPreferenceSet(this, settingName, getSetting(settingName));
+        }
+    }
+
+    public void unpersist(String settingName) {
+        assertThisManages(settingName);
+
         Visibility visibility = this.preferenceVisibilities.get(settingName);
         switch(visibility){
             case PROJECT -> delProjectSettingFromBurp(settingName);
             case GLOBAL  -> delGlobalSettingFromBurp(settingName);
         }
 
-        logOutput(String.format("Unregistered setting: [Key=%s]",
+        logOutput(String.format("Unpersisted setting: [Key=%s]",
           settingName));
     }
 
-    public void reregister(String settingName){
+    public void repersist(String settingName){
         assertThisManages(settingName);
 
         Object previousValue = this.preferences.get(settingName);
         this.set(settingName, previousValue);
 
-        logOutput(String.format("Reregistered setting: [Key=%s, Value=%s]",
+        logOutput(String.format("Repersisted setting: [Key=%s, Value=%s]",
           settingName, this.preferences.get(settingName)));
     }
 
