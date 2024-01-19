@@ -1,7 +1,6 @@
 package com.coreyd97.BurpExtenderUtilities;
 
 import com.google.gson.Gson;
-import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 
 import java.lang.reflect.Type;

@@ -2,8 +2,6 @@ package com.coreyd97.BurpExtenderUtilities;
 
 import burp.api.montoya.MontoyaApi;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 
 //Extending class MUST implement a reflection-accessible no-arg constructor
