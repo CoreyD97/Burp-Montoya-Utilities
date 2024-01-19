@@ -126,7 +126,7 @@ public class Preferences {
     }
 
     public void unregister(String settingName) {
-        throwExceptionIfNotPreviouslyRegistered(settingName);
+        assertThisManages(settingName);
 
         Visibility visibility = this.preferenceVisibilities.get(settingName);
         switch(visibility){
@@ -139,7 +139,7 @@ public class Preferences {
     }
 
     public void reregister(String settingName){
-        throwExceptionIfNotPreviouslyRegistered(settingName);
+        assertThisManages(settingName);
 
         Object previousValue = this.preferences.get(settingName);
         this.set(settingName, previousValue);
@@ -149,6 +149,7 @@ public class Preferences {
     }
 
     public void setDefault(String settingName, Object newDefaultValue){
+        assertThisManages(settingName);
         this.preferenceDefaults.put(settingName, newDefaultValue);
     }
 
@@ -225,9 +226,7 @@ public class Preferences {
     }
 
     public <T> T get(String settingName){
-        Visibility visibility = this.preferenceVisibilities.get(settingName);
-        if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
-
+        assertThisManages(settingName);
         Object value = this.preferences.get(settingName);
 
         return (T) value;
@@ -254,8 +253,8 @@ public class Preferences {
     }
 
     public void set(String settingName, Object value, Object eventSource){
+        assertThisManages(settingName);
         Visibility visibility = this.preferenceVisibilities.get(settingName);
-        if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
         switch (visibility) {
             case VOLATILE: {
                 this.preferences.put(settingName, value);
@@ -285,9 +284,7 @@ public class Preferences {
     }
 
     public Type getType(String settingName) {
-        Visibility visibility = this.preferenceVisibilities.get(settingName);
-        if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
-
+        assertThisManages(settingName);
         return this.preferenceTypes.get(settingName);
     }
 
@@ -316,8 +313,7 @@ public class Preferences {
     }
 
     public void reset(String settingName){
-        Visibility visibility = this.preferenceVisibilities.get(settingName);
-        if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
+        assertThisManages(settingName);
 
         Object newInstance = cloneDefault(settingName);
 
@@ -366,7 +362,7 @@ public class Preferences {
     }
 
     private Object cloneSetting(String settingName){
-        throwExceptionIfNotPreviouslyRegistered(settingName);
+        assertThisManages(settingName);
         Type type  = preferenceTypes.get(settingName);
         Object src = preferences.get(settingName);
 
@@ -374,21 +370,19 @@ public class Preferences {
     }
 
     private Object cloneDefault(String settingName){
-        throwExceptionIfNotPreviouslyRegistered(settingName);
+        assertThisManages(settingName);
         Type type  = preferenceTypes.get(settingName);
         Object src = preferenceDefaults.get(settingName);
 
         return GsonUtilities.clone(src, type, gsonProvider.getGson());
     }
 
-    private void throwExceptionIfAlreadyRegistered(String settingName){
-        if(this.preferenceVisibilities.get(settingName) != null)
-            throw new RuntimeException("Setting " + settingName + " has already been registered with " +
-                    this.preferenceVisibilities.get(settingName) + " visibility.");
-    }
-
-    private void throwExceptionIfNotPreviouslyRegistered(String settingName){
-        if(this.preferenceVisibilities.get(settingName) == null)
-            throw new RuntimeException("Setting " + settingName + " has not been previously registered.");
+    private void assertThisManages(String settingName){
+        if(preferenceVisibilities.get(settingName) == null){
+            String msg = "Setting " + settingName +
+              " is not managed by this Preferences instance.\n" +
+              "If no other Preferences instance is managing this setting, try registering it first.";
+            throw new UnmanagedSettingException(msg);
+        }
     }
 }
