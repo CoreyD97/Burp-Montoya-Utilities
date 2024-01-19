@@ -22,6 +22,9 @@ public class Preferences {
     private ILogProvider logProvider;
 
     @Getter
+    private final String namespacePrefix;
+
+    @Getter
     private final IGsonProvider gsonProvider;
     private final MontoyaApi montoya;
     private final HashMap<String, Object> preferences;
@@ -30,14 +33,39 @@ public class Preferences {
     private final HashMap<String, Visibility> preferenceVisibilities;
     private final ArrayList<PreferenceListener> preferenceListeners;
 
-    public Preferences(final MontoyaApi montoyaApi, final IGsonProvider gsonProvider, final ILogProvider logProvider){
-        this(montoyaApi, gsonProvider);
-        this.logProvider = logProvider;
+    public Preferences(final MontoyaApi montoyaApi){
+        this(montoyaApi, new DefaultGsonProvider());
     }
 
     public Preferences(final MontoyaApi montoyaApi, final IGsonProvider gsonProvider){
+        this(montoyaApi, gsonProvider, (ILogProvider)null);
+    }
+
+    public Preferences(final MontoyaApi montoyaApi, final ILogProvider logProvider){
+        this(montoyaApi, new DefaultGsonProvider(), logProvider);
+    }
+
+    public Preferences(final MontoyaApi montoyaApi, final IGsonProvider gsonProvider, final ILogProvider logProvider){
+        this(montoyaApi, gsonProvider, logProvider, "");
+    }
+
+    public Preferences(final MontoyaApi montoyaApi, final String namespace){
+        this(montoyaApi, new DefaultGsonProvider(), namespace);
+    }
+
+    public Preferences(final MontoyaApi montoyaApi, final IGsonProvider gsonProvider, final String namespace){
+        this(montoyaApi, gsonProvider, null, namespace);
+    }
+
+    public Preferences(final MontoyaApi montoyaApi, final ILogProvider logProvider, final String namespace){
+        this(montoyaApi, new DefaultGsonProvider(), logProvider, namespace);
+    }
+
+    public Preferences(final MontoyaApi montoyaApi, final IGsonProvider gsonProvider, final ILogProvider logProvider, final String namespace){
         this.montoya = montoyaApi;
         this.gsonProvider = gsonProvider;
+        this.logProvider = logProvider;
+        this.namespacePrefix = namespace + ".";
         this.preferenceDefaults = new HashMap<>();
         this.preferences = new HashMap<>();
         this.preferenceTypes = new HashMap<>();
@@ -100,6 +128,7 @@ public class Preferences {
     }
 
     public void register(String settingName, Type type, Object defaultValue, Visibility visibility, Boolean persistDefault){
+        settingName = namespacePrefix + settingName;
         NameManager.reserve(settingName);
 
         this.preferenceVisibilities.put(settingName, visibility);
@@ -126,6 +155,7 @@ public class Preferences {
     }
 
     public void unregister(String settingName) {
+        settingName = namespacePrefix + settingName;
         throwExceptionIfNotPreviouslyRegistered(settingName);
 
         Visibility visibility = this.preferenceVisibilities.get(settingName);
@@ -139,6 +169,7 @@ public class Preferences {
     }
 
     public void reregister(String settingName){
+        settingName = namespacePrefix + settingName;
         throwExceptionIfNotPreviouslyRegistered(settingName);
 
         Object previousValue = this.preferences.get(settingName);
@@ -149,6 +180,7 @@ public class Preferences {
     }
 
     public void setDefault(String settingName, Object newDefaultValue){
+        settingName = namespacePrefix + settingName;
         this.preferenceDefaults.put(settingName, newDefaultValue);
     }
 
@@ -225,6 +257,7 @@ public class Preferences {
     }
 
     public <T> T get(String settingName){
+        settingName = namespacePrefix + settingName;
         Visibility visibility = this.preferenceVisibilities.get(settingName);
         if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
 
@@ -254,6 +287,7 @@ public class Preferences {
     }
 
     public void set(String settingName, Object value, Object eventSource){
+        settingName = namespacePrefix + settingName;
         Visibility visibility = this.preferenceVisibilities.get(settingName);
         if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
         switch (visibility) {
@@ -285,6 +319,7 @@ public class Preferences {
     }
 
     public Type getType(String settingName) {
+        settingName = namespacePrefix + settingName;
         Visibility visibility = this.preferenceVisibilities.get(settingName);
         if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
 
@@ -316,15 +351,20 @@ public class Preferences {
     }
 
     public void reset(String settingName){
-        Visibility visibility = this.preferenceVisibilities.get(settingName);
-        if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
+        settingName = namespacePrefix + settingName;
+        resetRaw(settingName);
+    }
 
-        Object newInstance = cloneDefault(settingName);
+    private void resetRaw(String fullSettingName){
+        Visibility visibility = this.preferenceVisibilities.get(fullSettingName);
+        if(visibility == null) throw new RuntimeException("Setting " + fullSettingName + " has not been registered!");
 
-        this.setSetting(settingName, newInstance);
+        Object newInstance = cloneDefault(fullSettingName);
+
+        this.setSetting(fullSettingName, newInstance);
 
         for (PreferenceListener preferenceListener : this.preferenceListeners) {
-            preferenceListener.onPreferenceSet(this, settingName, getSetting(settingName));
+            preferenceListener.onPreferenceSet(this, fullSettingName, getSetting(fullSettingName));
         }
     }
 
@@ -352,7 +392,9 @@ public class Preferences {
 
     public void resetAll(){
         HashMap<String, Preferences.Visibility> registeredSettings = getRegisteredSettings();
-        resetSettings(registeredSettings.keySet());
+        for(String key : registeredSettings.keySet()){
+            resetRaw(key);
+        }
     }
 
     void logOutput(String message){

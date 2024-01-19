@@ -8,26 +8,50 @@ public abstract class PreferenceFactory {
     protected IGsonProvider gsonProvider;
     protected ILogProvider logProvider;
 
-    public PreferenceFactory(MontoyaApi montoyaApi, IGsonProvider gsonProvider,
-                             ILogProvider logProvider){
+    public PreferenceFactory(final MontoyaApi montoyaApi){
+        this.gsonProvider = new DefaultGsonProvider();
+        prefs = new Preferences(montoyaApi, gsonProvider);
+    }
+
+    public PreferenceFactory(final MontoyaApi montoyaApi, final IGsonProvider gsonProvider){
+        this.gsonProvider = gsonProvider;
+        prefs = new Preferences(montoyaApi, gsonProvider);
+    }
+
+    public PreferenceFactory(final MontoyaApi montoyaApi, final ILogProvider logProvider){
+        this.gsonProvider = new DefaultGsonProvider();
+        this.logProvider  = logProvider;
+        prefs = new Preferences(montoyaApi, gsonProvider, logProvider);
+    }
+
+    public PreferenceFactory(final MontoyaApi montoyaApi, final IGsonProvider gsonProvider,
+                             final ILogProvider logProvider){
         this.gsonProvider = gsonProvider;
         this.logProvider = logProvider;
         prefs = new Preferences(montoyaApi, gsonProvider, logProvider);
     }
 
-    public PreferenceFactory(MontoyaApi montoyaApi, IGsonProvider gsonProvider){
+    public PreferenceFactory(final MontoyaApi montoyaApi, final String namespace){
+        this.gsonProvider = new DefaultGsonProvider();
+        prefs = new Preferences(montoyaApi, gsonProvider, namespace);
+    }
+
+    public PreferenceFactory(final MontoyaApi montoyaApi, final IGsonProvider gsonProvider, final String namespace){
         this.gsonProvider = gsonProvider;
-        prefs = new Preferences(montoyaApi, gsonProvider);
+        prefs = new Preferences(montoyaApi, gsonProvider, namespace);
     }
 
-    public PreferenceFactory(MontoyaApi montoyaApi){
+    public PreferenceFactory(final MontoyaApi montoyaApi, final ILogProvider logProvider, final String namespace){
         this.gsonProvider = new DefaultGsonProvider();
-        prefs = new Preferences(montoyaApi, gsonProvider);
+        this.logProvider  = logProvider;
+        prefs = new Preferences(montoyaApi, gsonProvider, logProvider, namespace);
     }
 
-    public PreferenceFactory(MontoyaApi montoyaApi, ILogProvider logProvider){
-        this.gsonProvider = new DefaultGsonProvider();
-        prefs = new Preferences(montoyaApi, gsonProvider, logProvider);
+    public PreferenceFactory(final MontoyaApi montoyaApi, final IGsonProvider gsonProvider,
+                             final ILogProvider logProvider, final String namespace){
+        this.gsonProvider = gsonProvider;
+        this.logProvider  = logProvider;
+        prefs = new Preferences(montoyaApi, gsonProvider, logProvider, namespace);
     }
 
     protected abstract void createDefaults();

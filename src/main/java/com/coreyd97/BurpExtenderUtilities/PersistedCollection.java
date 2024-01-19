@@ -15,52 +15,110 @@ import java.util.stream.Stream;
 public class PersistedCollection<E, CollectionT extends Collection<E>>
 extends PersistedContainer implements Collection<E>{
   public PersistedCollection(
-    MontoyaApi api,
-    String name,
-    Preferences.Visibility vis
+    MontoyaApi api, String name, Preferences.Visibility vis
   ){
-    this(api, name, new TypeToken<CollectionT>(){}, vis);
+    this(api, name, vis, new TypeToken<CollectionT>(){});
   }
 
   public PersistedCollection(
-    MontoyaApi api,
-    String name,
-    TypeToken<? extends CollectionT> collectionType,
-    Preferences.Visibility vis
+    MontoyaApi api, String name, Preferences.Visibility vis,
+    TypeToken<? extends CollectionT> collectionType
   ){
-    this(api, name, collectionType, null, vis);
+    this(api, name, vis, collectionType, (CollectionT)null);
   }
 
   public PersistedCollection(
-    MontoyaApi api,
-    String name,
-    CollectionT defaultCollection,
-    Preferences.Visibility vis
+    MontoyaApi api, String name, Preferences.Visibility vis,
+    CollectionT defaultCollection
   ){
-    this(api, name, new TypeToken<CollectionT>(){}, defaultCollection, vis);
+    this(api, name, vis, new TypeToken<CollectionT>(){}, defaultCollection);
   }
 
   public PersistedCollection(
-    MontoyaApi api,
-    String name,
-    TypeToken<? extends CollectionT> collectionType, CollectionT defaultCollection,
-    Preferences.Visibility vis
+    MontoyaApi api, String name, Preferences.Visibility vis,
+    TypeToken<? extends CollectionT> collectionType, CollectionT defaultCollection
   ){
     this(
-      api, new DefaultGsonProvider(),
-      name,
-      collectionType, defaultCollection,
-      vis
+      api, name, vis,
+      new DefaultGsonProvider(),
+      collectionType, defaultCollection
     );
   }
 
   public PersistedCollection(
-    MontoyaApi api, IGsonProvider gsonProvider,
-    String name,
-    TypeToken<? extends CollectionT> collectionType, CollectionT defaultCollection,
-    Preferences.Visibility vis
+    MontoyaApi api, String name, Preferences.Visibility vis,
+    IGsonProvider gsonProvider,
+    TypeToken<? extends CollectionT> collectionType, CollectionT defaultCollection
   ){
-    super(api, gsonProvider, name);
+    this(
+      api, name, vis,
+      gsonProvider,
+      collectionType, defaultCollection,
+      ""
+    );
+  }
+
+  public PersistedCollection(
+    MontoyaApi api, String name, Preferences.Visibility vis,
+    String namespace
+  ){
+    this(api, name, vis, new TypeToken<CollectionT>(){}, namespace);
+  }
+
+  public PersistedCollection(
+    MontoyaApi api, String name, Preferences.Visibility vis,
+    TypeToken<? extends CollectionT> collectionType,
+    String namespace
+  ){
+    this(api, name, vis, collectionType, null, namespace);
+  }
+
+  public PersistedCollection(
+    MontoyaApi api, String name, Preferences.Visibility vis,
+    CollectionT defaultCollection,
+    String namespace
+  ){
+    this(
+      api, name, vis,
+      new TypeToken<CollectionT>(){}, defaultCollection,
+      namespace
+    );
+  }
+
+  public PersistedCollection(
+    MontoyaApi api, String name, Preferences.Visibility vis,
+    TypeToken<? extends CollectionT> collectionType, CollectionT defaultCollection,
+    String namespace
+  ){
+    this(
+      api, name, vis,
+      new DefaultGsonProvider(),
+      collectionType, defaultCollection,
+      namespace
+    );
+  }
+
+  public PersistedCollection(
+    MontoyaApi api, String name, Preferences.Visibility vis,
+    IGsonProvider gsonProvider,
+    TypeToken<? extends CollectionT> collectionType, CollectionT defaultCollection,
+    String namespace
+  ){
+    this(
+      api, name, vis,
+      new DefaultGsonProvider(), null,
+      collectionType, defaultCollection,
+      namespace
+    );
+  }
+
+  public PersistedCollection(
+    MontoyaApi api, String name, Preferences.Visibility vis,
+    IGsonProvider gsonProvider, ILogProvider logProvider,
+    TypeToken<? extends CollectionT> collectionType, CollectionT defaultCollection,
+    String namespace
+  ){
+    super(api, name, gsonProvider, logProvider, namespace);
     _prefs.register(name, collectionType.getType(), defaultCollection, vis);
     _internalCollection = _prefs.get(name);
   }
