@@ -19,28 +19,28 @@ import java.util.function.Function;
 public class PersistedMap<K,V, MapT extends Map<K,V>>
 extends PersistedContainer implements Map<K,V>{
   public PersistedMap(
-    MontoyaApi api, String name, Preferences.Visibility vis
+    final MontoyaApi api, final String name, final Preferences.Visibility vis
   ){
     this(api, name, vis, new TypeToken<MapT>(){});
   }
 
   public PersistedMap(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    TypeToken<? extends MapT> mapType
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final TypeToken<? extends MapT> mapType
   ){
     this(api, name, vis, mapType, (MapT)null);
   }
 
   public PersistedMap(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    MapT defaultMap
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final MapT defaultMap
   ){
     this(api, name, vis, new TypeToken<MapT>(){}, defaultMap);
   }
 
   public PersistedMap(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    TypeToken<? extends MapT> mapType, MapT defaultMap
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final TypeToken<? extends MapT> mapType, final MapT defaultMap
   ){
     this(
       api, name, vis,
@@ -50,9 +50,9 @@ extends PersistedContainer implements Map<K,V>{
   }
 
   public PersistedMap(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    IGsonProvider gsonProvider,
-    TypeToken<? extends MapT> mapType, MapT defaultMap
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final IGsonProvider gsonProvider,
+    final TypeToken<? extends MapT> mapType, final MapT defaultMap
   ){
     this(
       api, name, vis,
@@ -63,32 +63,32 @@ extends PersistedContainer implements Map<K,V>{
   }
 
   public PersistedMap(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    String namespace
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final String namespace
   ){
     this(api, name, vis, new TypeToken<MapT>(){}, namespace);
   }
 
   public PersistedMap(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    TypeToken<? extends MapT> mapType,
-    String namespace
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final TypeToken<? extends MapT> mapType,
+    final String namespace
   ){
     this(api, name, vis, mapType, null, namespace);
   }
 
   public PersistedMap(
-    MontoyaApi api, String name,Preferences.Visibility vis,
-    MapT defaultMap,
-    String namespace
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final MapT defaultMap,
+    final String namespace
   ){
     this(api, name, vis, new TypeToken<MapT>(){}, defaultMap, namespace);
   }
 
   public PersistedMap(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    TypeToken<? extends MapT> mapType, MapT defaultMap,
-    String namespace
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final TypeToken<? extends MapT> mapType, final MapT defaultMap,
+    final String namespace
   ){
     this(
       api, name, vis,
@@ -99,10 +99,10 @@ extends PersistedContainer implements Map<K,V>{
   }
 
   public PersistedMap(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    IGsonProvider gsonProvider,
-    TypeToken<? extends MapT> mapType, MapT defaultMap,
-    String namespace
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final IGsonProvider gsonProvider,
+    final TypeToken<? extends MapT> mapType, final MapT defaultMap,
+    final String namespace
   ){
     this(
       api, name, vis,
@@ -113,10 +113,10 @@ extends PersistedContainer implements Map<K,V>{
   }
 
   public PersistedMap(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    IGsonProvider gsonProvider, ILogProvider logProvider,
-    TypeToken<? extends MapT> mapType, MapT defaultMap,
-    String namespace
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final IGsonProvider gsonProvider, final ILogProvider logProvider,
+    final TypeToken<? extends MapT> mapType, final MapT defaultMap,
+    final String namespace
   ){
     super(api, name, gsonProvider, logProvider, namespace);
     _prefs.register(name, mapType.getType(), defaultMap, vis);

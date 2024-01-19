@@ -3,35 +3,35 @@ package com.coreyd97.BurpExtenderUtilities;
 import burp.api.montoya.MontoyaApi;
 
 public abstract class PersistedContainer{
-  public PersistedContainer(MontoyaApi api, String name){
+  public PersistedContainer(final MontoyaApi api, final String name){
     this(api, name, new DefaultGsonProvider());
   }
 
-  public PersistedContainer(MontoyaApi api, String name, IGsonProvider gsonProvider){
+  public PersistedContainer(final MontoyaApi api, final String name, final IGsonProvider gsonProvider){
     this(api, name, gsonProvider, (ILogProvider)null);
   }
 
-  public PersistedContainer(MontoyaApi api, String name, ILogProvider logProvider){
+  public PersistedContainer(final MontoyaApi api, final String name, final ILogProvider logProvider){
     this(api, name, new DefaultGsonProvider(), (ILogProvider)null);
   }
 
-  public PersistedContainer(MontoyaApi api, String name, IGsonProvider gsonProvider, ILogProvider logProvider){
+  public PersistedContainer(final MontoyaApi api, final String name, final IGsonProvider gsonProvider, final ILogProvider logProvider){
     this(api, name, gsonProvider, logProvider, "");
   }
 
-  public PersistedContainer(MontoyaApi api, String name, String namespace){
+  public PersistedContainer(final MontoyaApi api, final String name, final String namespace){
     this(api, name, new DefaultGsonProvider(), namespace);
   }
 
-  public PersistedContainer(MontoyaApi api, String name, IGsonProvider gsonProvider, String namespace){
+  public PersistedContainer(final MontoyaApi api, final String name, final IGsonProvider gsonProvider, final String namespace){
     this(api, name, gsonProvider, null, namespace);
   }
 
-  public PersistedContainer(MontoyaApi api, String name, ILogProvider logProvider, String namespace){
+  public PersistedContainer(final MontoyaApi api, final String name, final ILogProvider logProvider, final String namespace){
     this(api, name, new DefaultGsonProvider(), logProvider, namespace);
   }
 
-  public PersistedContainer(MontoyaApi api, String name, IGsonProvider gsonProvider, ILogProvider logProvider, String namespace){
+  public PersistedContainer(final MontoyaApi api, final String name, final IGsonProvider gsonProvider, final ILogProvider logProvider, final String namespace){
     _PERSISTED_NAME = name;
     _prefs = new Preferences(api, gsonProvider, logProvider, namespace);
   }

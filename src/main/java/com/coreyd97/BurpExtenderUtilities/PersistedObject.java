@@ -11,14 +11,14 @@ import java.lang.reflect.Type;
 public abstract class PersistedObject
 extends PersistedContainer{
   public PersistedObject(
-    MontoyaApi api, String name, Preferences.Visibility vis
+    final MontoyaApi api, final String name, final Preferences.Visibility vis
   ){
     this(api, name, vis, new DefaultGsonProvider());
   }
 
   public PersistedObject(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    IGsonProvider gsonProvider
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final IGsonProvider gsonProvider
   ){
     this(
       api, name, vis,
@@ -27,8 +27,8 @@ extends PersistedContainer{
   }
 
   public PersistedObject(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    ILogProvider logProvider
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final ILogProvider logProvider
   ){
     this(
       api, name, vis,
@@ -37,8 +37,8 @@ extends PersistedContainer{
   }
 
   public PersistedObject(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    IGsonProvider gsonProvider, ILogProvider logProvider
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final IGsonProvider gsonProvider, final ILogProvider logProvider
   ){
     this(
       api, name, vis,
@@ -48,16 +48,16 @@ extends PersistedContainer{
   }
 
   public PersistedObject(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    String namespace
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final String namespace
   ){
     this(api, name, vis, new DefaultGsonProvider(), namespace);
   }
 
   public PersistedObject(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    IGsonProvider gsonProvider,
-    String namespace
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final IGsonProvider gsonProvider,
+    final String namespace
   ){
     this(
       api, name, vis,
@@ -67,9 +67,9 @@ extends PersistedContainer{
   }
 
   public PersistedObject(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    ILogProvider logProvider,
-    String namespace
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final ILogProvider logProvider,
+    final String namespace
   ){
     this(
       api, name, vis,
@@ -79,9 +79,9 @@ extends PersistedContainer{
   }
 
   public PersistedObject(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    IGsonProvider gsonProvider, ILogProvider logProvider,
-    String namespace
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final IGsonProvider gsonProvider, final ILogProvider logProvider,
+    final String namespace
   ){
     super(api, name, gsonProvider, logProvider, namespace);
     _vis = vis;

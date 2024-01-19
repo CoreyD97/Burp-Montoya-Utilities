@@ -15,28 +15,28 @@ import java.util.stream.Stream;
 public class PersistedCollection<E, CollectionT extends Collection<E>>
 extends PersistedContainer implements Collection<E>{
   public PersistedCollection(
-    MontoyaApi api, String name, Preferences.Visibility vis
+    final MontoyaApi api, final String name, final Preferences.Visibility vis
   ){
     this(api, name, vis, new TypeToken<CollectionT>(){});
   }
 
   public PersistedCollection(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    TypeToken<? extends CollectionT> collectionType
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final TypeToken<? extends CollectionT> collectionType
   ){
     this(api, name, vis, collectionType, (CollectionT)null);
   }
 
   public PersistedCollection(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    CollectionT defaultCollection
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final CollectionT defaultCollection
   ){
     this(api, name, vis, new TypeToken<CollectionT>(){}, defaultCollection);
   }
 
   public PersistedCollection(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    TypeToken<? extends CollectionT> collectionType, CollectionT defaultCollection
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final TypeToken<? extends CollectionT> collectionType, final CollectionT defaultCollection
   ){
     this(
       api, name, vis,
@@ -46,9 +46,9 @@ extends PersistedContainer implements Collection<E>{
   }
 
   public PersistedCollection(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    IGsonProvider gsonProvider,
-    TypeToken<? extends CollectionT> collectionType, CollectionT defaultCollection
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final IGsonProvider gsonProvider,
+    final TypeToken<? extends CollectionT> collectionType, final CollectionT defaultCollection
   ){
     this(
       api, name, vis,
@@ -59,24 +59,24 @@ extends PersistedContainer implements Collection<E>{
   }
 
   public PersistedCollection(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    String namespace
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final String namespace
   ){
     this(api, name, vis, new TypeToken<CollectionT>(){}, namespace);
   }
 
   public PersistedCollection(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    TypeToken<? extends CollectionT> collectionType,
-    String namespace
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final TypeToken<? extends CollectionT> collectionType,
+    final String namespace
   ){
     this(api, name, vis, collectionType, null, namespace);
   }
 
   public PersistedCollection(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    CollectionT defaultCollection,
-    String namespace
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final CollectionT defaultCollection,
+    final String namespace
   ){
     this(
       api, name, vis,
@@ -86,9 +86,9 @@ extends PersistedContainer implements Collection<E>{
   }
 
   public PersistedCollection(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    TypeToken<? extends CollectionT> collectionType, CollectionT defaultCollection,
-    String namespace
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final TypeToken<? extends CollectionT> collectionType, final CollectionT defaultCollection,
+    final String namespace
   ){
     this(
       api, name, vis,
@@ -99,10 +99,10 @@ extends PersistedContainer implements Collection<E>{
   }
 
   public PersistedCollection(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    IGsonProvider gsonProvider,
-    TypeToken<? extends CollectionT> collectionType, CollectionT defaultCollection,
-    String namespace
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final IGsonProvider gsonProvider,
+    final TypeToken<? extends CollectionT> collectionType, final CollectionT defaultCollection,
+    final String namespace
   ){
     this(
       api, name, vis,
@@ -113,10 +113,10 @@ extends PersistedContainer implements Collection<E>{
   }
 
   public PersistedCollection(
-    MontoyaApi api, String name, Preferences.Visibility vis,
-    IGsonProvider gsonProvider, ILogProvider logProvider,
-    TypeToken<? extends CollectionT> collectionType, CollectionT defaultCollection,
-    String namespace
+    final MontoyaApi api, final String name, final Preferences.Visibility vis,
+    final IGsonProvider gsonProvider, final ILogProvider logProvider,
+    final TypeToken<? extends CollectionT> collectionType, final CollectionT defaultCollection,
+    final String namespace
   ){
     super(api, name, gsonProvider, logProvider, namespace);
     _prefs.register(name, collectionType.getType(), defaultCollection, vis);
