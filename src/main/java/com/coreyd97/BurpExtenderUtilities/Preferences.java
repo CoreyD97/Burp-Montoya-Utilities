@@ -136,7 +136,7 @@ public class Preferences {
         NameManager.release(settingName);
 
         for (PreferenceListener preferenceListener : this.preferenceListeners) {
-            preferenceListener.onPreferenceSet(this, settingName, getSetting(settingName));
+            preferenceListener.onPreferenceSet(this, settingName, get(settingName));
         }
     }
 
@@ -331,10 +331,10 @@ public class Preferences {
         assertThisManages(settingName);
 
         Object newInstance = cloneDefault(settingName);
-        this.setSetting(settingName, newInstance);
+        this.set(settingName, newInstance);
 
         for (PreferenceListener preferenceListener : this.preferenceListeners) {
-            preferenceListener.onPreferenceSet(this, settingName, getSetting(settingName));
+            preferenceListener.onPreferenceSet(this, settingName, get(settingName));
         }
     }
 
@@ -348,7 +348,7 @@ public class Preferences {
 
     public void reset(Set<String> keys){
         for (String key : keys) {
-            resetSetting(key);
+            reset(key);
         }
     }
 
@@ -362,7 +362,7 @@ public class Preferences {
 
     public void resetAll(){
         HashMap<String, Preferences.Visibility> registeredSettings = getRegisteredSettings();
-        resetSettings(registeredSettings.keySet());
+        reset(registeredSettings.keySet());
     }
 
     void logOutput(String message){
