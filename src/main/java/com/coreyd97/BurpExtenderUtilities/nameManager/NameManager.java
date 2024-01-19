@@ -1,4 +1,4 @@
-package com.coreyd97.BurpExtenderUtilities;
+package com.coreyd97.BurpExtenderUtilities.nameManager;
 
 import java.util.HashSet;
 import java.util.Set;

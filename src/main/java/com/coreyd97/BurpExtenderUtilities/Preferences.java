@@ -1,6 +1,7 @@
 package com.coreyd97.BurpExtenderUtilities;
 
 import burp.api.montoya.MontoyaApi;
+import com.coreyd97.BurpExtenderUtilities.nameManager.NameManager;
 import com.coreyd97.BurpExtenderUtilities.TypeAdapter.AtomicIntegerTypeAdapter;
 import com.coreyd97.BurpExtenderUtilities.TypeAdapter.ByteArrayToBase64TypeAdapter;
 import lombok.Getter;
