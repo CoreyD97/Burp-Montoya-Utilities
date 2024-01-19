@@ -85,7 +85,7 @@ public class PersistedSet<E> extends PersistedCollection<E, Set<E>> implements S
   ){
     super(
       api, name, vis,
-      new DefaultGsonProvider(), null,
+      gsonProvider, null,
       setType, defaultSet,
       namespace
     );

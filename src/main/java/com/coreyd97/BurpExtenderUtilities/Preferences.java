@@ -2,6 +2,7 @@ package com.coreyd97.BurpExtenderUtilities;
 
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.persistence.PersistedObject;
+import com.coreyd97.BurpExtenderUtilities.NameManager;
 import com.coreyd97.BurpExtenderUtilities.TypeAdapter.AtomicIntegerTypeAdapter;
 import com.coreyd97.BurpExtenderUtilities.TypeAdapter.ByteArrayToBase64TypeAdapter;
 import lombok.Getter;
@@ -124,7 +125,11 @@ public class Preferences {
     }
 
     public void register(String settingName, Type type, Object defaultValue, Visibility visibility){
-        register(settingName, type, defaultValue, visibility, true);
+        if(visibility == Visibility.VOLATILE)
+            register(settingName, type, defaultValue, visibility, false);
+        else
+            register(settingName, type, defaultValue, visibility, true);
+
     }
 
     public void register(String settingName, Type type, Object defaultValue, Visibility visibility, Boolean persistDefault){
@@ -145,7 +150,7 @@ public class Preferences {
         if(previousValue != null){
             this.preferences.put(settingName, previousValue);
         }else{
-            if(persistDefault) reset(settingName);
+            if(persistDefault) resetRaw(settingName);
             else               this.preferences.put(settingName, cloneDefault(settingName));
         }
 
@@ -173,7 +178,11 @@ public class Preferences {
         throwExceptionIfNotPreviouslyRegistered(settingName);
 
         Object previousValue = this.preferences.get(settingName);
-        this.set(settingName, previousValue);
+        Visibility visibility = this.preferenceVisibilities.get(settingName);
+        switch(visibility){
+        case PROJECT -> setProjectSetting(settingName, previousValue);
+        case GLOBAL  -> setGlobalSetting(settingName, previousValue);
+        }
 
         logOutput(String.format("Reregistered setting: [Key=%s, Value=%s]",
           settingName, this.preferences.get(settingName)));
@@ -187,7 +196,7 @@ public class Preferences {
     private void setGlobalSetting(String settingName, Object value) {
         Type type = this.preferenceTypes.get(settingName);
         Object currentValue = this.preferences.get(settingName);
-        String currentValueJson = gsonProvider.getGson().toJson(currentValue, type);
+        //String currentValueJson = gsonProvider.getGson().toJson(currentValue, type);
         String newValueJson = gsonProvider.getGson().toJson(value, type);
         //Temporarily removed. Not saving preferences for instance variables.
 //        if(newValueJson != null && newValueJson.equals(currentValueJson)) return;
@@ -198,8 +207,8 @@ public class Preferences {
 
     private void setProjectSetting(String settingName, Object value) {
         Type type = this.preferenceTypes.get(settingName);
-        Object currentValue = this.preferences.get(settingName);
-        String currentValueJson = gsonProvider.getGson().toJson(currentValue, type);
+        //Object currentValue = this.preferences.get(settingName);
+        //String currentValueJson = gsonProvider.getGson().toJson(currentValue, type);
         String newValueJson = gsonProvider.getGson().toJson(value, type);
         //Temporarily removed. Not saving preferences for instance variables.
 //        if(newValueJson != null && newValueJson.equals(currentValueJson)) return;
@@ -288,25 +297,33 @@ public class Preferences {
 
     public void set(String settingName, Object value, Object eventSource){
         settingName = namespacePrefix + settingName;
-        Visibility visibility = this.preferenceVisibilities.get(settingName);
-        if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
+        setRaw(settingName, value, eventSource);
+    }
+
+    private void setRaw(String fullSettingName, Object value){
+        setRaw(fullSettingName, value, this);
+    }
+
+    private void setRaw(String fullSettingName, Object value, Object eventSource){
+        Visibility visibility = this.preferenceVisibilities.get(fullSettingName);
+      if(visibility == null) throw new RuntimeException("Setting " + fullSettingName + " has not been registered!");
         switch (visibility) {
-            case VOLATILE: {
-                this.preferences.put(settingName, value);
-                break;
-            }
-            case PROJECT: {
-                this.setProjectSetting(settingName, value);
-                break;
-            }
-            case GLOBAL: {
-                this.setGlobalSetting(settingName, value);
-                break;
-            }
+        case VOLATILE: {
+            this.preferences.put(fullSettingName, value);
+            break;
+        }
+        case PROJECT: {
+            this.setProjectSetting(fullSettingName, value);
+            break;
+        }
+        case GLOBAL: {
+            this.setGlobalSetting(fullSettingName, value);
+            break;
+        }
         }
 
         for (PreferenceListener preferenceListener : this.preferenceListeners) {
-            preferenceListener.onPreferenceSet(eventSource, settingName, value);
+            preferenceListener.onPreferenceSet(eventSource, fullSettingName, value);
         }
     }
 
@@ -360,8 +377,7 @@ public class Preferences {
         if(visibility == null) throw new RuntimeException("Setting " + fullSettingName + " has not been registered!");
 
         Object newInstance = cloneDefault(fullSettingName);
-
-        this.setSetting(fullSettingName, newInstance);
+        this.setRaw(fullSettingName, newInstance);
 
         for (PreferenceListener preferenceListener : this.preferenceListeners) {
             preferenceListener.onPreferenceSet(this, fullSettingName, getSetting(fullSettingName));

@@ -89,7 +89,7 @@ public class PersistedList<E> extends PersistedCollection<E, List<E>> implements
   ){
     super(
       api, name, vis,
-      new DefaultGsonProvider(), null,
+      gsonProvider, null,
       listType, defaultList,
       namespace
     );
