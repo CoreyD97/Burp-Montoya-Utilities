@@ -1,7 +1,6 @@
 package com.coreyd97.BurpExtenderUtilities;
 
 import com.google.gson.Gson;
-import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 
 import java.lang.reflect.Type;
@@ -18,7 +17,7 @@ public interface IGsonProvider {
      */
     void registerTypeAdapter(Type type, Object typeAdapter);
 
-    void registerTypeHierarchyAdapter(Class<?> clazz, Object adapater);
+    void registerTypeHierarchyAdapter(Class<?> clazz, Object adapter);
 
     void registerTypeAdapterFactory(TypeAdapterFactory factory);
 }

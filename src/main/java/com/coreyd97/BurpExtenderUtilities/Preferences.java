@@ -1,7 +1,7 @@
 package com.coreyd97.BurpExtenderUtilities;
 
 import burp.api.montoya.MontoyaApi;
-import burp.api.montoya.persistence.PersistedObject;
+import com.coreyd97.BurpExtenderUtilities.nameManager.NameManager;
 import com.coreyd97.BurpExtenderUtilities.TypeAdapter.AtomicIntegerTypeAdapter;
 import com.coreyd97.BurpExtenderUtilities.TypeAdapter.ByteArrayToBase64TypeAdapter;
 import lombok.Getter;
@@ -79,7 +79,7 @@ public class Preferences {
      * @deprecated use {@link #register} instead.
      */
     @Deprecated
-    public void registerSetting(String settingName, Type type, Object defaultValue, Visibility visibility) {
+    public void registerSetting(String settingName, Type type, Object defaultValue, Visibility visibility){
         register(settingName, type, defaultValue, visibility);
     }
 
@@ -122,11 +122,27 @@ public class Preferences {
 
         logOutput(String.format("Registered setting: [Key=%s, Scope=%s, Type=%s, Default=%s, Value=%s, Persisted=%s]",
                 settingName, visibility, type, defaultValue, this.preferences.get(settingName), persistDefault));
-
     }
 
-    public void unregister(String settingName) {
-        throwExceptionIfNotPreviouslyRegistered(settingName);
+    public void unregister(String settingName){
+        assertThisManages(settingName);
+
+        unpersist(settingName);
+
+        preferences.remove(settingName);
+        preferenceDefaults.remove(settingName);
+        preferenceVisibilities.remove(settingName);
+        preferenceTypes.remove(settingName);
+
+        NameManager.release(settingName);
+
+        for (PreferenceListener preferenceListener : this.preferenceListeners) {
+            preferenceListener.onPreferenceSet(this, settingName, get(settingName));
+        }
+    }
+
+    public void unpersist(String settingName) {
+        assertThisManages(settingName);
 
         Visibility visibility = this.preferenceVisibilities.get(settingName);
         switch(visibility){
@@ -134,28 +150,33 @@ public class Preferences {
             case GLOBAL  -> delGlobalSettingFromBurp(settingName);
         }
 
-        logOutput(String.format("Unregistered setting: [Key=%s]",
+        logOutput(String.format("Unpersisted setting: [Key=%s]",
           settingName));
     }
 
-    public void reregister(String settingName){
-        throwExceptionIfNotPreviouslyRegistered(settingName);
+    public void repersist(String settingName){
+        assertThisManages(settingName);
 
         Object previousValue = this.preferences.get(settingName);
-        this.set(settingName, previousValue);
+        Visibility visibility = this.preferenceVisibilities.get(settingName);
+        switch(visibility){
+        case PROJECT -> setProjectSetting(settingName, previousValue);
+        case GLOBAL  -> setGlobalSetting(settingName, previousValue);
+        }
 
-        logOutput(String.format("Reregistered setting: [Key=%s, Value=%s]",
+        logOutput(String.format("Repersisted setting: [Key=%s, Value=%s]",
           settingName, this.preferences.get(settingName)));
     }
 
     public void setDefault(String settingName, Object newDefaultValue){
+        assertThisManages(settingName);
         this.preferenceDefaults.put(settingName, newDefaultValue);
     }
 
     private void setGlobalSetting(String settingName, Object value) {
         Type type = this.preferenceTypes.get(settingName);
         Object currentValue = this.preferences.get(settingName);
-        String currentValueJson = gsonProvider.getGson().toJson(currentValue, type);
+        //String currentValueJson = gsonProvider.getGson().toJson(currentValue, type);
         String newValueJson = gsonProvider.getGson().toJson(value, type);
         //Temporarily removed. Not saving preferences for instance variables.
 //        if(newValueJson != null && newValueJson.equals(currentValueJson)) return;
@@ -167,7 +188,7 @@ public class Preferences {
     private void setProjectSetting(String settingName, Object value) {
         Type type = this.preferenceTypes.get(settingName);
         Object currentValue = this.preferences.get(settingName);
-        String currentValueJson = gsonProvider.getGson().toJson(currentValue, type);
+        //String currentValueJson = gsonProvider.getGson().toJson(currentValue, type);
         String newValueJson = gsonProvider.getGson().toJson(value, type);
         //Temporarily removed. Not saving preferences for instance variables.
 //        if(newValueJson != null && newValueJson.equals(currentValueJson)) return;
@@ -225,9 +246,7 @@ public class Preferences {
     }
 
     public <T> T get(String settingName){
-        Visibility visibility = this.preferenceVisibilities.get(settingName);
-        if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
-
+        assertThisManages(settingName);
         Object value = this.preferences.get(settingName);
 
         return (T) value;
@@ -254,8 +273,8 @@ public class Preferences {
     }
 
     public void set(String settingName, Object value, Object eventSource){
+        assertThisManages(settingName);
         Visibility visibility = this.preferenceVisibilities.get(settingName);
-        if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
         switch (visibility) {
             case VOLATILE: {
                 this.preferences.put(settingName, value);
@@ -285,9 +304,7 @@ public class Preferences {
     }
 
     public Type getType(String settingName) {
-        Visibility visibility = this.preferenceVisibilities.get(settingName);
-        if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
-
+        assertThisManages(settingName);
         return this.preferenceTypes.get(settingName);
     }
 
@@ -316,15 +333,13 @@ public class Preferences {
     }
 
     public void reset(String settingName){
-        Visibility visibility = this.preferenceVisibilities.get(settingName);
-        if(visibility == null) throw new RuntimeException("Setting " + settingName + " has not been registered!");
+        assertThisManages(settingName);
 
         Object newInstance = cloneDefault(settingName);
-
-        this.setSetting(settingName, newInstance);
+        this.set(settingName, newInstance);
 
         for (PreferenceListener preferenceListener : this.preferenceListeners) {
-            preferenceListener.onPreferenceSet(this, settingName, getSetting(settingName));
+            preferenceListener.onPreferenceSet(this, settingName, get(settingName));
         }
     }
 
@@ -338,7 +353,7 @@ public class Preferences {
 
     public void reset(Set<String> keys){
         for (String key : keys) {
-            resetSetting(key);
+            reset(key);
         }
     }
 
@@ -352,7 +367,7 @@ public class Preferences {
 
     public void resetAll(){
         HashMap<String, Preferences.Visibility> registeredSettings = getRegisteredSettings();
-        resetSettings(registeredSettings.keySet());
+        reset(registeredSettings.keySet());
     }
 
     void logOutput(String message){
@@ -366,7 +381,7 @@ public class Preferences {
     }
 
     private Object cloneSetting(String settingName){
-        throwExceptionIfNotPreviouslyRegistered(settingName);
+        assertThisManages(settingName);
         Type type  = preferenceTypes.get(settingName);
         Object src = preferences.get(settingName);
 
@@ -374,21 +389,19 @@ public class Preferences {
     }
 
     private Object cloneDefault(String settingName){
-        throwExceptionIfNotPreviouslyRegistered(settingName);
+        assertThisManages(settingName);
         Type type  = preferenceTypes.get(settingName);
         Object src = preferenceDefaults.get(settingName);
 
         return GsonUtilities.clone(src, type, gsonProvider.getGson());
     }
 
-    private void throwExceptionIfAlreadyRegistered(String settingName){
-        if(this.preferenceVisibilities.get(settingName) != null)
-            throw new RuntimeException("Setting " + settingName + " has already been registered with " +
-                    this.preferenceVisibilities.get(settingName) + " visibility.");
-    }
-
-    private void throwExceptionIfNotPreviouslyRegistered(String settingName){
-        if(this.preferenceVisibilities.get(settingName) == null)
-            throw new RuntimeException("Setting " + settingName + " has not been previously registered.");
+    private void assertThisManages(String settingName){
+        if(preferenceVisibilities.get(settingName) == null){
+            String msg = "Setting " + settingName +
+              " is not managed by this Preferences instance.\n" +
+              "If no other Preferences instance is managing this setting, try registering it first.";
+            throw new UnmanagedSettingException(msg);
+        }
     }
 }

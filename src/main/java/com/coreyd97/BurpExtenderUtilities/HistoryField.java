@@ -79,8 +79,8 @@ public class HistoryField extends JComboBox {
     private void loadHistory(){
         if(this.preferences != null && this.preferencesKey != null){
             history.clear();
-            preferences.registerSetting(preferencesKey, HISTORY_TYPE_TOKEN, new ArrayList<String>(), Preferences.Visibility.GLOBAL);
-            ArrayList<String> oldSearches = preferences.getSetting(preferencesKey);
+            preferences.register(preferencesKey, HISTORY_TYPE_TOKEN, new ArrayList<String>(), Preferences.Visibility.GLOBAL);
+            ArrayList<String> oldSearches = preferences.get(preferencesKey);
             history.addAll(oldSearches);
         }
     }
@@ -103,7 +103,7 @@ public class HistoryField extends JComboBox {
             while(history.size() > maxHistory) history.removeLast();
 
             if(preferences != null && preferencesKey != null ){
-                preferences.setSetting(preferencesKey, history);
+                preferences.set(preferencesKey, history);
             }
             this.fireContentsChanged(val, 0, history.size());
         }

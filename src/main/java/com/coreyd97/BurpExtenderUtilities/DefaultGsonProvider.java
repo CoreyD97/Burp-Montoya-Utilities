@@ -28,8 +28,8 @@ public class DefaultGsonProvider implements IGsonProvider {
     }
 
     @Override
-    public void registerTypeHierarchyAdapter(Class<?> clazz, Object adapater){
-        this.gsonBuilder.registerTypeHierarchyAdapter(clazz, adapater);
+    public void registerTypeHierarchyAdapter(Class<?> clazz, Object adapter){
+        this.gsonBuilder.registerTypeHierarchyAdapter(clazz, adapter);
         this.gson = this.gsonBuilder.create();
     }
 

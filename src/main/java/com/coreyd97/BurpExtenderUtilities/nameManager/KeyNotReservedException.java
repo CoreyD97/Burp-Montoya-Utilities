@@ -1,4 +1,4 @@
-package com.coreyd97.BurpExtenderUtilities;
+package com.coreyd97.BurpExtenderUtilities.nameManager;
 
 public class KeyNotReservedException extends RuntimeException{
   public KeyNotReservedException(){}

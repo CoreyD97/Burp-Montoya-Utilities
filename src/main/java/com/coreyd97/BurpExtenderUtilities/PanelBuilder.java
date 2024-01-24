@@ -268,11 +268,11 @@ public class PanelBuilder {
         toggleButton.setAction(new AbstractAction(title) {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                preferences.setSetting(preferenceKey, ((JToggleButton) actionEvent.getSource()).isSelected(), toggleButton);
+                preferences.set(preferenceKey, ((JToggleButton) actionEvent.getSource()).isSelected(), toggleButton);
             }
         });
 
-        boolean isSelected = preferences.getSetting(preferenceKey);
+        boolean isSelected = preferences.get(preferenceKey);
         toggleButton.setSelected(isSelected);
         preferences.addSettingListener((eventSource, settingName, newValue) -> {
             if (!toggleButton.equals(eventSource) && settingName.equalsIgnoreCase(preferenceKey)) {
@@ -284,7 +284,7 @@ public class PanelBuilder {
 
     public static JTextField createPreferenceTextField(Preferences preferences, String preferenceKey) {
         final JTextField textComponent = new JTextField();
-        String defaultValue = preferences.getSetting(preferenceKey);
+        String defaultValue = preferences.get(preferenceKey);
         textComponent.setText(defaultValue);
         textComponent.getDocument().addDocumentListener(new DocumentListener() {
             @Override
