@@ -99,8 +99,9 @@ public class Preferences {
         register(settingName, type, defaultValue, visibility, true);
     }
 
-    public void register(String settingName, Type type, Object defaultValue, Visibility visibility, Boolean persistDefault) {
-        throwExceptionIfAlreadyRegistered(settingName);
+    public void register(String settingName, Type type, Object defaultValue, Visibility visibility, Boolean persistDefault){
+        NameManager.reserve(settingName);
+
         this.preferenceVisibilities.put(settingName, visibility);
         this.preferenceTypes.put(settingName, type);
         this.preferenceDefaults.put(settingName, defaultValue);
