@@ -14,7 +14,7 @@
 
 ----------
 
-This library aims to simplify the process of creating user interfaces and persisting data/preferences for Burp Suite extensions and consists of three main parts:
+This library aims to simplify the process of creating user interfaces and persisting data/preferences for Burp Suite extensions. It consists of three main parts:
 - [Auto-persisting containers](#auto-persisting-containers),
 - [Preference Management](#preferences),
 - and [User Interface Generation](#user-interfaces).
@@ -61,7 +61,7 @@ dependencies {
 ---------
 
 A "persisted piece of data" is either an auto-persisting container or a preference.</br>
-Each persisted piece of data has a string name (because burp persists data using string keys).
+Each persisted piece of data has a string name (because Burp persists data using string keys).
 
 It is an error to give two pieces of persisted data the same name.
 
@@ -75,8 +75,8 @@ Once registered, each persisted piece of data can be:
 
 ----------------------------
 
-Auto-persisting containers are defined convenience classes which allow users to easily create auto-persisting data objects.</br>
-These classes use [`Preferences`](#preferences) under the hood and are easier to use the raw preferences for many use-cases.</br>
+Auto-persisting containers are convenience classes which allow users to easily create auto-persisting data objects.</br>
+These classes use [`Preferences`](#preferences) under the hood and are easier to use than raw `Preferences` for many use-cases.</br>
 However, if you want to use the [user interface utilities](#user-interfaces) of this library, it will likely be easier to use raw [`Preferences`](#preferences) because the auto-persisting containers do not yet integrate directly with those utilities.</br>
 
 _Integrating auto-persisting containers with this library's [user interface utilities](#user-interfaces) is a future goal. Contributions in this area (and in general) are welcomed!_
