@@ -10,11 +10,19 @@
 </p>
 
 ---
+# Overview
 
-This library aims to simplify the process of creating user interfaces for Burp Suite extensions and consists of two main parts, 
-[Preference Management](#preferences) and [User Interface Generation](#user-interfaces).
+----------
+
+This library aims to simplify the process of creating user interfaces and persisting data/preferences for Burp Suite extensions. It consists of three main parts:
+- [Auto-persisting containers](#auto-persisting-containers),
+- [Preference Management](#preferences),
+- and [User Interface Generation](#user-interfaces).
 
 # Installing
+
+------------
+
 To use the library, simply add the following to your `build.gradle` file (Gradle) or `pom.xml` (Maven), where `[VERSION]` is a commit hash, version tag or `latest`.
 
 ### Gradle
@@ -48,7 +56,72 @@ dependencies {
 </dependency>
 ```
 
+# General
+
+---------
+
+A "persisted piece of data" is either an auto-persisting container or a preference.</br>
+Each persisted piece of data has a string name (because Burp persists data using string keys).
+
+It is an error to give two pieces of persisted data the same name.
+
+Each persisted piece of data needs to be "registered" which adds the data to Burp's persistence as well as adds that data to a `Preferences` object for tracking.</br>
+Once registered, each persisted piece of data can be:
+- "unregistered" (which is the inverse of "register")
+- "unpersisted" (removes the data from Burp's persistence without removing it from the `Preferences` tracking)
+- "repersisted" (inverse of "unpersist")
+
+# Auto-persisting Containers
+
+----------------------------
+
+Auto-persisting containers are convenience classes which allow users to easily create auto-persisting data objects.</br>
+These classes use [`Preferences`](#preferences) under the hood and are easier to use than raw `Preferences` for many use-cases.</br>
+However, if you want to use the [user interface utilities](#user-interfaces) of this library, it will likely be easier to use raw [`Preferences`](#preferences) because the auto-persisting containers do not yet integrate directly with those utilities.</br>
+
+_Integrating auto-persisting containers with this library's [user interface utilities](#user-interfaces) is a future goal. Contributions in this area (and in general) are welcomed!_
+
+------
+
+An example extension that uses several of the auto-persistence features in this library is provided in this repo's `examples` directory.
+
+Here is the object tree for the auto-persisting container classes:
+- PersistedContainer
+  - PersistedCollection
+    - PersistedList
+    - PersistedSet
+  - PersistedMap
+  - PersistedObject
+
+> **_Note_** that modifications made to the contents of the containers via direct references to those contents (for example a reference to an element of a PersistedList) cannot be automatically persisted because the container has no way to know what you are doing with that reference. Therefore, modifications made in this manner require either explicit calls to the PersistedContainer::save() method or custom implementations of the element types that either do the saving or notify the PersistedContainer of the changes.
+
+## PersistedContainer
+This is the abstract parent of all auto-persisting things. It encapsulates the creation of the Preferences as well as provides a public `save()` function to persist the current state of the container.
+
+## Persisted Collections and PersistedMap
+These classes are designed to have an api that is as compliant with the [Java Collections Framework](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/package-summary.html#CollectionsFramework) as possible. These classes allow users to create collections that work like any other collection, but that automatically persist themselves using the `Preferences` class.
+
+These classes allow user's to have auto-persisting things, without having to do any custom implementation of any kind (though of course they could if they wanted to). These classes implement standard Java Collections Framework interfaces but are really only proxies for pre-existing implementations. This means that these classes must be given an instance of some other implementation as the proxy target and any methods provided only by that particular implementation will not be available for auto-persistence without creating custom extensions of these classes (which should not actually be too difficult if one wanted).
+
+Some notable departures from the Java Collections Framework API is that these classes:
+- Do not have no-arg constructors
+- Are merely proxies for existing Java Collections Framework interface implementations that detect modifications and use `Preferences` to persist those modifications.
+
+_Not all interfaces from the Java Collections Framework are implemented and contributions in this area (and generally) are welcomed!_
+
+## PersistedObject
+Abstract base class that allows users to easily create custom objects that are auto-persisted. Extending this class is the preferred method to auto-persist data. But it also requires the most effort (which is why the other classes exist).
+
+As the purpose of this class is to allow easy auto-persistence of **_CUSTOM_** classes, some (a very small part) of the implementation is left to the user.</br>
+For example:
+- child classes should handle loading the values of their data members from `_prefs`
+  - Relatedly, if desired, child classes would have to provide their own `reset()` methods. `PersistedObject` provides a `reset()` proxy method that resets the `Preferences` instance... but `PersistedObject` cannot (without reflection) know what fields then need to be retrieved from the reset `_prefs`.
+- child classes need to call `register()`. This allows them to set custom default values by passing them in as arguments.
+
 # Preferences
+
+-------------
+
 This library can be used to define preferences to be used by your extension. The library will take care of handling
 default values and serializing/deserializing the values for storing in Burp so that even complex objects can be stored.
 
@@ -86,7 +159,12 @@ public class ExamplePreferenceFactory extends PreferenceFactory {
     protected void registerTypeAdapters() {
         //Define any custom serializers that will be available to the GSON object.
         //e.g. this.gson.registerTypeAdapter(ComplexObject.class, new ComplexObjectAdapter());
+        //e.g. this.gson.registerTypeHierarchyAdapter(BaseClass.class, new ComplexBaseObjectAdapter());
+        //e.g. this.gson.registerTypeAdapterFactory(new AdapterFactory());
         //See https://github.com/google/gson/blob/main/UserGuide.md#custom-serialization-and-deserialization
+        //See https://www.javadoc.io/doc/com.google.code.gson/gson/2.10/com.google.gson/com/google/gson/GsonBuilder.html#registerTypeAdapter(java.lang.reflect.Type,java.lang.Object)
+        //See https://www.javadoc.io/doc/com.google.code.gson/gson/2.10/com.google.gson/com/google/gson/GsonBuilder.html#registerTypeAdapterFactory(com.google.gson.TypeAdapterFactory)
+        //See https://www.javadoc.io/doc/com.google.code.gson/gson/2.10/com.google.gson/com/google/gson/GsonBuilder.html#registerTypeHierarchyAdapter(java.lang.Class,java.lang.Object)
     }
 
     @Override
@@ -127,6 +205,9 @@ public class MyExtension implements BurpExtension {
 
 
 # User Interfaces
+
+-----------------
+
 The library also provides functions to simplify the process of creating user interfaces, and can automatically integrate
 controls for your extension's preferences defined within the library.
 
@@ -253,7 +334,7 @@ PanelBuilder pb = new PanelBuilder()
     new int[]{0, 0},
     new int[]{1, 1},
     new int[]{1, 1},
-})
+});
 JPanel userInterface = pb.build(); 
 ```
 
@@ -387,6 +468,9 @@ JSpinner spinner = example.addPreferenceComponent(preferences, "AnInteger", "Num
 ```
 
 # Utilities
+
+-----------
+
 This library also ships with a number of utility classes that proved helpful in building responsive extensions. These are listed below.
 
 ## Variable View Panel
