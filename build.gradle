@@ -1,10 +1,10 @@
 plugins {
     id 'java'
-    id "io.freefair.lombok" version "6.5.1"
+//    id "io.freefair.lombok" version "6.5.1"
 }
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
+sourceCompatibility = JavaVersion.VERSION_22
+targetCompatibility = JavaVersion.VERSION_22
 
 group = 'com.github.CoreyD97'
 
@@ -20,7 +20,7 @@ dependencies {
 }
 
 jar{
-    baseName = project.name
+//    baseName = project.name
     from {
         (configurations.compileClasspath).collect { it.isDirectory() ? it : zipTree(it) }
     }{
@@ -31,7 +31,7 @@ jar{
 }
 
 task testJar(type: Jar) {
-    baseName = project.name + "-TEST"
+//    baseName = project.name + "-TEST"
     dependsOn testClasses
     sourceSets.main.output.each {
         from it
@@ -51,5 +51,5 @@ task testJar(type: Jar) {
 }
 
 tasks.withType(Jar) {
-    destinationDir = file("$rootDir/releases")
+    destinationDirectory = file("$rootDir/releases")
 }

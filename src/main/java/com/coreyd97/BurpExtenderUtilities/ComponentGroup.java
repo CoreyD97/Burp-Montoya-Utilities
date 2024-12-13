@@ -43,9 +43,9 @@ public class ComponentGroup extends JPanel {
 
         if(clazz.equals(String.class)){
             component = PanelBuilder.createPreferenceTextField(preferences, settingName);
-        }else if(Number.class.isAssignableFrom(clazz)){
+        }else if(Number.class.isAssignableFrom(clazz) || clazz.equals(Integer.class) || clazz.equals(int.class)){
             component = PanelBuilder.createPreferenceSpinner(preferences, settingName);
-        }else if(clazz.equals(Boolean.class)){
+        }else if(clazz.equals(Boolean.class) || clazz.equals(boolean.class)){
             component = PanelBuilder.createPreferenceCheckBox(preferences, settingName);
         }else{
             component = PanelBuilder.createPreferenceTextField(preferences, settingName);

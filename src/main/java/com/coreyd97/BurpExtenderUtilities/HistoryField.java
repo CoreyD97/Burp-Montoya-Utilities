@@ -2,6 +2,8 @@ package com.coreyd97.BurpExtenderUtilities;
 
 import com.google.gson.reflect.TypeToken;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
 import javax.swing.undo.UndoManager;
@@ -18,7 +20,7 @@ import java.util.Stack;
 /**
  * Created by corey on 05/09/17.
  */
-public class HistoryField extends JComboBox {
+public class HistoryField extends JComboBox<String> {
 
     private static Type HISTORY_TYPE_TOKEN = new TypeToken<List<String>>(){}.getType();
     private final int maxHistory;
@@ -36,6 +38,7 @@ public class HistoryField extends JComboBox {
         this.preferencesKey = preferencesKey;
         this.history = new LinkedList<>();
 
+        this.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
         configureComponent();
 
         loadHistory();
@@ -54,22 +57,42 @@ public class HistoryField extends JComboBox {
                 editorComponent.addKeyListener(new KeyAdapter() {
                     @Override
                     public void keyReleased(KeyEvent e) {
-                        if((e.getModifiers() & InputEvent.CTRL_MASK) != 0) {
-                            if (e.getKeyCode() == KeyEvent.VK_Z) {
-                                if(undoManager.canUndo()) undoManager.undo();
-                            }
-                            if (e.getKeyCode() == KeyEvent.VK_Y) {
-                                if(undoManager.canRedo()) undoManager.redo();
-                            }
+                        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                            setSelectedItem(editorComponent.getText());
                         }
+                        if(e.getKeyCode() == KeyEvent.VK_ESCAPE)
+                            setSelectedItem(null);
                     }
                 });
+                getActionMap().put("Undo", new AbstractAction("Undo") {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (undoManager.canUndo()) undoManager.undo();
+                    }
+                });
+
+                getActionMap().put("Redo", new AbstractAction("Redo") {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (undoManager.canUndo()) undoManager.redo();
+                    }
+                });
+
+                getInputMap().put(KeyStroke.getKeyStroke("control Z"), "Undo");
+                getInputMap().put(KeyStroke.getKeyStroke("control Y"), "Redo");
+
                 return editorComponent;
             }
 
             @Override
             public Component getEditorComponent() {
                 return editorComponent;
+            }
+        });
+        this.addItemListener(e -> {
+            if(e.getStateChange() == ItemEvent.SELECTED){
+                String selectedItem = (String)this.getSelectedItem();
+                ((HistoryComboModel)getModel()).addToHistory(selectedItem);
             }
         });
         this.setEditable(true);
@@ -93,7 +116,7 @@ public class HistoryField extends JComboBox {
         this.getEditor().getEditorComponent().setBackground(color);
     }
 
-    public class HistoryComboModel extends DefaultComboBoxModel {
+    public class HistoryComboModel extends DefaultComboBoxModel<String> {
 
         public void addToHistory(String val){
             if(val.equals("")) return;
@@ -114,7 +137,7 @@ public class HistoryField extends JComboBox {
         }
 
         @Override
-        public Object getElementAt(int i) {
+        public String getElementAt(int i) {
             return history.get(i);
         }
     }

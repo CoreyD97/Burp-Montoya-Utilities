@@ -1,11 +1,12 @@
 package com.coreyd97.BurpExtenderUtilities;
 
 import burp.api.montoya.MontoyaApi;
-import lombok.RequiredArgsConstructor;
-
-@RequiredArgsConstructor
 public class BurpExtensionLogger implements ILogProvider {
     final MontoyaApi montoyaApi;
+
+    public BurpExtensionLogger(MontoyaApi montoyaApi) {
+        this.montoyaApi = montoyaApi;
+    }
 
     @Override
     public void logOutput(String message) {
