@@ -1,4 +1,4 @@
-package com.coreyd97.BurpExtenderUtilities;
+package com.coreyd97.montoyautilities;
 
 import javax.swing.*;
 import java.awt.*;
@@ -273,7 +273,7 @@ public class ScrollablePanel extends JPanel
 
         if (getParent() instanceof JViewport)
         {
-            return (((JViewport)getParent()).getWidth() > getPreferredSize().width);
+            return (getParent().getWidth() > getPreferredSize().width);
         }
 
         return false;
@@ -292,7 +292,7 @@ public class ScrollablePanel extends JPanel
 
         if (getParent() instanceof JViewport)
         {
-            return (((JViewport)getParent()).getHeight() > getPreferredSize().height);
+            return (getParent().getHeight() > getPreferredSize().height);
         }
 
         return false;
@@ -303,8 +303,8 @@ public class ScrollablePanel extends JPanel
      */
     static class IncrementInfo
     {
-        private IncrementType type;
-        private int amount;
+        private final IncrementType type;
+        private final int amount;
 
         public IncrementInfo(IncrementType type, int amount)
         {

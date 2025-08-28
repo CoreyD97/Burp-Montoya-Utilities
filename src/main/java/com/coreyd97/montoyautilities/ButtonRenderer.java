@@ -1,4 +1,4 @@
-package com.coreyd97.BurpExtenderUtilities;
+package com.coreyd97.montoyautilities;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;

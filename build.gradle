@@ -1,10 +1,10 @@
 plugins {
     id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '2.0.0'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '2.0.0'
 //    id "io.freefair.lombok" version "6.5.1"
 }
 
-sourceCompatibility = JavaVersion.VERSION_22
-targetCompatibility = JavaVersion.VERSION_22
 
 group = 'com.github.CoreyD97'
 
@@ -14,9 +14,11 @@ repositories {
 
 dependencies {
     implementation 'net.portswigger.burp.extensions:montoya-api:2023.3'
-    implementation "com.google.code.gson:gson:2.10"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json-okio-jvm:1.7.1"
 
     testRuntimeOnly files("${System.properties['user.home']}/BurpSuitePro/burpsuite_pro.jar")
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:2.1.0"
 }
 
 jar{
@@ -28,6 +30,7 @@ jar{
         exclude "META-INF/*.DSA"
         exclude "META-INF/*.RSA"
     }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 task testJar(type: Jar) {

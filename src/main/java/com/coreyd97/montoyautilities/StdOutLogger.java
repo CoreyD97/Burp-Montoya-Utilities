@@ -1,4 +1,4 @@
-package com.coreyd97.BurpExtenderUtilities;
+package com.coreyd97.montoyautilities;
 
 public class StdOutLogger implements ILogProvider {
 

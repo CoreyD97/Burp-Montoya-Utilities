@@ -1,4 +1,4 @@
-package com.coreyd97.BurpExtenderUtilities;
+package com.coreyd97.montoyautilities;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -9,17 +9,17 @@ import java.util.function.Consumer;
 public class CustomTabComponent extends JPanel {
 
     private JLabel indexLabel;
-    private JLabel titleLabel;
-    private JTextField editableField;
-    private Border editableFieldBorder;
+    private final JLabel titleLabel;
+    private final JTextField editableField;
+    private final Border editableFieldBorder;
     private JButton removeTabButton;
 
     private int index;
-    private boolean showIndex;
-    private boolean isEditable;
-    private Consumer<String> onTitleChanged;
-    private boolean isRemovable;
-    private Consumer<Void> onRemovePressed;
+    private final boolean showIndex;
+    private final boolean isEditable;
+    private final Consumer<String> onTitleChanged;
+    private final boolean isRemovable;
+    private final Consumer<Void> onRemovePressed;
 
     private EditClickListener editClickListener;
 
