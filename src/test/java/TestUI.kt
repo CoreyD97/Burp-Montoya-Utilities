@@ -9,10 +9,12 @@ public fun test(): KPanel {
     val panel = kpanel("Test", Alignment.TOPMIDDLE) {
 //        gbc.ipadx = 50
 //        gbc.ipady = 50
+        spinner(10, 0, 100, 5)
+        spinner(1F, 0F, 2F, 0.15F)
 
         row {
             // Row initialization
-            button("Click Me") {
+            button("Click Me", {}) {
                 // Button initialization
 
             }
@@ -20,6 +22,10 @@ public fun test(): KPanel {
         row {
             // Another row initialization
             field("Name:", "Corey") {
+                // Field initialization
+            }
+            // Another row initialization
+            field(null, "Corey") {
                 // Field initialization
             }
         }
@@ -31,10 +37,10 @@ public fun test(): KPanel {
         kpanel {
             row {
                 label("Nested Panel Label")
-                button("Nested Button") {}
+                button("Nested Button", {})
             }
 
-            button("Another Button") {}
+            button("Another Button", {})
         }
     }
     return panel

@@ -23,6 +23,7 @@ private val preferences: MutableMap<String, BurpPreference<*>> = mutableMapOf()
 
 class PreferenceProxy<T>(
     val key: String,
+    val serializer: KSerializer<in T>? = null,
     val listener: ((old: T, new: T) -> Unit)? = null
 ) : ReadWriteProperty<Any?, T> {
     private var _pref: BurpPreference<T>
@@ -43,10 +44,13 @@ class PreferenceProxy<T>(
     }
 
     override fun getValue(thisRef: Any?, property: KProperty<*>): T {
-        if(!_pref.initialized)
-            _pref.initValueIfNeeded(serializer(property.returnType) as KSerializer<T>)
+        if(!_pref.initialized) {
+//            throw RuntimeException("Preference proxy should not load the value before the preference itself! $key")
+            val serializer: KSerializer<in T> = serializer ?: serializer(property.returnType)
+            _pref.initValueIfNeeded(serializer)
+        }
         try {
-            return preferences[key]!!.value as T
+            return _pref.value ?: _pref.default as T
         } catch (e: ClassCastException) {
             throw RuntimeException("Preference $key was previously declared as a different type.", e)
         }
@@ -54,8 +58,7 @@ class PreferenceProxy<T>(
 
     override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
         try {
-            val pref = preferences[key] as BurpPreference<T>
-            pref.value = value
+            _pref.value = value
         }catch (e: ClassCastException){
             throw RuntimeException("Preference $key was previously declared as a different type.", e)
         }
@@ -67,7 +70,7 @@ class BurpPreference<T : @Serializable Any?>(
     val key: String,
     val default: T? = null,
     val storage: StorageType,
-    var serializer: KSerializer<T>? = null
+    var serializer: KSerializer<in T>? = null
 ) {
     val listeners = mutableListOf<(old: T?, new: T?) -> Unit>()
     //If we don't yet have a serializer, we need to defer loading until we do.
@@ -77,11 +80,15 @@ class BurpPreference<T : @Serializable Any?>(
         set(value) {
             val old = field
             field = value
-            if(initialized) listeners.forEach { it.invoke(old, value) }
+            if(initialized) listeners.forEach {
+                try {
+                    it.invoke(old, value)
+                }catch (_: Exception){}
+            }
             saveValue()
         }
 
-    fun initValueIfNeeded(serializer: KSerializer<T>){
+    fun initValueIfNeeded(serializer: KSerializer<in T>){
         if(initialized) return
         this.serializer = serializer
         value = loadValue()
@@ -116,7 +123,7 @@ class BurpPreference<T : @Serializable Any?>(
         }
 
         initialized = true
-        return deserialized
+        return deserialized as T
     }
 
     private fun saveValue() {
@@ -181,7 +188,7 @@ open class NullablePreference<T : @Serializable Any?>(
 }
 
 open class Preference<T : @Serializable Any>(
-    key: String,
+    private val key: String,
     val default: T,
     storage: StorageType = StorageType.EXTENSION,
     serializer: KSerializer<in T>? = null,
@@ -198,4 +205,22 @@ open class Preference<T : @Serializable Any>(
     override operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
         return super.getValue(thisRef, property) ?: default
     }
+}
+
+inline fun <reified T : @Serializable Any?> nullablePreference(
+    key: String,
+    default: T? = null,
+    storage: StorageType = StorageType.EXTENSION,
+    noinline listener: ((old: T?, new: T?) -> Unit)? = null
+): NullablePreference<T> {
+    return NullablePreference(key, default, storage, serializer<T>(), listener)
+}
+
+inline fun <reified T : @Serializable Any> preference(
+    key: String,
+    default: T,
+    storage: StorageType = StorageType.EXTENSION,
+    noinline listener: ((old: T, new: T) -> Unit)? = null
+): Preference<T> {
+    return Preference(key, default, storage, serializer<T>(), listener)
 }
