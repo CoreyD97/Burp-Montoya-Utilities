@@ -31,28 +31,28 @@ class PreferenceProxy<T>(
         try {
             _pref = preferences.getOrElse(key) {
                 throw RuntimeException(
-                    "Cannot use preference $key before it has been declared.\n" +
-                            "Use 'by Preference(...)' instead, or declare the preference elsewhere before using 'by PreferenceProxy(...)'"
+                    "Cannot use com.coreyd97.montoyautilities.preference $key before it has been declared.\n" +
+                            "Use 'by com.coreyd97.montoyautilities.Preference(...)' instead, or declare the com.coreyd97.montoyautilities.preference elsewhere before using 'by com.coreyd97.montoyautilities.PreferenceProxy(...)'"
                 )
             } as BurpPreference<T>
             _pref.listeners.add { old, new ->
                 listener?.invoke(old ?: new!!, new!!)
             }
         } catch (e: ClassCastException) {
-            throw RuntimeException("Preference $key was previously declared as a different type.")
+            throw RuntimeException("com.coreyd97.montoyautilities.Preference $key was previously declared as a different type.")
         }
     }
 
     override fun getValue(thisRef: Any?, property: KProperty<*>): T {
         if(!_pref.initialized) {
-//            throw RuntimeException("Preference proxy should not load the value before the preference itself! $key")
+//            throw RuntimeException("com.coreyd97.montoyautilities.Preference proxy should not load the value before the com.coreyd97.montoyautilities.preference itself! $key")
             val serializer: KSerializer<in T> = serializer ?: serializer(property.returnType)
             _pref.initValueIfNeeded(serializer)
         }
         try {
             return _pref.value ?: _pref.default as T
         } catch (e: ClassCastException) {
-            throw RuntimeException("Preference $key was previously declared as a different type.", e)
+            throw RuntimeException("com.coreyd97.montoyautilities.Preference $key was previously declared as a different type.", e)
         }
     }
 
@@ -60,12 +60,12 @@ class PreferenceProxy<T>(
         try {
             _pref.value = value
         }catch (e: ClassCastException){
-            throw RuntimeException("Preference $key was previously declared as a different type.", e)
+            throw RuntimeException("com.coreyd97.montoyautilities.Preference $key was previously declared as a different type.", e)
         }
     }
 }
 
-//todo store preferences as class
+//todo store com.coreyd97.montoyautilities.preferences as class
 class BurpPreference<T : @Serializable Any?>(
     val key: String,
     val default: T? = null,
@@ -129,7 +129,7 @@ class BurpPreference<T : @Serializable Any?>(
     private fun saveValue() {
         if(storage == StorageType.TEMP) return //Don't actually save it.
         if(serializer == null){
-            throw IllegalStateException("No serializer found for preference $key. Try specifying the serializer.")
+            throw IllegalStateException("No serializer found for com.coreyd97.montoyautilities.preference $key. Try specifying the serializer.")
         }
         if(value == null){
             if (storage == StorageType.EXTENSION)
@@ -162,7 +162,7 @@ open class NullablePreference<T : @Serializable Any?>(
             } as BurpPreference<T>
             if(listener != null) _pref.listeners.add(listener)
         }catch (e: ClassCastException){
-            throw RuntimeException("Preference $key was previously declared as a different type.")
+            throw RuntimeException("com.coreyd97.montoyautilities.Preference $key was previously declared as a different type.")
         }
     }
 

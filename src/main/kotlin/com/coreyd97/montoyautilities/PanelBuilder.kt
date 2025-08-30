@@ -210,7 +210,7 @@ class PanelBuilder {
     companion object {
 
         /**
-         * Preference components
+         * com.coreyd97.montoyautilities.Preference components
          */
         fun createPreferenceToggleButton(title: String, preferenceKey: String,
                                          onChange: ((source: JToggleButton, enabled: Boolean) -> Unit)? = null): JToggleButton {
