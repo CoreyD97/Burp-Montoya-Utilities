@@ -41,10 +41,10 @@ object ToastNotification {
         toast.contentPane = panel
         toast.pack()
 
-        // Calculate the position of the toast at the bottom-center of the screen.
-        val screenSize: Dimension = Toolkit.getDefaultToolkit().screenSize
-        val x = (screenSize.width - toast.width) / 2
-        val y = screenSize.height - toast.height - 50
+        // Calculate the position of the toast at the bottom-center of the window.
+        val ownerBounds = owner?.bounds ?: Rectangle(Toolkit.getDefaultToolkit().screenSize)
+        val x = ownerBounds.x + (ownerBounds.width - toast.width) / 2
+        val y = ownerBounds.y + ownerBounds.height - toast.height - 50
         toast.location = Point(x, y)
 
         // Make the toast visible.
