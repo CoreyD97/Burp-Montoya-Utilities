@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'net.portswigger.burp.extensions:montoya-api:2023.3'
+    implementation 'net.portswigger.burp.extensions:montoya-api:2025.8'
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json-okio-jvm:1.7.1"
 
     testRuntimeOnly files("${System.properties['user.home']}/BurpSuitePro/burpsuite_pro.jar")
