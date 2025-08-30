@@ -8,54 +8,131 @@ import javax.swing.*
  */
 object ToastNotification {
 
+    enum class Placement {
+        BELOW, ABOVE, RIGHT, LEFT, OVER_CENTER, SCREEN_BOTTOM_CENTER
+    }
+
     /**
-     * Shows a toast notification with the given message for a specified duration.
-     * The toast is a small, undecorated window that appears at the bottom-center of the screen.
+     * New: Show a toast owned/anchored by any Swing component.
+     * - If owner is non-null, place relative to that component (default: BELOW).
+     * - If owner is null, place at the bottom-center of the screen.
      *
-     * @param owner The parent frame for the toast. Can be a JFrame or null.
-     * @param message The message to display in the toast.
-     * @param durationMillis The duration in milliseconds for which the toast will be visible.
+     * @param owner Any Swing component to anchor the toast to (may be null).
+     * @param message The text to display.
+     * @param durationMillis Time to show the toast.
+     * @param placement How to position relative to owner.
+     * @param offset Pixel offset from the owner when anchoring near it.
      */
-    fun show(owner: Frame?, message: String, durationMillis: Long = 3000) {
-        // Create an undecorated JWindow to serve as the toast.
-        // It should not have focus and should be always on top.
-        val toast = JWindow(owner)
+    fun show(
+        owner: Component?,
+        message: String,
+        durationMillis: Long = 3000,
+        placement: Placement = Placement.BELOW,
+        offset: Int = 8
+    ) {
+        // Create an undecorated JWindow anchored to the owner's window if possible
+        val windowOwner: Window? = when (owner) {
+            is Window -> owner
+            else -> if (owner != null) SwingUtilities.getWindowAncestor(owner) else null
+        }
+        val toast = JWindow(windowOwner)
         toast.isAlwaysOnTop = true
         toast.isFocusable = false
 
-        // Create the panel that will hold the message.
         val panel = JPanel().apply {
             background = Color(50, 50, 50, 200) // Semi-transparent black
             layout = BorderLayout()
             border = BorderFactory.createEmptyBorder(10, 20, 10, 20)
         }
 
-        // Create the label for the message.
         val label = JLabel(message, SwingConstants.CENTER).apply {
             foreground = Color.WHITE
             font = font.deriveFont(Font.BOLD, 14f)
         }
 
-        // Add the label to the panel and the panel to the window.
         panel.add(label)
         toast.contentPane = panel
         toast.pack()
 
-        // Calculate the position of the toast at the bottom-center of the window.
-        val ownerBounds = owner?.bounds ?: Rectangle(Toolkit.getDefaultToolkit().screenSize)
-        val x = ownerBounds.x + (ownerBounds.width - toast.width) / 2
-        val y = ownerBounds.y + ownerBounds.height - toast.height - 50
-        toast.location = Point(x, y)
+        // Compute location
+        val screenBounds = (windowOwner ?: GraphicsEnvironment.getLocalGraphicsEnvironment()
+            .defaultScreenDevice.defaultConfiguration.device)
+            .let {
+                // Prefer the owner's screen if available
+                val gc: GraphicsConfiguration? = windowOwner?.graphicsConfiguration ?: owner?.graphicsConfiguration
+                (gc ?: GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice.defaultConfiguration).bounds
+            }
 
-        // Make the toast visible.
+        val targetPoint: Point = if (owner != null) {
+            // Owner-relative placement using absolute screen coords
+            val base = try {
+                owner.locationOnScreen
+            } catch (_: IllegalComponentStateException) {
+                // Owner not showing; fallback to screen bottom center
+                null
+            }
+
+            if (base == null) {
+                // fallback
+                val x = screenBounds.x + (screenBounds.width - toast.width) / 2
+                val y = screenBounds.y + screenBounds.height - toast.height - 50
+                Point(x, y)
+            } else {
+                when (placement) {
+                    Placement.BELOW -> Point(
+                        base.x + (owner.width - toast.width) / 2,
+                        base.y + owner.height + offset
+                    )
+                    Placement.ABOVE -> Point(
+                        base.x + (owner.width - toast.width) / 2,
+                        base.y - toast.height - offset
+                    )
+                    Placement.RIGHT -> Point(
+                        base.x + owner.width + offset,
+                        base.y + (owner.height - toast.height) / 2
+                    )
+                    Placement.LEFT -> Point(
+                        base.x - toast.width - offset,
+                        base.y + (owner.height - toast.height) / 2
+                    )
+                    Placement.OVER_CENTER -> Point(
+                        base.x + (owner.width - toast.width) / 2,
+                        base.y + (owner.height - toast.height) / 2
+                    )
+                    Placement.SCREEN_BOTTOM_CENTER -> {
+                        val x = screenBounds.x + (screenBounds.width - toast.width) / 2
+                        val y = screenBounds.y + screenBounds.height - toast.height - 50
+                        Point(x, y)
+                    }
+                }
+            }
+        } else {
+            // No owner: bottom-center of screen
+            val x = screenBounds.x + (screenBounds.width - toast.width) / 2
+            val y = screenBounds.y + screenBounds.height - toast.height - 50
+            Point(x, y)
+        }
+
+        // Clip to visible screen bounds with small margin
+        val margin = 4
+        val clampedX = targetPoint.x.coerceIn(screenBounds.x + margin, screenBounds.x + screenBounds.width - toast.width - margin)
+        val clampedY = targetPoint.y.coerceIn(screenBounds.y + margin, screenBounds.y + screenBounds.height - toast.height - margin)
+
+        toast.location = Point(clampedX, clampedY)
         toast.isVisible = true
 
-        // Use a Timer to automatically hide and dispose of the toast after the duration.
         Timer(durationMillis.toInt()) {
             toast.dispose()
         }.apply {
             isRepeats = false
             start()
         }
+    }
+
+    /**
+     * Backward-compatible overload: accept Frame? and delegate.
+     */
+    fun show(owner: Frame?, message: String, durationMillis: Long = 3000) {
+        show(owner as Component?, message, durationMillis, Placement.SCREEN_BOTTOM_CENTER)
     }
 }

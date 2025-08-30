@@ -57,9 +57,18 @@ abstract class Container: JPanel(GridBagLayout()), Element {
     fun toggleButton(offText: String, onText: String,
                      initial: Boolean = false, weightX: Number = 0.0,
                      onToggle: (Boolean) -> Unit, init: KToggleButton.() -> Unit = {}): KToggleButton {
-        val btn = KToggleButton(offText, onText, initial, onToggle)
+        val btn = KToggleButton(offText, onText, initial) { new -> onToggle.invoke(new); true }
         return initComponent(btn, weightX, null, init)
-    }
+}
+
+// Convenience: vetoable builder that sets the beforeToggle hook.
+fun toggleButtonVetoable(offText: String, onText: String,
+                         initial: Boolean = false, weightX: Number = 0.0,
+                         onToggleAttempt: (Boolean) -> Boolean,
+                         init: KToggleButton.() -> Unit = {}): KToggleButton {
+    val btn = KToggleButton(offText, onText, initial, onToggleAttempt)
+    return initComponent(btn, weightX, null, init)
+}
 
     fun toggleButtonByPreference(prefKey: String, offText: String, onText: String,
                                  weightX: Number = 0.0, init: KToggleButton.() -> Unit = {}): KToggleButton {
@@ -297,18 +306,38 @@ class KButton(text: String, onClick: () -> Unit) : JButton(text), Element {
     }
 }
 
-class KToggleButton(private val offText: String, private val onText: String,
-                    initial: Boolean, onToggle: (Boolean) -> Unit) : JToggleButton(), Element {
+class KToggleButton(
+    private val offText: String,
+    private val onText: String,
+    initial: Boolean,
+    // Merged listener: return true to commit, false to cancel
+    private val onToggleAttempt: (Boolean) -> Boolean
+) : JToggleButton(), Element {
+
+    // Guard to prevent recursion when we programmatically revert a canceled toggle
+    private var programmaticChange = false
+
     init {
         this.isSelected = initial
-        this.text = if(this.isSelected) onText else offText
+        this.text = if (this.isSelected) onText else offText
         addItemListener { e ->
-            this.text = when(e.stateChange){
-                ItemEvent.SELECTED -> onText
-                ItemEvent.DESELECTED -> offText
-                else -> ""
+            if (programmaticChange) return@addItemListener
+
+            val newSelected = (e.stateChange == ItemEvent.SELECTED)
+
+            // Ask the single merged listener; cancel by reverting if not allowed
+            val allowed = try { onToggleAttempt(newSelected) } catch (_: Exception) { false }
+            if (!allowed) {
+                programmaticChange = true
+                val oldSelected = !newSelected
+                this.isSelected = oldSelected
+                this.text = if (oldSelected) onText else offText
+                programmaticChange = false
+                return@addItemListener
             }
-            onToggle.invoke(e.stateChange == ItemEvent.SELECTED)
+
+            // Commit UI text; selection is already newSelected
+            this.text = if (newSelected) onText else offText
         }
     }
 }
