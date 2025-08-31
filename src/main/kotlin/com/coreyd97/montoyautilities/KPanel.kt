@@ -54,6 +54,10 @@ abstract class Container: JPanel(GridBagLayout()), Element {
         return initComponent(KSeparator(orientation), init = {})
     }
 
+    fun component(comp: Component, weightX: Number = 0.0, weightY: Number = 0.0, init: JComponent.() -> Unit = {}): JComponent {
+        return initComponent(KComponent(comp), weightX, weightY, init)
+    }
+
     fun toggleButton(offText: String, onText: String,
                      initial: Boolean = false, weightX: Number = 0.0,
                      onToggle: (Boolean) -> Unit, init: KToggleButton.() -> Unit = {}): KToggleButton {
@@ -347,6 +351,13 @@ class KField(text: String) : JTextField(text), Element {
 
 class KLabel(text: String) : JLabel(text), Element {
 
+}
+
+private class KComponent(comp: Component) : JComponent(), Element {
+    init {
+        this.layout = BorderLayout()
+        this.add(comp, BorderLayout.CENTER)
+    }
 }
 
 // Builder functions

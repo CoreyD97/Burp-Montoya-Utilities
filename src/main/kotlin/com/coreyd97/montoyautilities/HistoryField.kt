@@ -15,8 +15,11 @@ import kotlin.String
 /**
  * Created by corey on 05/09/17.
  */
-class HistoryField(preferenceKey: String, private val maxHistory: Int) : JComboBox<String?>() {
+class HistoryField(preferenceKey: String, private val maxHistory: Int, private val onChange: (String) -> Unit = {}) : JComboBox<String?>() {
     private val history by Preference(preferenceKey, mutableListOf<String>())
+    private var selected by Preference("${preferenceKey}_selected", "")
+    // Suppress listener during programmatic updates
+    private var suppressEvents = false
 
     init {
         this.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE)
@@ -25,6 +28,7 @@ class HistoryField(preferenceKey: String, private val maxHistory: Int) : JComboB
 
     private fun configureComponent() {
         this.setModel(HistoryComboModel())
+        this.selectedItem = selected
         this.setEditor(object : BasicComboBoxEditor() {
             override fun createEditorComponent(): JTextField {
                 val editorComponent = JTextField()
@@ -44,7 +48,6 @@ class HistoryField(preferenceKey: String, private val maxHistory: Int) : JComboB
                         if (undoManager.canUndo()) undoManager.undo()
                     }
                 })
-
                 actionMap.put("Redo", object : AbstractAction("Redo") {
                     override fun actionPerformed(e: ActionEvent) {
                         if (undoManager.canUndo()) undoManager.redo()
@@ -59,12 +62,28 @@ class HistoryField(preferenceKey: String, private val maxHistory: Int) : JComboB
         })
         this.addItemListener { e: ItemEvent ->
             if (e.stateChange == ItemEvent.SELECTED) {
-                val selectedItem = this.selectedItem as String
+                if (suppressEvents) return@addItemListener
+                val selectedItem = this.selectedItem as? String ?: return@addItemListener
                 (model as HistoryComboModel).addToHistory(selectedItem)
+                selected = selectedItem
+                onChange(selectedItem)
             }
         }
         this.setEditable(true)
         this.setOpaque(true)
+    }
+
+    /**
+     * Programmatically set the value without triggering the change listener
+     * or updating history.
+     */
+    fun setValueSilently(value: String?) {
+        suppressEvents = true
+        try {
+            this.selectedItem = value
+        } finally {
+            suppressEvents = false
+        }
     }
 
     fun setForegroundColor(color: Color?) {
