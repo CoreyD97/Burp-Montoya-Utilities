@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent
 import java.awt.event.ItemEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
-import java.lang.Boolean
 import javax.swing.*
 import javax.swing.plaf.basic.BasicComboBoxEditor
 import javax.swing.undo.UndoManager
@@ -15,14 +14,19 @@ import kotlin.String
 /**
  * Created by corey on 05/09/17.
  */
-class HistoryField(preferenceKey: String, private val maxHistory: Int, private val onChange: (String) -> Unit = {}) : JComboBox<String?>() {
-    private val history by Preference(preferenceKey, mutableListOf<String>())
+class HistoryField(
+    preferenceKey: String,
+    private val maxHistory: Int,
+    private val onBeforeChange: (String) -> Boolean = { true },
+    private val onChange: (String) -> Unit = {}
+) : JComboBox<String?>() {
+    private val history: LinkedHashSet<String> by Preference(preferenceKey, LinkedHashSet<String>())
     private var selected by Preference("${preferenceKey}_selected", "")
     // Suppress listener during programmatic updates
     private var suppressEvents = false
 
     init {
-        this.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE)
+        this.putClientProperty("JComboBox.isTableCellEditor", true)
         configureComponent()
     }
 
@@ -62,11 +66,24 @@ class HistoryField(preferenceKey: String, private val maxHistory: Int, private v
         })
         this.addItemListener { e: ItemEvent ->
             if (e.stateChange == ItemEvent.SELECTED) {
-                if (suppressEvents) return@addItemListener
-                val selectedItem = this.selectedItem as? String ?: return@addItemListener
-                (model as HistoryComboModel).addToHistory(selectedItem)
-                selected = selectedItem
-                onChange(selectedItem)
+                val proposed = this.selectedItem as? String ?: return@addItemListener
+
+                // Veto support: if onBeforeChange returns false, revert and exit
+                if (!suppressEvents && !onBeforeChange(proposed)) {
+                    suppressEvents = true
+                    try {
+                        // Restore previous selection/visuals
+                        this.selectedItem = selected
+                        (editor.editorComponent as? JTextField)?.text = selected
+                    } finally {
+                        suppressEvents = false
+                    }
+                    return@addItemListener
+                }
+
+                (model as HistoryComboModel).addToHistory(proposed)
+                selected = proposed
+                if(!suppressEvents) onChange(proposed)
             }
         }
         this.setEditable(true)
@@ -94,14 +111,14 @@ class HistoryField(preferenceKey: String, private val maxHistory: Int, private v
         this.getEditor().editorComponent.setBackground(color)
     }
 
-    inner class HistoryComboModel : DefaultComboBoxModel<String?>() {
-        fun addToHistory(`val`: String) {
-            if (`val` == "") return
-            history.remove(`val`) //Remove in case it was already in the list
-            history.addFirst(`val`) //Add to the top of the list
+    inner class HistoryComboModel : DefaultComboBoxModel<String>() {
+        fun addToHistory(entry: String) {
+            if (entry.isNullOrBlank()) return
+            history.remove(entry) //Remove in case it was already in the list
+            history.add(entry) //Add to the top of the list
 
-            while (history.size > maxHistory) history.removeLast()
-            this.fireContentsChanged(`val`, 0, history.size)
+            while (history.size > maxHistory) history.removeFirst()
+            this.fireContentsChanged(entry, 0, history.size)
         }
 
         override fun getSize(): Int {
@@ -109,7 +126,7 @@ class HistoryField(preferenceKey: String, private val maxHistory: Int, private v
         }
 
         override fun getElementAt(i: Int): String {
-            return history[i]
+            return history.elementAt(history.size-1-i)
         }
     }
 }
