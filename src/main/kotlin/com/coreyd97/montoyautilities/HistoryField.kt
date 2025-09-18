@@ -68,16 +68,8 @@ class HistoryField(
             if (e.stateChange == ItemEvent.SELECTED) {
                 val proposed = this.selectedItem as? String ?: return@addItemListener
 
-                // Veto support: if onBeforeChange returns false, revert and exit
+                // Veto support: if onBeforeChange returns false exit but do not revert.
                 if (!suppressEvents && !onBeforeChange(proposed)) {
-                    suppressEvents = true
-                    try {
-                        // Restore previous selection/visuals
-                        this.selectedItem = selected
-                        (editor.editorComponent as? JTextField)?.text = selected
-                    } finally {
-                        suppressEvents = false
-                    }
                     return@addItemListener
                 }
 

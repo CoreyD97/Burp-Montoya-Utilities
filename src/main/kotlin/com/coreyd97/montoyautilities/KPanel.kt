@@ -13,7 +13,10 @@ interface Element {
 }
 
 abstract class Container: JPanel(GridBagLayout()), Element {
-    val gbc = GridBagConstraints()
+    val gbc = GridBagConstraints().also {
+        it.gridx = 0
+        it.gridy = 0
+    }
 
     protected fun <T : Element> initComponent(tag: T, weightX: Number? = null,
                                               weightY: Number? = null, init: T.() -> Unit): T {
@@ -25,7 +28,10 @@ abstract class Container: JPanel(GridBagLayout()), Element {
 
     protected fun <T: Element> initComponent(tag: T, gbc: GridBagConstraints, init: T.() -> Unit): T {
         tag.init()
-
+        val gbc = gbc.clone() as GridBagConstraints
+        if(tag is Container){
+            gbc.insets = Insets(0,0,0,0)
+        }
         addChild(tag, gbc)
 //        val color = Color(Random.nextInt(256), Random.nextInt(256), Random.nextInt(256))
 //        with((tag as JComponent)) { //visual debugging aid
@@ -46,8 +52,17 @@ abstract class Container: JPanel(GridBagLayout()), Element {
         return initComponent(KButton(text, onClick), weightX, null, init)
     }
 
-    fun spacer(width: Int = 0, height: Int = 0): KSpacer {
+    fun fixedSpacer(width: Int = 0, height: Int = 0): KSpacer {
         return initComponent(KSpacer(width, height), init = {})
+    }
+
+    fun filler(weightX: Number = 0, weightY: Number = 0) {
+        val elem = KSpacer(1,1)
+        elem.border = BorderFactory.createTitledBorder("Test")
+        val gbclocal = gbc.clone() as GridBagConstraints
+        gbclocal.weightx = weightX.toDouble()
+        gbclocal.weighty = weightY.toDouble()
+        return addChild(elem, gbclocal)
     }
 
     fun separator(orientation: Int): KSeparator {
