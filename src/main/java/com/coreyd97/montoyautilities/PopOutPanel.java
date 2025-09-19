@@ -6,6 +6,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
+import static com.coreyd97.montoyautilities.MontoyaUtilities.montoya;
+
 /**
  * Created by corey on 24/08/17.
  */
@@ -20,7 +22,7 @@ public class PopOutPanel extends JPanel {
     private JFrame popoutFrame;
     private JMenuItem popoutMenuItem;
 
-    public PopOutPanel(MontoyaApi montoyaApi){
+    public PopOutPanel(){
         this.setLayout(new BorderLayout());
         this.componentWrapper = new JPanel(new BorderLayout());
         this.add(componentWrapper, BorderLayout.CENTER);
@@ -41,29 +43,27 @@ public class PopOutPanel extends JPanel {
             }
         }), gbc);
 
-        montoyaApi.extension().registerUnloadingHandler(() -> {
+        montoya.extension().registerUnloadingHandler(() -> {
             if (this.popoutFrame == null) return;
             popoutFrame.dispose();
         });
     }
 
     /**
-     * @param montoyaApi Burp's Montoya API
      * @param component The component to display
      * @param title The title for the popout window
      */
-    public PopOutPanel(MontoyaApi montoyaApi, Component component, String title){
-        this(montoyaApi, component, title, true);
+    public PopOutPanel(Component component, String title){
+        this(component, title, true);
     }
 
     /**
-     * @param montoyaApi Burp's Montoya API
      * @param component The component to display
      * @param title The title for the popout window
      * @param showPlaceholder Display a placeholder in place of the component when popped out.
      */
-    public PopOutPanel(MontoyaApi montoyaApi, Component component, String title, boolean showPlaceholder){
-        this(montoyaApi);
+    public PopOutPanel(Component component, String title, boolean showPlaceholder){
+        this();
         this.component = component;
         this.title = title;
         this.showPlaceholder = showPlaceholder;

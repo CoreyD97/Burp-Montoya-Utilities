@@ -110,7 +110,7 @@ public class TestExtension implements BurpExtension, ILogProvider {
             @Override
             public void run() {
                 TestExtension.this.extensionPanel = buildUI();
-                TestExtension.this.popOutPanel = new PopOutPanel(montoya, extensionPanel, "Extension Test");
+                TestExtension.this.popOutPanel = new PopOutPanel(extensionPanel, "Extension Test");
                 JMenu menu = new JMenu("Extension Test");
                 menu.add(new JMenuItem(new AbstractAction("Pop In/Out") {
                     @Override
