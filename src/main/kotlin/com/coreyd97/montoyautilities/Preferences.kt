@@ -127,8 +127,8 @@ class BurpPreference<T : @Serializable Any?>(
     }
 
     private fun saveValue() {
-        if(storage == StorageType.TEMP) return //Don't actually save it.
-        if(serializer == null){
+        if(!initialized || storage == StorageType.TEMP) return //Don't actually save it.
+        if(serializer == null && value != null){
             throw IllegalStateException("No serializer found for com.coreyd97.montoyautilities.preference $key. Try specifying the serializer.")
         }
         if(value == null){
