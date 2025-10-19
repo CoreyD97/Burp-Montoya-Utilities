@@ -25,7 +25,7 @@ repositories {
 
 dependencies {
     implementation 'net.portswigger.burp.extensions:montoya-api:2025.8'
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json-okio-jvm:1.7.1"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1"
 
     testRuntimeOnly files("${System.properties['user.home']}/BurpSuitePro/burpsuite_pro.jar")
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
@@ -44,7 +44,7 @@ jar{
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-task testJar(type: Jar) {
+tasks.register('testJar', Jar) {
 //    baseName = project.name + "-TEST"
     dependsOn testClasses
     sourceSets.main.output.each {
@@ -64,6 +64,6 @@ task testJar(type: Jar) {
 
 }
 
-tasks.withType(Jar) {
+tasks.withType(Jar).configureEach {
     destinationDirectory = file("$rootDir/releases")
 }
