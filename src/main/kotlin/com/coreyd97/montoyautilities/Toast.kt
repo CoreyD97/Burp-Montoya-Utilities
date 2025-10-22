@@ -1,6 +1,7 @@
 package com.coreyd97.montoyautilities
 
 import java.awt.*
+import java.lang.IllegalArgumentException
 import javax.swing.*
 
 /**
@@ -50,11 +51,7 @@ object ToastNotification {
             font = font.deriveFont(Font.BOLD, 14f)
         }
 
-        panel.add(label)
-        toast.contentPane = panel
-        toast.pack()
 
-        // Compute location
         val screenBounds = (windowOwner ?: GraphicsEnvironment.getLocalGraphicsEnvironment()
             .defaultScreenDevice.defaultConfiguration.device)
             .let {
@@ -63,6 +60,16 @@ object ToastNotification {
                 (gc ?: GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice.defaultConfiguration).bounds
             }
 
+        label.maximumSize = Dimension(screenBounds.width - 50, screenBounds.height - 50)
+        panel.add(label)
+        if(label.preferredSize.width > screenBounds.width || label.preferredSize.height > screenBounds.height) {
+            toast.contentPane = JScrollPane(panel)
+        }else {
+            toast.contentPane = panel
+        }
+        toast.pack()
+
+        // Compute location
         val targetPoint: Point = if (owner != null) {
             // Owner-relative placement using absolute screen coords
             val base = try {
@@ -115,8 +122,21 @@ object ToastNotification {
 
         // Clip to visible screen bounds with small margin
         val margin = 4
-        val clampedX = targetPoint.x.coerceIn(screenBounds.x + margin, screenBounds.x + screenBounds.width - toast.width - margin)
-        val clampedY = targetPoint.y.coerceIn(screenBounds.y + margin, screenBounds.y + screenBounds.height - toast.height - margin)
+        var clampedX: Int
+        var clampedY: Int
+        try {
+            clampedX = targetPoint.x.coerceIn(
+                screenBounds.x + margin,
+                screenBounds.x + screenBounds.width - toast.width - margin
+            )
+            clampedY = targetPoint.y.coerceIn(
+                screenBounds.y + margin,
+                screenBounds.y + screenBounds.height - toast.height - margin
+            )
+        }catch (_: IllegalArgumentException){
+            clampedX = screenBounds.x + (screenBounds.width - toast.width) / 2
+            clampedY = screenBounds.y + screenBounds.height - toast.height - 50
+        }
 
         toast.location = Point(clampedX, clampedY)
         toast.isVisible = true
