@@ -1,7 +1,7 @@
 plugins {
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '2.0.0'
-    id 'org.jetbrains.kotlin.plugin.serialization' version '2.0.0'
+    id 'org.jetbrains.kotlin.jvm' version '2.2.0'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '2.2.0'
 //    id "io.freefair.lombok" version "6.5.1"
 }
 
@@ -25,7 +25,7 @@ repositories {
 
 dependencies {
     implementation 'net.portswigger.burp.extensions:montoya-api:2025.8'
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0"
 
     testRuntimeOnly files("${System.properties['user.home']}/BurpSuitePro/burpsuite_pro.jar")
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
@@ -42,26 +42,6 @@ jar{
         exclude "META-INF/*.RSA"
     }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-tasks.register('testJar', Jar) {
-//    baseName = project.name + "-TEST"
-    dependsOn testClasses
-    sourceSets.main.output.each {
-        from it
-    }
-    sourceSets.test.output.each {
-        from it
-    }
-
-    sourceSets.test.runtimeClasspath.each { File f ->
-        if (f.name.endsWith('.jar')) {
-            from zipTree(f)
-        } else {
-            from f
-        }
-    }
-
 }
 
 tasks.withType(Jar).configureEach {

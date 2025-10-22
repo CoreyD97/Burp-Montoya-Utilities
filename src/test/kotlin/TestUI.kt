@@ -1,20 +1,21 @@
 import com.coreyd97.montoyautilities.Alignment
 import com.coreyd97.montoyautilities.KPanel
-import com.coreyd97.montoyautilities.kpanel
+import com.coreyd97.montoyautilities.panelBuilder
 import java.awt.BorderLayout
+import java.awt.GridLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JFrame
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
 
-public fun test(): KPanel {
-    val panel = kpanel("Test", childAlignment = Alignment.BOTTOMRIGHT) {
-//        gbc.ipadx = 50
-//        gbc.ipady = 50
-        panel("Inner") {
-            button("Text", {})
-        }
+public fun test(): JPanel {
+    val panel = JPanel(GridLayout(0,3))
+
+    for (align in Alignment.values()) {
+        panel.add(panelBuilder(align.name, align){
+            label(align.name)
+        })
     }
     return panel
 }

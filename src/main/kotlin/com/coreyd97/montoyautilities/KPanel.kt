@@ -19,14 +19,14 @@ abstract class Container: JPanel(GridBagLayout()), Element {
     }
 
     protected fun <T : Element> initComponent(tag: T, weightX: Number? = null,
-                                              weightY: Number? = null, init: T.() -> Unit): T {
+                                              weightY: Number? = null, init: T.() -> Unit = {}): T {
         val gbc = gbc.clone() as GridBagConstraints
         if(weightX != null) gbc.weightx = weightX.toDouble()
         if(weightY != null) gbc.weighty = weightY.toDouble()
         return initComponent(tag, gbc, init)
     }
 
-    protected fun <T: Element> initComponent(tag: T, gbc: GridBagConstraints, init: T.() -> Unit): T {
+    protected fun <T: Element> initComponent(tag: T, gbc: GridBagConstraints, init: T.() -> Unit = {}): T {
         tag.init()
         val gbc = gbc.clone() as GridBagConstraints
         if(tag is Container){
@@ -56,20 +56,16 @@ abstract class Container: JPanel(GridBagLayout()), Element {
         return initComponent(KSpacer(width, height), init = {})
     }
 
-    fun filler(weightX: Number = 0, weightY: Number = 0) {
+    fun filler(weightX: Number = 0, weightY: Number = 0): KSpacer {
         val elem = KSpacer(1,1)
-        elem.border = BorderFactory.createTitledBorder("Test")
-        val gbclocal = gbc.clone() as GridBagConstraints
-        gbclocal.weightx = weightX.toDouble()
-        gbclocal.weighty = weightY.toDouble()
-        return addChild(elem, gbclocal)
+        return initComponent(elem, weightX, weightY)
     }
 
     fun separator(orientation: Int): KSeparator {
         return initComponent(KSeparator(orientation), init = {})
     }
 
-    fun component(comp: Component, weightX: Number = 0.0, weightY: Number = 0.0, init: JComponent.() -> Unit = {}): JComponent {
+    fun component(comp: Component, weightX: Number? = null, weightY: Number? = null, init: JComponent.() -> Unit = {}): JComponent {
         return initComponent(KComponent(comp), weightX, weightY, init)
     }
 
@@ -116,7 +112,7 @@ fun toggleButtonVetoable(offText: String, onText: String,
 
     fun checkBoxByPreference(label: String = "", prefKey: String,
                              weightX: Number = 0.0, init: KCheckBox.() -> Unit = {}): KCheckBox {
-        var checkBox: KCheckBox? = null
+        lateinit var checkBox: KCheckBox
         var pref by PreferenceProxy<Boolean>(prefKey) { _, new ->
             val cb = checkBox ?: return@PreferenceProxy
             if (cb.isSelected != new) {
@@ -131,7 +127,7 @@ fun toggleButtonVetoable(offText: String, onText: String,
             pref = new
         }
         checkBox = checkBox(label, pref, onToggle, weightX, init)
-        return checkBox!!
+        return checkBox
     }
 
     fun <T: Number> spinner(value: T, min: Comparable<T>?, max: Comparable<T>?, step: T,
@@ -159,7 +155,7 @@ fun toggleButtonVetoable(offText: String, onText: String,
         return spinner
     }
 
-    fun textByPreference(label: String? = null, prefKey: String, weightX: Number = 0.0, init: KField.() -> Unit = {}): KField {
+    fun textByPreference(prefKey: String, label: String? = null, weightX: Number = 0.0, init: KField.() -> Unit = {}): KField {
         var field: KField? = null
         var preference by PreferenceProxy<String>(prefKey){ _, new ->
             val f = field ?: return@PreferenceProxy
@@ -187,19 +183,48 @@ fun toggleButtonVetoable(offText: String, onText: String,
         val field = KField(text)
         field.init()
         //Our row should be the one we control the weight of
-        initComponent(row(null, weightX) {
+        row(null, weightX) {
             if(label != null) label(label)
             val gbc: GridBagConstraints = gbc.clone() as GridBagConstraints
             //Our field should fill the row. Label is 0.0
             gbc.weightx = 1.0
             gbc.fill = GridBagConstraints.BOTH
             addChild(field, gbc)
-        }) {}
+        }
         return field
     }
 
+
+    fun <T> dropdown(options: Array<T>, initial: T? = null, weightX: Number? = 0.0, init: KDropdown<T>.() -> Unit = {}): KDropdown<T> {
+        val dropdown = KDropdown(options, initial)
+        return initComponent(dropdown, weightX, init = init)
+    }
+
+    inline fun <reified T> dropdownByPreference(prefKey: String, options: Array<T>, weightX: Number? = 0.0, noinline init: KDropdown<T>.() -> Unit = {}): KDropdown<T> {
+        var dropdown: KDropdown<T>? = null
+        val preference by PreferenceProxy(prefKey, serializer = serializer<T>()) { _, new ->
+            val f = dropdown ?: return@PreferenceProxy
+            if (f.selectedItem != new) {
+                val updater = { f.selectedItem = new }
+                if (SwingUtilities.isEventDispatchThread()) updater() else SwingUtilities.invokeLater(updater)
+            }
+        }
+        dropdown = dropdown(options, preference, weightX, init)
+        return dropdown
+    }
+
+
     fun row(title: String? = null, weightX: Number? = null, weightY: Number? = null, init: KRow.() -> Unit): KRow {
         return initComponent(KRow(title), weightX, weightY, init)
+    }
+    
+    fun column(title: String?, weightX: Number? = null, weightY: Number? = null, init: KCol.() -> Unit): KCol {
+        return initComponent(KCol(title), weightX, weightY, init)
+    }
+
+    fun grid(rows: Int, cols: Int, title: String? = null, weightX: Number? = null, weightY: Number? = null, init: KGrid.() -> Unit): KGrid {
+        val panel = KGrid(title, rows, cols)
+        return initComponent(panel, weightX, weightY, init)
     }
 
     fun panel(title: String? = null, weightX: Number? = null, weightY: Number? = null, init: KPanel.() -> Unit): KPanel {
@@ -221,7 +246,7 @@ enum class Alignment {
 }
 
 // Concrete GUI elements
-open class KPanel(title: String? = null, childAlignment: Alignment? = null) : Container() {
+open class KPanel internal constructor(title: String? = null, childAlignment: Alignment? = null) : Container() {
 
     init {
         if (title != null) {
@@ -232,15 +257,13 @@ open class KPanel(title: String? = null, childAlignment: Alignment? = null) : Co
         gbc.gridy = 0
         if(childAlignment != null) {
             gbc.anchor = mapToAnchor(childAlignment)
-            gbc.weightx = 1.0
-            gbc.weighty = 1.0
             if (childAlignment == Alignment.FILL) {
                 gbc.fill = GridBagConstraints.BOTH
             }else{
                 gbc.fill = GridBagConstraints.NONE
             }
         } else {
-            gbc.anchor = GridBagConstraints.FIRST_LINE_START
+            gbc.anchor = GridBagConstraints.CENTER
             gbc.fill = GridBagConstraints.HORIZONTAL
             gbc.weightx = 1.0
         }
@@ -248,13 +271,13 @@ open class KPanel(title: String? = null, childAlignment: Alignment? = null) : Co
     }
 
     override fun add(comp: Component?): Component {
-        assert(comp != null)
+        require(comp != null) {"Component cannot be null."}
         val gbc = gbc.clone() as GridBagConstraints
         if (gbc.fill == GridBagConstraints.NONE) {
             // If nothing specified, default to horizontal fill for nicer layout
             gbc.fill = GridBagConstraints.HORIZONTAL
         }
-        add(comp!!, gbc)
+        add(comp, gbc)
         this.gbc.gridy++
         return comp
     }
@@ -266,7 +289,7 @@ open class KPanel(title: String? = null, childAlignment: Alignment? = null) : Co
     }
 }
 
-class KRow(title: String? = null) : KPanel(title) {
+class KRow internal constructor(title: String? = null) : KPanel(title) {
 
     override fun add(comp: Component?): Component {
         assert(comp != null)
@@ -288,14 +311,89 @@ class KRow(title: String? = null) : KPanel(title) {
     }
 }
 
-class KSpinner<T : Number>(initial: T, min: Comparable<T>?,
+class KCol internal constructor(title: String? = null) : KPanel(title) {
+    override fun add(comp: Component?): Component {
+        assert(comp != null)
+        val gbc = gbc.clone() as GridBagConstraints
+        // Rows default to horizontal fill, lay out left-to-right
+        if (gbc.fill == GridBagConstraints.NONE) {
+            gbc.fill = GridBagConstraints.HORIZONTAL
+        }
+        add(comp!!, gbc)
+        this.gbc.gridy++
+        return comp
+    }
+
+    override fun addChild(element: Element, gbc: GridBagConstraints) {
+        val gbc = gbc.clone() as GridBagConstraints
+
+        add(element as JComponent, gbc)
+        this.gbc.gridy++
+    }
+}
+
+class KGrid internal constructor(title: String? = null,
+                                 val rows: Int, val columns: Int,
+                                 val rowWeights: DoubleArray = DoubleArray(rows),
+                                 val columnWeights: DoubleArray = DoubleArray(columns),
+    ) : KPanel(title), Element {
+
+    init {
+        with(gbc){
+            gridx = 0
+            gridy = 0
+            gridwidth = 1
+            gridheight = 1
+            weightx = 1.0
+            weighty = 1.0
+        }
+        require(rows >= 0) { "Rows must be >= 0" }
+        require(columns > 0) { "Cols must be > 0" }
+        with(this.layout as GridBagLayout) {
+            this.rowWeights = this@KGrid.rowWeights
+            this.columnWeights = this@KGrid.columnWeights
+        }
+    }
+
+    override fun add(comp: Component?): Component {
+        assert(comp != null)
+        val gbc = gbc.clone() as GridBagConstraints
+        add(comp!!, gbc)
+        nextPos()
+        return comp
+    }
+
+    override fun addChild(element: Element, gbc: GridBagConstraints) {
+        val gbc = gbc.clone() as GridBagConstraints
+        add(element as JComponent, gbc)
+        nextPos()
+    }
+
+    private fun nextPos(){
+        if(this.gbc.gridx == columns-1){
+            //New Row
+            this.gbc.gridx = 0
+            this.gbc.gridy++
+        }else {
+            this.gbc.gridx += gbc.gridwidth
+        }
+    }
+}
+
+class KDropdown <T> internal constructor(options: Array<T>, initial: T? = null): JComboBox<T>(options), Element {
+    init {
+        selectedItem = initial
+    }
+}
+
+class KSpinner <T : Number> internal constructor(initial: T, min: Comparable<T>?,
                max: Comparable<T>?, step: T): JSpinner(), Element {
     init {
         this.model = SpinnerNumberModel(initial, min, max, step)
     }
 }
 
-class KCheckBox(label: String = "", checked: Boolean,
+class KCheckBox internal constructor(label: String = "", checked: Boolean,
                 onToggle: (Boolean) -> Unit): JCheckBox(label, checked), Element {
     init {
         addItemListener { e ->
@@ -304,7 +402,7 @@ class KCheckBox(label: String = "", checked: Boolean,
     }
 }
 
-class KSpacer(width: Number = 0, height: Number = 0): JPanel(), Element {
+class KSpacer internal constructor(width: Number = 0, height: Number = 0): JPanel(), Element {
     init {
         val size = Dimension(width.toInt(), height.toInt())
         preferredSize = size
@@ -314,10 +412,10 @@ class KSpacer(width: Number = 0, height: Number = 0): JPanel(), Element {
     }
 }
 
-class KSeparator(orientation: Int): JSeparator(orientation), Element
+class KSeparator internal constructor(orientation: Int): JSeparator(orientation), Element
 
 
-class KButton(text: String, onClick: () -> Unit) : JButton(text), Element {
+class KButton internal constructor(text: String, onClick: () -> Unit) : JButton(text), Element {
     init {
         addActionListener {
             onClick.invoke()
@@ -325,7 +423,7 @@ class KButton(text: String, onClick: () -> Unit) : JButton(text), Element {
     }
 }
 
-class KToggleButton(
+class KToggleButton internal constructor(
     private val offText: String,
     private val onText: String,
     initial: Boolean,
@@ -361,14 +459,14 @@ class KToggleButton(
     }
 }
 
-class KField(text: String) : JTextField(text), Element {
+class KField internal constructor(text: String) : JTextField(text), Element {
 }
 
-class KLabel(text: String) : JLabel(text), Element {
+class KLabel internal constructor(text: String) : JLabel(text), Element {
 
 }
 
-private class KComponent(comp: Component) : JComponent(), Element {
+private class KComponent internal constructor(comp: Component) : JComponent(), Element {
     init {
         this.layout = BorderLayout()
         this.add(comp, BorderLayout.CENTER)
@@ -376,10 +474,16 @@ private class KComponent(comp: Component) : JComponent(), Element {
 }
 
 // Builder functions
-fun kpanel(title: String? = null, childAlignment: Alignment? = null, init: KPanel.() -> Unit): KPanel {
-    val panel = KPanel(title, childAlignment)
-    panel.init()
-    return panel
+fun panelBuilder(title: String? = null, childAlignment: Alignment? = null, init: KPanel.() -> Unit): KPanel {
+    val wrapper = KPanel(null, childAlignment)
+    val wrapperInit: KPanel.() -> Unit = {
+        gbc.weightx = 1.0
+        gbc.weighty = 1.0
+        panel(title, init = init)
+    }
+    wrapper.wrapperInit()
+
+    return wrapper
 }
 
 //fun krow(title: String?, init: KRow.() -> Unit): KRow {
@@ -388,7 +492,7 @@ fun kpanel(title: String? = null, childAlignment: Alignment? = null, init: KPane
 //    return row
 //}
 
-fun mapToAnchor(alignment: Alignment): Int {
+internal fun mapToAnchor(alignment: Alignment): Int {
     return when (alignment) {
         Alignment.TOPLEFT -> GridBagConstraints.FIRST_LINE_START
         Alignment.TOPMIDDLE -> GridBagConstraints.PAGE_START
