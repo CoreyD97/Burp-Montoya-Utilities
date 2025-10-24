@@ -160,6 +160,7 @@ open class NullablePreference<T : @Serializable Any?>(
             _pref = preferences.getOrPut(key) {
                 BurpPreference(key, default, storage, customSerializer)
             } as BurpPreference<T>
+            if(customSerializer != null && _pref.serializer == null) _pref.serializer = customSerializer
             if(listener != null) _pref.listeners.add(listener)
         }catch (e: ClassCastException){
             throw RuntimeException("com.coreyd97.montoyautilities.Preference $key was previously declared as a different type.")
