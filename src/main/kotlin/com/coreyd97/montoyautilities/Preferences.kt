@@ -17,7 +17,7 @@ enum class StorageType { PROJECT, EXTENSION, TEMP }
 private val montoya: MontoyaApi = MontoyaUtilities.montoya
 private val preferenceData: Preferences = montoya.persistence().preferences()
 private val projectData: PersistedObject = montoya.persistence().extensionData()
-private val json = Json { ignoreUnknownKeys = true }
+private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 private val preferences: MutableMap<String, BurpPreference<*>> = mutableMapOf()
 
 
